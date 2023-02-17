@@ -21,4 +21,4 @@
 
 5. User wants guidance on H&E stained image analysis for diagnosis  
     - User inputs: H&E stained image(s)
-    - User receives: Locations of high immune cell density for further analysis   
+    - User receives: Locations of high immune cell density for further analysis
