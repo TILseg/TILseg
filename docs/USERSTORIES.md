@@ -7,7 +7,7 @@ Bob is a graduate student whose research focuses on developing translational can
 Maria is a research scientist whose work requires use and analysis of H&E stained images. From these images, Maria must be able to identify and enumerate immune cells in the sample. She will use this software package to aquire these parameters from recently aquired H&E stained images. Maria does not have a programming background. She hopes to integrate this software into a larger workflow that evaluates treatment outcomes based on disease subtypes.
 <br>
 <br>
-**Distance Future User: Biotechnology Software Developer (Alice)**<br>
+**Distant Future User: Biotechnology Software Developer (Alice)**<br>
 Alice works at an imaging machine manufacturer as a software developer. She is looking to create similar software that works directly with a new machine developed by her employer. To this end, the imaging machine would automate image segmentation of H&E stained images. Alice will work directly with the python scripts from this project. Alice is techincally advanced, and specialzies in image processing. However, she has no experience with H&E stained images. She hopes that this software will inform her of the unique challenges associated with H&E stained images. Like Bob, Alice needs well documented software to inform her design.
 <br>
 <br>
