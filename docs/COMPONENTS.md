@@ -1,29 +1,43 @@
+Component 1: Patch Generator 
+Access Whole Slide Image 
+Turn Image into Patches
+Filter Patches - Call Function 2
+Save Patches based on background pixel count
 
-Components
-<br>
-<b>Image Accessor</b>: access user designated image
-<ul>
-<li>input: file path</li>
-<li>output: compressed image file</li>
-</ul>
-<b>Patch Extractor</b>: extract patches from image
-<ul>
-<li>input: raw image</li>
-<li>output: one numpy array representative of one patch</li>
-</ul>
-<b>Data Preprocessing</b>
-<b>Cluser Array</b>
-<b>Data Postprocessing</b>
-<br>
-<br>
+Component 2: Image Filter
+Access Patch
+Implement trained model for background removal
+Output background pixel count
 
--decompress patch file
--read patch into a numpy array
--data preprocessing?
--cluster array?
--data post processing? (filtering out immune cells)
--extract the next patch
--repeat the process for all patches
--generate image overlay with TILs clusters
--generate statistics about cluster?
--
+Component 3: Superpatch Generator (collection of patches from different H&E images)
+Access saved patches
+Append to form superpatches
+Output directory of superpatches
+
+Component 4: Cluster Model Fitter  
+Access saved superpatches
+Fit clustering model to superpatch
+Output clustering model
+
+Component 5: Cluster Predictor
+Apply generic clustering model
+Output labeled image with clusters assigned to pixels 
+
+Component 6: Cell Group Generator
+Access labeled images with clusters
+Generate groups based on pixel location and cluster 
+Generate statistics for derived groups (size, circularity etc.)
+
+Component 7: Immune Cluster Identifier
+Access cell groups and relevant statistics
+Identify immune cell cluster based on analysis of cell group statistics
+Output immune cell groups from all clusters
+
+Component 8: Overlay Generator
+Access labeled image with clusters assigned to pixels
+Generate image files converting clusters to RGB values
+Output overlayed image and cluster location image
+
+Component 9: Statistical Summary Generator
+Access statistics for cell clusters
+Output well-formated summary and relevant data
