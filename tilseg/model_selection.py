@@ -13,6 +13,7 @@ import sklearn.base
 import sklearn.metrics
 import scipy.stats
 
+# pylint: disable=locally-disabled, too-many-arguments, too-many-locals
 
 def find_elbow(data: np.array, r2_cutoff: float = 0.9) -> int:
     """
@@ -102,10 +103,19 @@ def eval_model_hyperparameters(data: np.array,
     # Must use count instead of parameters as dict key, as dict is unhashable
     for count, parameters in enumerate(hyperparameters):
         clusterer = model(**parameters)
-        clusterer.fit(data)
-        scores[count] = metric(data, clusterer.predict(data), **kwargs)
+        clusters = clusterer.fit_predict(data)
+        # If there are not at least 2 clusters, the metric function
+        # won't be able to find a score. If there are less than 2 clusters
+        # skip this iteration of the loop
+        if len(np.unique(clusters))<2:
+            continue
+        scores[count] = metric(data, clusters, **kwargs)
         if np.isnan(scores[count]):
             raise ValueError(f"Couldn't find Score for {parameters}")
+    # If none of the hyperparameter sets were able to find at least 2 clusters,
+    # raise exception
+    if len(scores)<1:
+        raise ValueError("Unable to cluster with any of hyperparameter sets")
     if full_return:
         return scores
     if metric_direction in ["max", "maximum", "greater", "->", ">", "right", "higher"]:
@@ -124,6 +134,7 @@ def eval_model_hyperparameters(data: np.array,
                 min_val = value
                 min_val_parameters = key
         return hyperparameters[min_val_parameters]
+    return None
 
 
 def eval_models(data: np.array,
@@ -351,6 +362,8 @@ def plot_inertia(data: np.array,
         return fig
     elbow_n_cluster = find_elbow(inertia, r2_cutoff=r2_cutoff)
     elbow_inertia = inertia[np.where(inertia == elbow_n_cluster)[0][0], 1]
-    axes.scatter(elbow_n_cluster, elbow_inertia, "X-r", markersize=12)
+    axes.scatter([elbow_n_cluster], [elbow_inertia],
+                 s=256, c="red",
+                 marker="X")
     plt.savefig(file_path)
     return fig

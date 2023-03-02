@@ -1,10 +1,12 @@
 """Unittests for model selection module
 """
 # Standard Library Imports
-import unittest
 import numbers
+import os
+import unittest
 
 # External Library Imports
+import matplotlib.figure
 import numpy as np
 import sklearn.base
 import sklearn.cluster
@@ -105,4 +107,100 @@ class TestModelSelection(unittest.TestCase):
         )
         # Make sure it is a sklearn model
         self.assertIsInstance(model, sklearn.base.ClusterMixin)
-        
+    def test_eval_models_dict(self):
+        """
+        Test eval_models_dict wrapper function
+        """
+        model_dict = {
+            sklearn.cluster.KMeans:{"n_clusters":3},
+            sklearn.cluster.AgglomerativeClustering:{
+            "n_clusters":3, "linkage":"complete"}
+        }
+        # Catch fire test
+        model = tilseg.model_selection.eval_models_dict(
+            self.cluster_data,model_dict)
+        # Check if it correctly returns a model
+        self.assertIsInstance(model, sklearn.base.ClusterMixin)
+    def test_eval_models_silhouette_score(self):
+        """
+        Test eval_models_silhouette_score function
+        """
+        models = [sklearn.cluster.KMeans,
+                  sklearn.cluster.AgglomerativeClustering,
+                  sklearn.cluster.AgglomerativeClustering]
+        hyperparameters = [
+            {"n_clusters":3},
+            {"n_clusters":3, "linkage":"complete"},
+            {"n_clusters":3, "linkage":"ward"},
+        ]
+        full_return=False
+        # Catch fire test
+        model = tilseg.model_selection.eval_models_silhouette_score(
+            self.cluster_data,
+            models,
+            hyperparameters,
+            full_return
+        )
+        # Make sure it is a sklearn model
+        self.assertIsInstance(model, sklearn.base.ClusterMixin)
+    def test_eval_models_calinski_harabasz(self):
+        """
+        Test eval_models_calinski_harabasz function
+        """
+        models = [sklearn.cluster.KMeans,
+                  sklearn.cluster.AgglomerativeClustering,
+                  sklearn.cluster.AgglomerativeClustering]
+        hyperparameters = [
+            {"n_clusters":3},
+            {"n_clusters":3, "linkage":"complete"},
+            {"n_clusters":3, "linkage":"ward"},
+        ]
+        full_return=False
+        # Catch fire test
+        model = tilseg.model_selection.eval_models_calinski_harabasz(
+            self.cluster_data,
+            models,
+            hyperparameters,
+            full_return
+        )
+        # Make sure it is a sklearn model
+        self.assertIsInstance(model, sklearn.base.ClusterMixin)
+    def test_eval_models_davies_bouldin(self):
+        """
+        Test eval_models_davies_bouldin function
+        """
+        models = [sklearn.cluster.KMeans,
+                  sklearn.cluster.AgglomerativeClustering,
+                  sklearn.cluster.AgglomerativeClustering]
+        hyperparameters = [
+            {"n_clusters":3},
+            {"n_clusters":3, "linkage":"complete"},
+            {"n_clusters":3, "linkage":"ward"},
+        ]
+        full_return=False
+        # Catch fire test
+        model = tilseg.model_selection.eval_models_davies_bouldin(
+            self.cluster_data,
+            models,
+            hyperparameters,
+            full_return
+        )
+        # Make sure it is a sklearn model
+        self.assertIsInstance(model, sklearn.base.ClusterMixin)
+    def test_plot_inertia(self):
+        """
+        Test plot_inertia function
+        """
+        path = os.path.join(".","test_plot.png")
+        plot = tilseg.model_selection.plot_inertia(
+            self.cluster_data,
+            list(range(1,10)),
+            path,
+            True,
+            0.9)
+        # Check if file was succesfully crated
+        self.assertTrue(os.path.isfile(path))
+        # Delete file
+        os.remove(path)
+        # check type of plot
+        self.assertIsInstance(plot, matplotlib.figure.Figure)
