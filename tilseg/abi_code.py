@@ -85,7 +85,7 @@ def cluster_model_fitter(patch_path, algorithm, n_clusters=None):
     return model
 
 
-def silhouette_score(model, patch_path):
+def clustering_score(model, patch_path):
 
     # Reads the current patch into a numpy uint8 array 
     pred_patch = plt.imread(patch_path)
@@ -96,10 +96,13 @@ def silhouette_score(model, patch_path):
     # The result is an N X 3 array where N=height*width of the patch in pixels
     # Each value shows the label of the cluster that pixel belongs to
     labels = model.predict(pred_patch_n)
-
+    
+    # scores the clustering based on various metrics
     s_score = sklearn.metrics.silhouette_score(pred_patch.reshape((-1,3)), labels)
+    ch_score = sklearn.metrics.calinski_harabasz_score(pred_patch.reshape((-1,3)), labels)
+    db_score = sklearn.metrics.davies_bouldin_score(pred_patch.reshape((-1,3)), labels)
 
-    return s_score
+    return s_score, ch_score, db_score
 
 
 def pred_and_cluster(model, dir_path):
@@ -121,10 +124,10 @@ def pred_and_cluster(model, dir_path):
             pass
         
         # Makes sure that the model is training for 8 clusters
-        if len(model.cluster_centers_) == 8:
+        if len(model.cluster_centers_) <= 8:
             pass
         else:
-            raise ValueError("The model must be trained for 8 clusters")
+            raise ValueError("Looks like the model is being trained for more than 8 clusters. Please consider training it on less number of clusters.")
         
         # Reads the current patch into a numpy uint8 array 
         pred_patch = plt.imread(os.path.join(dir_path, file))
@@ -142,14 +145,28 @@ def pred_and_cluster(model, dir_path):
         back_img = np.uint8(np.copy(pred_patch))
         # Reassigning the cluster centers of the RGB space to custom colors for visual effects
         # Essentially creating new RGB coordinates for each cluster center
-        overlay_center[0] = np.array([255, 102, 102])/255. #Light Red
-        overlay_center[1] = np.array([153, 255, 51])/255. #Light Green
-        overlay_center[2] = np.array([0, 128, 255])/255. #Light Blue
-        overlay_center[3] = np.array([0, 255, 255])/255. #Cyan
+        cluster_center_RGB_list = [
+            np.array([0, 255, 255])/255, #Cyan
+            np.array([255, 102, 102])/255., #Light Red
+            np.array([153, 255, 51])/255, #Light Green
+            np.array([178, 102, 255])/255, #Light Purple
+            np.array([0, 128, 255])/255, #Light Blue
+            np.array([95, 95, 95])/255, #Grey
+            np.array([102, 0, 0])/255, #Maroon
+            np.array([255, 0, 127])/255 #Bright Pink
+                                   ] 
+        for i, cluster_center_RGB in enumerate(cluster_center_RGB_list[:len(model.cluster_centers_)]):
+            overlay_center[i] = cluster_center_RGB
+
+        # overlay_center[0] = np.array([255, 102, 102])/255. #Light Red
+        # overlay_center[1] = np.array([153, 255, 51])/255. #Light Green
+        # overlay_center[2] = np.array([0, 128, 255])/255. #Light Blue
+        # overlay_center[3] = np.array([0, 255, 255])/255. #Cyan
         # overlay_center[4] = np.array([178, 102, 255])/255. #Light Purple
         # overlay_center[5] = np.array([95, 95, 95])/255. #Grey
         # overlay_center[6] = np.array([102, 0, 0])/255. #Maroon
         # overlay_center[7] = np.array([255, 0, 127])/255. #Bright Pink
+
         # Iterating over each cluster centroid
         for i in range(len(overlay_center)):
             # Creating a copy of the linearized and normalized RGB array
