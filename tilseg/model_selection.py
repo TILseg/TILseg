@@ -21,8 +21,8 @@ def find_elbow(data: np.array, r2_cutoff: float = 0.9) -> int:
     ----------
     data: Cluster and inertia data, first column is number of clusters,
         second column is the intertia (pr other metric)
-    r2_cutoff: Cutoff for r2 score for the elbow, when the reamining data 
-        fits a linear regression line with 
+    r2_cutoff: Cutoff for r2 score for the elbow, when the reamining data
+        fits a linear regression line with
     Returns
     -------
     n_clusters: Ideal number of clusters based on elbow method
@@ -44,9 +44,9 @@ def find_elbow(data: np.array, r2_cutoff: float = 0.9) -> int:
 
 
 def eval_km_elbow(data: np.array,
-                   n_clusters_list: Sequence[int] = range(10),
-                   r2_cutoff=0.9, 
-                   **kwargs) -> int:
+                  n_clusters_list: Sequence[int] = range(10),
+                  r2_cutoff=0.9,
+                  **kwargs) -> int:
     """
     Function to find ideal number of clusters for knn using inertia plots and elbow method
     Parameters
@@ -84,9 +84,9 @@ def eval_model_hyperparameters(data: np.array,
     data: Data to cluster
     model: Cluster class (not object or instance) for which to evaluate the hyperparameters
     hyperparameters: Sequence (list) of dictionaries containing hyperparameters to test
-    metric: Metric to use for scoring 
+    metric: Metric to use for scoring
     metric_direction: Determines whether greater or smaller scores are better
-    full_return: whether to return all the scores, or just the best parameters 
+    full_return: whether to return all the scores, or just the best parameters
     **kwargs: Keyword arguments passed to sklearn metric function
     Returns
     -------
@@ -99,7 +99,8 @@ def eval_model_hyperparameters(data: np.array,
     # Create a dictionary to hold the scores
     scores = {}
     # Iterate through the parameters
-    for count,parameters in enumerate(hyperparameters):
+    # Must use count instead of parameters as dict key, as dict is unhashable
+    for count, parameters in enumerate(hyperparameters):
         clusterer = model(**parameters)
         clusterer.fit(data)
         scores[count] = metric(data, clusterer.predict(data), **kwargs)
@@ -133,7 +134,7 @@ def eval_models(data: np.array,
                 full_return: bool = False,
                 **kwargs):
     """
-    Function to evaluate how well different models 
+    Function to evaluate how well different models
     Parameters
     ----------
     data: np.array containing data for clustering
@@ -162,7 +163,7 @@ def eval_models(data: np.array,
         # fit the clusterer to the data
         clusterer.fit(data)
         model_scores[clusterer] = metric(
-            data, clusterer.predict(data), **kwargs)
+            data, clusterer.fit_predict(data), **kwargs)
     if full_return:
         return model_scores
     if metric_direction in ["max", "maximum", "greater", "->", ">", "right", "higher"]:
@@ -221,10 +222,11 @@ def eval_models_dict(data: np.array,
                        full_return=full_return,
                        **kwargs)
 
-def eval_models_silhouette_score(data:np.array,
-                                 models:Sequence[sklearn.base.ClusterMixin],
-                                 hyperparameters:Sequence[dict],
-                                 full_return:bool=False,
+
+def eval_models_silhouette_score(data: np.array,
+                                 models: Sequence[sklearn.base.ClusterMixin],
+                                 hyperparameters: Sequence[dict],
+                                 full_return: bool = False,
                                  **kwargs):
     """
     Wrapper function for eval_models with silhouette_score
@@ -251,11 +253,12 @@ def eval_models_silhouette_score(data:np.array,
                        full_return=full_return,
                        **kwargs)
 
-def eval_models_calinski_harabasz(data:np.array,
-                                 models:Sequence[sklearn.base.ClusterMixin],
-                                 hyperparameters:Sequence[dict],
-                                 full_return:bool=False,
-                                 **kwargs):
+
+def eval_models_calinski_harabasz(data: np.array,
+                                  models: Sequence[sklearn.base.ClusterMixin],
+                                  hyperparameters: Sequence[dict],
+                                  full_return: bool = False,
+                                  **kwargs):
     """
     Wrapper function for eval_models with Calinski Harabasz Index
     Parameters
@@ -281,11 +284,12 @@ def eval_models_calinski_harabasz(data:np.array,
                        full_return=full_return,
                        **kwargs)
 
-def eval_models_davies_bouldin(data:np.array,
-                                 models:Sequence[sklearn.base.ClusterMixin],
-                                 hyperparameters:Sequence[dict],
-                                 full_return:bool=False,
-                                 **kwargs):
+
+def eval_models_davies_bouldin(data: np.array,
+                               models: Sequence[sklearn.base.ClusterMixin],
+                               hyperparameters: Sequence[dict],
+                               full_return: bool = False,
+                               **kwargs):
     """
     Wrapper function for eval_models with Davies Bouldin Index
     Parameters
@@ -311,11 +315,12 @@ def eval_models_davies_bouldin(data:np.array,
                        full_return=full_return,
                        **kwargs)
 
-def plot_inertia(data:np.array,
+
+def plot_inertia(data: np.array,
                  n_clusters_list: Sequence[int],
                  file_path,
-                 mark_elbow:bool=False,
-                 r2_cutoff:float=0.9,
+                 mark_elbow: bool = False,
+                 r2_cutoff: float = 0.9,
                  **kwargs
                  ):
     """
@@ -323,7 +328,7 @@ def plot_inertia(data:np.array,
     Parameters
     ----------
     data: np.array containing data to cluster
-    n_clusters_list: List of n_clusters to create the inertial plot for 
+    n_clusters_list: List of n_clusters to create the inertial plot for
     file_path: path of where to save the image of the plot, either string or pathlike object
     Returns
     -------
@@ -333,11 +338,11 @@ def plot_inertia(data:np.array,
     for row, n_clusters in enumerate(n_clusters_list):
         kmeans = sklearn.cluster.KMeans(n_clusters=n_clusters, **kwargs)
         kmeans.fit(data)
-        inertia[row,0] = n_clusters
-        inertia[row,1] = kmeans.inertia_
+        inertia[row, 0] = n_clusters
+        inertia[row, 1] = kmeans.inertia_
     fig = plt.figure()
     axes = plt.axes()
-    axes.plot(inertia[:,0], inertia[:,1], "o-b", label="inertia")
+    axes.plot(inertia[:, 0], inertia[:, 1], "o-b", label="inertia")
     axes.set_xlabel("Number of Clusters")
     axes.set_ylabel("Inertia")
     axes.set_title("Inertia Plot")
@@ -345,7 +350,7 @@ def plot_inertia(data:np.array,
         plt.savefig(file_path)
         return fig
     elbow_n_cluster = find_elbow(inertia, r2_cutoff=r2_cutoff)
-    elbow_inertia = inertia[np.where(inertia==elbow_n_cluster)[0][0],1]
-    axes.scatter(elbow_n_cluster,elbow_inertia, "X-r", markersize = 12)
+    elbow_inertia = inertia[np.where(inertia == elbow_n_cluster)[0][0], 1]
+    axes.scatter(elbow_n_cluster, elbow_inertia, "X-r", markersize=12)
     plt.savefig(file_path)
     return fig
