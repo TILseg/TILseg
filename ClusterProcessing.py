@@ -70,14 +70,14 @@ def ImageOverlayGenerator(img_clust: np.ndarray, original_image: np.ndarray, clu
     """
     #Colors that will become associated with each cluster on overlays
     OverlayColor=np.array(
-        [[255, 255, 255],
-        [255, 255, 255],
-        [255, 255, 255],
-        [255, 255, 255],
-        [255, 255, 255],
-        [255, 255, 255],
-        [255, 255, 255],
-        [255, 255, 255]])
+        [[0, 0, 0],
+        [0, 0, 0],
+        [0, 0, 0],
+        [0, 0, 0],
+        [0, 0, 0],
+        [0, 0, 0],
+        [0, 0, 0],
+        [0, 0, 0]])
 
     #Making a dictionary of the original images that will be overwriten
     dims = img_clust.shape
@@ -91,7 +91,7 @@ def ImageOverlayGenerator(img_clust: np.ndarray, original_image: np.ndarray, clu
             key=int(img_clust[j][k][3])
             FinalArrays[key+1][j][k]=OverlayColor[key]
 
-    path=os.path.join(filepath, "ImageStack")
+    path=os.path.join(filepath, "ImageStack1")
     os.mkdir(path)
     os.chdir(path)
     for i in range(clust_count+1):
