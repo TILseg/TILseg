@@ -9,6 +9,8 @@ a CSV.
 
 import numpy as np
 import  cv2 as cv
+import os 
+#from PIL import Image
 
 def ClusterSplit(img_clust: np.ndarray, clust_count: int):
     """
@@ -45,42 +47,57 @@ def DataSummaryGenerator(cont_dict: dict, filepath: str):
     of previously identified cell groups
     """
 
-def ImageOverlayGenerator(img_clust: np.ndarray, clust_count: int, filepath: str):
+'''
+#This is code I used to append two array but not required everytime and 
+#relatively slow
+cluster=np.load("/home/bradyr18/cluster.npy")
+patch=np.load("/home/bradyr18/patch.npy")
+test_array=np.zeros([3000,4000,4])
+for i in range(3000):
+    for j in range(4000):
+        for k in range(2):
+            test_array[i][j][k]=patch[i][j][k]
+        test_array[i][j][3]=cluster[i][j]
+np.save("/home/bradyr18/both.npy", test_array)
+'''
+original_image = np.load("/home/bradyr18/patch.npy")
+test_array = np.load("/home/bradyr18/both.npy")
+
+def ImageOverlayGenerator(img_clust: np.ndarray, original_image: np.ndarray, clust_count: int, filepath: str):
     """
     Generates series of images equal to the number of clusters plus the
     original and saves it to the specified filepath
     """
+    #Colors that will become associated with each cluster on overlays
+    OverlayColor=np.array(
+        [[255, 255, 255],
+        [255, 255, 255],
+        [255, 255, 255],
+        [255, 255, 255],
+        [255, 255, 255],
+        [255, 255, 255],
+        [255, 255, 255],
+        [255, 255, 255]])
 
-    overlay_color=np.array(
-        [205, 102, 102],
-        [153, 255, 51],
-        [0, 128, 255],
-        [0, 255, 255],
-        [178, 102, 255],
-        [95, 95, 95],
-        [102, 0, 0],
-        [255, 0, 127])
+    #Making a dictionary of the original images that will be overwriten
+    dims = img_clust.shape
+    FourDImage=np.expand_dims(original_image, 0)
+    FinalArrays=FourDImage
+    for i in range(clust_count):
+        FinalArrays=np.vstack((FinalArrays, FourDImage))
 
-    dims = img_clust.shape()
-    final_arrays = {}
+    for j in range(dims[0]):
+        for k in range(dims[1]):
+            key=int(img_clust[j][k][3])
+            FinalArrays[key+1][j][k]=OverlayColor[key]
+
+    path=os.path.join(filepath, "ImageStack")
+    os.mkdir(path)
+    os.chdir(path)
     for i in range(clust_count+1):
-        temp_array=np.zeros(dims[0], dims[1],3)
-            for j in range(dims[0]):
-                for k in range(dims[1]):
-                    if img_clust[j][k][4] == i:
-                        temp_array[j][k][:] = overlay_color[i][:]
-                    else: 
-                        temp_array[j][k][:] = KeepOriginal(img_clust[j][k], 3)
-        if i <= clust_count:
-            final_arrays[f"Cluster {i}"] = temp_array
-        else:
-            final_arrays["Original"] = temp_array
-
-def KeepOriginal(array: np.ndarray, num_chan):
-    temp_list=np.zeros(num_chan)
-    for m in range(num_chan):
-        temp_list[m]=array[m]
-    return temp_list
+        cv.imwrite(f"Image{i}.jpg", FinalArrays[i][:][:][:])
+    return FinalArrays
 
 
-        
+final_arrays=ImageOverlayGenerator(test_array, original_image, 8, "/home/bradyr18")
+
