@@ -43,7 +43,7 @@ def find_elbow(data: np.array, r2_cutoff: float = 0.9) -> int:
     return int(n_clusters)
 
 
-def eval_knn_elbow(data: np.array,
+def eval_km_elbow(data: np.array,
                    n_clusters_list: Sequence[int] = range(10),
                    r2_cutoff=0.9, 
                    **kwargs) -> int:
@@ -91,19 +91,19 @@ def eval_model_hyperparameters(data: np.array,
     Returns
     -------
     hyperparameter:dict
-     Dictionary with the hyperparameters 
+     Dictionary with the hyperparameters position in the provided list
     or
     scores:dict
-      Dictionary mapping the hyperparameters to the silhouette coefficient
+      Dictionary mapping the hyperparameters position to the silhouette coefficient
     """
     # Create a dictionary to hold the scores
     scores = {}
     # Iterate through the parameters
-    for parameters in hyperparameters:
+    for count,parameters in enumerate(hyperparameters):
         clusterer = model(**parameters)
         clusterer.fit(data)
-        scores[parameters] = metric(data, clusterer.predict(data), **kwargs)
-        if np.isnan(scores[parameters]):
+        scores[count] = metric(data, clusterer.predict(data), **kwargs)
+        if np.isnan(scores[count]):
             raise ValueError(f"Couldn't find Score for {parameters}")
     if full_return:
         return scores
@@ -114,7 +114,7 @@ def eval_model_hyperparameters(data: np.array,
             if value > max_val:
                 max_val = value
                 max_val_parameters = key
-        return max_val_parameters
+        return hyperparameters[max_val_parameters]
     if metric_direction in ["min", "minimum", "less", "<-", "<", "left", "lower"]:
         min_val = np.Inf
         min_val_parameters = None
@@ -122,7 +122,7 @@ def eval_model_hyperparameters(data: np.array,
             if value < min_val:
                 min_val = value
                 min_val_parameters = key
-        return min_val_parameters
+        return hyperparameters[min_val_parameters]
 
 
 def eval_models(data: np.array,
