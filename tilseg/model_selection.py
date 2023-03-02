@@ -40,7 +40,7 @@ def find_elbow(data: np.array, r2_cutoff: float = 0.9) -> int:
     # This else is called only if the for loop fails to break
     else:
         raise ValueError("Unable to find elbow")
-    return n_clusters
+    return int(n_clusters)
 
 
 def eval_knn_elbow(data: np.array,
