@@ -367,3 +367,4 @@ def plot_inertia(data: np.array,
                  marker="X")
     plt.savefig(file_path)
     return fig
+
