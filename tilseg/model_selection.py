@@ -63,7 +63,8 @@ def eval_km_elbow(data: np.array,
     inertia = np.zeros((len(n_clusters_list), 2))
     row = 0
     for n_clusters in n_clusters_list:
-        kmeans = sklearn.cluster.KMeans(n_clusters=n_clusters, **kwargs)
+        kmeans = sklearn.cluster.KMeans(n_clusters=n_clusters,
+                                        **kwargs)
         kmeans.fit(data)
         inertia[row, 0] = n_clusters
         inertia[row, 1] = kmeans.inertia_
@@ -367,4 +368,3 @@ def plot_inertia(data: np.array,
                  marker="X")
     plt.savefig(file_path)
     return fig
-
