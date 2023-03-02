@@ -1,12 +1,106 @@
 import sklearn
 import numpy as np
 import matplotlib.pyplot as plt
-from sklearn.cluster import KMeans
+import sklearn.cluster
+import sklearn.metrics
 import cv2
 import PIL
 import openslide
 import os
 from skimage import io
+
+def kmeans_best_n_clusters(patch_path, n_clusters_considered):
+
+    """
+    Computes the best number of clusters for Kmeans clustering
+
+    Parameters
+    -----
+    patch_path: path to the patch to be clustered
+    n_clusters_considered: the maximum number of clusters to consider
+
+    Returns
+    -----
+    best_n: the optimal number of clusters for K means clustering
+    Prints a graph of inertia vs number of clusters (if called from a notebook)
+    """
+
+    n_list = list(range(1, n_clusters_considered + 1))
+    fit_patch = plt.imread(patch_path)
+    fit_patch_n = np.float32(fit_patch.reshape((-1, 3))/255.)
+
+    inertias = []
+
+    for n in n_list:
+        
+        model = sklearn.cluster.KMeans(n_clusters=n, max_iter=5,
+                    n_init=3, tol=1e-3)
+        model.fit(fit_patch_n)
+        inertias.append(model.inertia_)
+
+    plt.plot(n_list, inertias)
+    plt.xlabel('number of clusters')
+    plt.ylabel('inertia')
+    plt.xticks(n_list)
+    plt.title('Inertia vs Number of CLusters')
+
+    i = 2
+    cur_slope_diff = 1
+    prev_slope_diff = 0
+
+    while cur_slope_diff > prev_slope_diff:
+        i = i + 1
+        cur_slope = inertias[i-1] - inertias[i]
+        prev_slope = inertias[i-2] - inertias[i-1]
+        prev_prev_slope = inertias[i-3] - inertias[i-2]
+        cur_slope_diff = prev_slope - cur_slope
+        prev_slope_diff = prev_prev_slope - prev_slope
+        
+    best_n = n_list[i]
+
+    return best_n
+
+
+def cluster_model_fitter(patch_path, algorithm, n_clusters=None): 
+    
+    '''
+    patch_path: path of the patch that model needs to be fitted.
+    '''
+    
+    # Creates a variable which references our preferred parameters for KMeans clustering
+    if algorithm == 'KMeans':
+        model = sklearn.cluster.KMeans(n_clusters, max_iter=20,
+                    n_init=3, tol=1e-3)
+        # Reads the patch into a numpy uint8 array    
+        fit_patch = plt.imread(patch_path) 
+        # Linearizes the array for R, G, and B separately and normalizes
+        # The result is an N X 3 array where N=height*width of the patch in pixels
+        fit_patch_n = np.float32(fit_patch.reshape((-1, 3))/255.)
+        # Fits the model to our linearized and normalized patch data 
+        model.fit(fit_patch_n)
+    else:
+        model = None
+
+    # Outputs our specific model of the patch we want to cluster and will be used as input to pred_and_cluster function below
+    return model
+
+
+def silhouette_score(model, patch_path):
+
+    # Reads the current patch into a numpy uint8 array 
+    pred_patch = plt.imread(patch_path)
+    # Linearizes the array for R, G, and B separately and normalizes
+    # The result is an N X 3 array where N=height*width of the patch in pixels
+    pred_patch_n = np.float32(pred_patch.reshape((-1, 3))/255.)
+    # Predicting the index/labels of the clusters on the fitted model from 'model' function
+    # The result is an N X 3 array where N=height*width of the patch in pixels
+    # Each value shows the label of the cluster that pixel belongs to
+    labels = model.predict(pred_patch_n)
+
+    s_score = sklearn.metrics.silhouette_score(pred_patch.reshape((-1,3)), labels)
+
+    return s_score
+
 
 def pred_and_cluster(model, dir_path):
 
@@ -27,10 +121,10 @@ def pred_and_cluster(model, dir_path):
             pass
         
         # Makes sure that the model is training for 8 clusters
-        # if len(model.cluster_centers_) == 8:
-        #     pass
-        # else:
-        #     raise ValueError("The model must be trained for 8 clusters")
+        if len(model.cluster_centers_) == 8:
+            pass
+        else:
+            raise ValueError("The model must be trained for 8 clusters")
         
         # Reads the current patch into a numpy uint8 array 
         pred_patch = plt.imread(os.path.join(dir_path, file))
@@ -56,7 +150,6 @@ def pred_and_cluster(model, dir_path):
         # overlay_center[5] = np.array([95, 95, 95])/255. #Grey
         # overlay_center[6] = np.array([102, 0, 0])/255. #Maroon
         # overlay_center[7] = np.array([255, 0, 127])/255. #Bright Pink
-
         # Iterating over each cluster centroid
         for i in range(len(overlay_center)):
             # Creating a copy of the linearized and normalized RGB array
