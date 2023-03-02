@@ -1,13 +1,16 @@
 """Unittests for model selection module
 """
 # Standard Library Imports
-import os
 import unittest
+import numbers
 
 # External Library Imports
 import numpy as np
-import sklearn.datasets
+import sklearn.base
 import sklearn.cluster
+import sklearn.datasets
+import sklearn.metrics
+
 
 # Local imports
 import tilseg.model_selection
@@ -67,9 +70,39 @@ class TestModelSelection(unittest.TestCase):
             {"n_clusters":9},
         ]
         model = sklearn.cluster.KMeans
+        # Catch fire test
         n_clusters = tilseg.model_selection.eval_model_hyperparameters(
             self.cluster_data,
             model,
             hyper)["n_clusters"]
+        # Expected output based on data
         self.assertAlmostEqual(n_clusters,3)
-
+        # Expected output type
+        self.assertIsInstance(n_clusters, numbers.Number)
+    def test_eval_models(self):
+        """
+        Test eval_models function
+        """
+        models = [sklearn.cluster.KMeans,
+                  sklearn.cluster.AgglomerativeClustering,
+                  sklearn.cluster.AgglomerativeClustering]
+        hyperparameters = [
+            {"n_clusters":3},
+            {"n_clusters":3, "linkage":"complete"},
+            {"n_clusters":3, "linkage":"ward"},
+        ]
+        metric = sklearn.metrics.silhouette_score
+        metric_direction = "max"
+        full_return=False
+        # Catch fire test
+        model = tilseg.model_selection.eval_models(
+            self.cluster_data,
+            models,
+            hyperparameters,
+            metric,
+            metric_direction,
+            full_return
+        )
+        # Make sure it is a sklearn model
+        self.assertIsInstance(model, sklearn.base.ClusterMixin)
+        
