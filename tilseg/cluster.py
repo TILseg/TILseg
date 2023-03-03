@@ -1,3 +1,8 @@
+"""
+Contains functions for fitting clustering models, predicting, and scoring based on a chosen clustering algorithm.
+This is best done following hyperparameter optimization using tilseg.model_selection.
+"""
+
 import sklearn
 import numpy as np
 import matplotlib.pyplot as plt
@@ -8,71 +13,62 @@ import PIL
 import openslide
 import os
 from skimage import io
-
-def kmeans_best_n_clusters(patch_path, n_clusters_considered):
-
-    """
-    Computes the best number of clusters for Kmeans clustering
-
-    Parameters
-    -----
-    patch_path: path to the patch to be clustered
-    n_clusters_considered: the maximum number of clusters to consider
-
-    Returns
-    -----
-    best_n: the optimal number of clusters for K means clustering
-    Prints a graph of inertia vs number of clusters (if called from a notebook)
-    """
-
-    n_list = list(range(1, n_clusters_considered + 1))
-    fit_patch = plt.imread(patch_path)
-    fit_patch_n = np.float32(fit_patch.reshape((-1, 3))/255.)
-
-    inertias = []
-
-    for n in n_list:
-        
-        model = sklearn.cluster.KMeans(n_clusters=n, max_iter=5,
-                    n_init=3, tol=1e-3)
-        model.fit(fit_patch_n)
-        inertias.append(model.inertia_)
-
-    plt.plot(n_list, inertias)
-    plt.xlabel('number of clusters')
-    plt.ylabel('inertia')
-    plt.xticks(n_list)
-    plt.title('Inertia vs Number of CLusters')
-
-    i = 2
-    cur_slope_diff = 1
-    prev_slope_diff = 0
-
-    while cur_slope_diff > prev_slope_diff:
-        i = i + 1
-        cur_slope = inertias[i-1] - inertias[i]
-        prev_slope = inertias[i-2] - inertias[i-1]
-        prev_prev_slope = inertias[i-3] - inertias[i-2]
-        cur_slope_diff = prev_slope - cur_slope
-        prev_slope_diff = prev_prev_slope - prev_slope
-        
-    best_n = n_list[i]
-
-    return best_n
+import pathlib
 
 
 def cluster_model_fitter(patch_path, algorithm, n_clusters=None): 
+
+    """
+    Fits a model using a chosen clustering algorithm
+
+    Parameters
+    -----
+    patch_path: str
+        the directory path to the patch that the model will be fitted to obtain cluster decision boundaries
+    algorithm: str
+        the clustering algorithm to be used: 'KMeans', '', ''
+    n_clusters: int
+        number of clusters in KMeans clustering
+
+    Returns
+    -----
+    model: sklearn.cluster.model
+        the fitted model
+    """
+
+    path = pathlib.Path(patch_path)
+    if not path.is_file():
+        raise ValueError('Please input a path to a file that exists')
+    else:
+        pass
     
-    '''
-    patch_path: path of the patch that model needs to be fitted.
-    '''
-    
+    if algorithm not in ['KMeans']:
+        raise ValueError('Please enter a valid clustering algorithm')
+    else:
+        pass
+
+    if algorithm == 'KMeans' and n_clusters == None:
+        raise ValueError('Please enter a number of clusters for KMeans clustering')
+    else:
+        pass
+
+    if algorithm != 'KMeans' and n_clusters != None:
+        raise ValueError('Can only specify number of clusters for KMeans clustering')
+    else:
+        pass
+
+    if type(n_clusters) != int or n_clusters > 8:
+        raise ValueError('Please enter an integer less than 9 for n_clusters')
+
     # Creates a variable which references our preferred parameters for KMeans clustering
     if algorithm == 'KMeans':
         model = sklearn.cluster.KMeans(n_clusters, max_iter=20,
                     n_init=3, tol=1e-3)
-        # Reads the patch into a numpy uint8 array    
-        fit_patch = plt.imread(patch_path) 
+        # Reads the patch into a numpy uint8 array
+        try:    
+            fit_patch = plt.imread(patch_path)
+        except:
+            raise ValueError('Please use image type compaptible with matplotlib.pyplot.imread()')
         # Linearizes the array for R, G, and B separately and normalizes
         # The result is an N X 3 array where N=height*width of the patch in pixels
         fit_patch_n = np.float32(fit_patch.reshape((-1, 3))/255.)
@@ -87,39 +83,90 @@ def cluster_model_fitter(patch_path, algorithm, n_clusters=None):
 
 def clustering_score(model, patch_path):
 
+    """
+    Scores the clustering using various metrics
+
+    Parameters
+    -----
+    model: sklearn.cluster.model
+        the fitted model
+    patch_path: str
+        the directory path to the patch that will be predicted and clustered
+
+    Returns
+    -----
+    ch_score: float
+        Calinski-Harabasz Index: Higher value of ch_score means the clusters are dense and well separated- there is no absolute cut-off value
+    db_score: float
+        Davies-Bouldin score: lower values mean better clustering with zero being the minimum value
+    """
+
+    path = pathlib.Path(patch_path)
+    if not path.is_file():
+        raise ValueError('Please input a path to a file that exists')
+    else:
+        pass
+
+    try:
     # Reads the current patch into a numpy uint8 array 
-    pred_patch = plt.imread(patch_path)
+        pred_patch = plt.imread(patch_path)
+    except:
+        raise ValueError('Please enter a valid directory path for patch_path')
     # Linearizes the array for R, G, and B separately and normalizes
     # The result is an N X 3 array where N=height*width of the patch in pixels
     pred_patch_n = np.float32(pred_patch.reshape((-1, 3))/255.)
-    # Predicting the index/labels of the clusters on the fitted model from 'model' function
-    # The result is an N X 3 array where N=height*width of the patch in pixels
-    # Each value shows the label of the cluster that pixel belongs to
-    labels = model.predict(pred_patch_n)
-    
+
+    try:
+        # Predicting the index/labels of the clusters on the fitted model from 'model' function
+        # The result is an N X 3 array where N=height*width of the patch in pixels
+        # Each value shows the label of the cluster that pixel belongs to
+        labels = model.predict(pred_patch_n)
+    except:
+        raise ValueError('Please input a valid sklearn.cluster.model for model')
+
     # scores the clustering based on various metrics
-    s_score = sklearn.metrics.silhouette_score(pred_patch.reshape((-1,3)), labels)
+    # Silhoutte score currently takes too long
+    # s_score = sklearn.metrics.silhouette_score(pred_patch.reshape((-1,3)), labels)
     ch_score = sklearn.metrics.calinski_harabasz_score(pred_patch.reshape((-1,3)), labels)
     db_score = sklearn.metrics.davies_bouldin_score(pred_patch.reshape((-1,3)), labels)
 
-    return s_score, ch_score, db_score
+    return ch_score, db_score
 
 
-def pred_and_cluster(model, dir_path):
+def pred_and_cluster(model, in_dir_path, out_dir_path):
 
-    '''
-    model: model that will be used to predict the patch.
-    dir_path: path of the directory that has patches that needs to be predicted and clustered.
-              This should be probably be performed on tissue_images_file_patch subdirectory created in extract_svs_img function below
-    
-    '''
+    """
+    Applies a fitted clustering model to patches and generates multiple images: binary segmentation masks of each cluster, 
+    segmentation masks overlaid on the original patch, and all clusters overlaid on the original patch
+
+    Parameters
+    -----
+    model: sklearn.cluster.model
+        the fitted model
+    in_dir: str
+        the directory path to the patches that will be predicted and clustered
+    out_dir: str
+        the directory path where output images will be saved
+    """
+
+
+    if not os.path.isdir(in_dir_path):
+        raise ValueError('Please enter a valid input directory')
+    else:
+        pass
+
+    if not os.path.isdir(out_dir_path):
+        raise ValueError('Please enter a valid output directory')
+    else:
+        pass
+
     # Iterating over every patch in the directory
-    for file in os.listdir(dir_path):
+    for file in os.listdir(in_dir_path):
         
         # Creating a directory with the same file name (without extenstion)
         # Passing if such a directory already exists
         try:
-            os.mkdir(file[:-4])
+            os.mkdir(os.path.join(out_dir_path, file[:-4]))
         except:
             pass
         
@@ -130,14 +177,19 @@ def pred_and_cluster(model, dir_path):
             raise ValueError("Looks like the model is being trained for more than 8 clusters. Please consider training it on less number of clusters.")
         
         # Reads the current patch into a numpy uint8 array 
-        pred_patch = plt.imread(os.path.join(dir_path, file))
+        pred_patch = plt.imread(os.path.join(in_dir_path, file))
         # Linearizes the array for R, G, and B separately and normalizes
         # The result is an N X 3 array where N=height*width of the patch in pixels
         pred_patch_n = np.float32(pred_patch.reshape((-1, 3))/255.)
-        # Predicting the index/labels of the clusters on the fitted model from 'model' function
-        # The result is an N X 3 array where N=height*width of the patch in pixels
-        # Each value shows the label of the cluster that pixel belongs to
-        labels = model.predict(pred_patch_n)
+
+        try:
+            # Predicting the index/labels of the clusters on the fitted model from 'model' function
+            # The result is an N X 3 array where N=height*width of the patch in pixels
+            # Each value shows the label of the cluster that pixel belongs to
+            labels = model.predict(pred_patch_n)
+        except:
+            raise ValueError('Please input a valid sklearn.cluster.model for model')
+        
         # creates a copy of the coordinates of the cluster centers in the RGB space
         # The results is 8X3 numpy array
         overlay_center = np.copy(model.cluster_centers_)
@@ -173,7 +225,7 @@ def pred_and_cluster(model, dir_path):
             seg_img = seg_img.reshape(pred_patch.shape)
             # Saves the image as filename_segmented_#.jpg with 1,000 dots per inch printing resolution
             # Thus there will be 8 images identifying each cluster from each patch
-            plt.imsave(os.path.join(file[:-4], '_segmented_'+str(i)+'.jpg'), seg_img, dpi=1000)
+            plt.imsave(os.path.join(out_dir_path, file[:-4], '_segmented_'+str(i)+'.jpg'), seg_img, dpi=1000)
             # Reversing the normalization of the RGB values of the image with the cluster
             seg_img = np.uint8(seg_img*255.)
             # cv2.addWeighted is a function that allows us to overlay one image on top of another and adjust their 
@@ -183,14 +235,14 @@ def pred_and_cluster(model, dir_path):
             overlay_img = cv2.addWeighted(back_img, 0.4, seg_img, 0.6, 0)/255.
             # Saves the overlayed image as filename_overlay_#.jpg with 1,000 dots per inch printing resolution
             # Thus there will be 8 overlayed images identifying each cluster from each patch
-            plt.imsave(os.path.join(file[:-4], '_overlay_'+str(i)+'.jpg'), overlay_img, dpi=1000)
+            plt.imsave(os.path.join(out_dir_path, file[:-4], '_overlay_'+str(i)+'.jpg'), overlay_img, dpi=1000)
         # Make an image containing all the clusters in one
         # Also reshapes the image with all clusters identified to the original picture shape
         # Don't quite understand how this line would work without indexing error but I get what it is trying to do
         all_cluster = overlay_center[labels.flatten()].reshape(pred_patch.shape)
         # Saves the image as filename_all_cluster.jpg with 1,000 dots per inch printing resolution
         # Thus there will be 1 image identifying all clusters on the same image from each patch
-        plt.imsave(os.path.join(file[:-4], '_all_cluster.jpg'), all_cluster, dpi=1000)
+        plt.imsave(os.path.join(out_dir_path, file[:-4], '_all_cluster.jpg'), all_cluster, dpi=1000)
         # Overlaying the complete cluster:
         # Reversing the normalization of the RGB values of the image with the all the clusters
         seg_img = np.uint8(np.copy(all_cluster)*255.)
@@ -199,6 +251,6 @@ def pred_and_cluster(model, dir_path):
         overlay_img = cv2.addWeighted(back_img, 0.6, seg_img, 0.4, 0)
         # Saves the overlayed image as filename_full_overlay.jpg with 1,000 dots per inch printing resolution
         # Thus there will be 1 fully overlayed image identifying all the clusters from each patch
-        plt.imsave(os.path.join(file[:-4], '_full_overlay.jpg'), overlay_img, dpi=1000)
+        plt.imsave(os.path.join(out_dir_path, file[:-4], '_full_overlay.jpg'), overlay_img, dpi=1000)
 
     return None
