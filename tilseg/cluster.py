@@ -62,19 +62,25 @@ def cluster_model_fitter(patch_path, algorithm, n_clusters=None):
 
     # Creates a variable which references our preferred parameters for KMeans clustering
     if algorithm == 'KMeans':
+
         model = sklearn.cluster.KMeans(n_clusters, max_iter=20,
                     n_init=3, tol=1e-3)
+        
         # Reads the patch into a numpy uint8 array
         try:    
             fit_patch = plt.imread(patch_path)
         except:
             raise ValueError('Please use image type compaptible with matplotlib.pyplot.imread()')
+        
         # Linearizes the array for R, G, and B separately and normalizes
         # The result is an N X 3 array where N=height*width of the patch in pixels
         fit_patch_n = np.float32(fit_patch.reshape((-1, 3))/255.)
+
         # Fits the model to our linearized and normalized patch data 
         model.fit(fit_patch_n)
+
     else:
+        
         model = None
 
     # Outputs our specific model of the patch we want to cluster and will be used as input to pred_and_cluster function below
@@ -112,6 +118,7 @@ def clustering_score(model, patch_path):
         pred_patch = plt.imread(patch_path)
     except:
         raise ValueError('Please enter a valid directory path for patch_path')
+    
     # Linearizes the array for R, G, and B separately and normalizes
     # The result is an N X 3 array where N=height*width of the patch in pixels
     pred_patch_n = np.float32(pred_patch.reshape((-1, 3))/255.)
@@ -193,8 +200,10 @@ def pred_and_cluster(model, in_dir_path, out_dir_path):
         # creates a copy of the coordinates of the cluster centers in the RGB space
         # The results is 8X3 numpy array
         overlay_center = np.copy(model.cluster_centers_)
+
         # created a numpy uint8 array of the background image- this is just the H&E patch without any normalization
         back_img = np.uint8(np.copy(pred_patch))
+
         # Reassigning the cluster centers of the RGB space to custom colors for visual effects
         # Essentially creating new RGB coordinates for each cluster center
         cluster_center_RGB_list = [
@@ -212,43 +221,57 @@ def pred_and_cluster(model, in_dir_path, out_dir_path):
 
         # Iterating over each cluster centroid
         for i in range(len(overlay_center)):
+
             # Creating a copy of the linearized and normalized RGB array
             seg_img = np.copy(pred_patch_n)
+
             # The left-hand side is a mask that accesses all pixels that belong to cluster 'i'
             # The ride hand side replaces the RGB values of each pixel with the RGB value of the corresponding custom-chosen RGB values for each cluster
+
             seg_img[labels.flatten() == i] = overlay_center[i] 
+
             # The left-hand side is a mask that accesses all pixels that DO NOT belong to cluster 'i'
             # The ride hand side replaces the RGB values of each pixel with white color
             # Therefor every pixel except for those in cluster 'i' will be white
             seg_img[labels.flatten() != i] = np.array([255, 255, 255])/255.
+
             # Reshapes the image with cluster 'i' identified to the original picture shape
             seg_img = seg_img.reshape(pred_patch.shape)
+
             # Saves the image as filename_segmented_#.jpg with 1,000 dots per inch printing resolution
             # Thus there will be 8 images identifying each cluster from each patch
             plt.imsave(os.path.join(out_dir_path, file[:-4], '_segmented_'+str(i)+'.jpg'), seg_img, dpi=1000)
+
             # Reversing the normalization of the RGB values of the image with the cluster
             seg_img = np.uint8(seg_img*255.)
+
             # cv2.addWeighted is a function that allows us to overlay one image on top of another and adjust their 
             # alpha (transparency) so that the two can blended/overlayed and both still be clearly visible
             # overlay_img is the image where the segmented image consisting of isolated cluster is overlayed over the 
             # original H&E image
             overlay_img = cv2.addWeighted(back_img, 0.4, seg_img, 0.6, 0)/255.
+
             # Saves the overlayed image as filename_overlay_#.jpg with 1,000 dots per inch printing resolution
             # Thus there will be 8 overlayed images identifying each cluster from each patch
             plt.imsave(os.path.join(out_dir_path, file[:-4], '_overlay_'+str(i)+'.jpg'), overlay_img, dpi=1000)
+
         # Make an image containing all the clusters in one
         # Also reshapes the image with all clusters identified to the original picture shape
         # Don't quite understand how this line would work without indexing error but I get what it is trying to do
         all_cluster = overlay_center[labels.flatten()].reshape(pred_patch.shape)
+
         # Saves the image as filename_all_cluster.jpg with 1,000 dots per inch printing resolution
         # Thus there will be 1 image identifying all clusters on the same image from each patch
         plt.imsave(os.path.join(out_dir_path, file[:-4], '_all_cluster.jpg'), all_cluster, dpi=1000)
+
         # Overlaying the complete cluster:
         # Reversing the normalization of the RGB values of the image with the all the clusters
         seg_img = np.uint8(np.copy(all_cluster)*255.)
+
         # overlay_img is the image where the segmented image consisting of all the isolated clusters 
         # is overlayed over the original H&E image
         overlay_img = cv2.addWeighted(back_img, 0.6, seg_img, 0.4, 0)
+
         # Saves the overlayed image as filename_full_overlay.jpg with 1,000 dots per inch printing resolution
         # Thus there will be 1 fully overlayed image identifying all the clusters from each patch
         plt.imsave(os.path.join(out_dir_path, file[:-4], '_full_overlay.jpg'), overlay_img, dpi=1000)
