@@ -13,7 +13,6 @@ import sklearn.cluster
 import sklearn.datasets
 import sklearn.metrics
 
-
 # Local imports
 import tilseg.model_selection
 
@@ -23,14 +22,14 @@ class TestModelSelection(unittest.TestCase):
     """
     cluster_data = None
     elbow_data = np.array([[1,217.64705882352948],
-                [2,68.42857142857143],
-                [3,16.228571428571424],
-                [4,12.695238095238096],
-                [5,9.6],
-                [6,7.166666666666666],
-                [7,5.5],
-                [8,4.083333333333334],
-                [9,2.9999999999999996]])
+                           [2,68.42857142857143],
+                           [3,16.228571428571424],
+                           [4,12.695238095238096],
+                           [5,9.6],
+                           [6,7.166666666666666],
+                           [7,5.5],
+                           [8,4.083333333333334],
+                           [9,2.9999999999999996]])
     @classmethod
     def setUpClass(cls):
         """
@@ -53,7 +52,8 @@ class TestModelSelection(unittest.TestCase):
         """
         n_clusters = tilseg.model_selection.eval_km_elbow(self.cluster_data,
                                                            list(range(1,10)),
-                                                           r2_cutoff=0.9)
+                                                           r2_cutoff=0.9,
+                                                           n_init="auto")
         self.assertAlmostEqual(n_clusters, 3)
         self.assertIsInstance(n_clusters, int)
     def test_eval_model_hyperparameters(self):
@@ -62,14 +62,14 @@ class TestModelSelection(unittest.TestCase):
         """
         # Create hyperparameter dictionary list
         hyper = [
-            {"n_clusters":2},
-            {"n_clusters":3},
-            {"n_clusters":4},
-            {"n_clusters":5},
-            {"n_clusters":6},
-            {"n_clusters":7},
-            {"n_clusters":8},
-            {"n_clusters":9},
+            {"n_clusters":2, "n_init":"auto"},
+            {"n_clusters":3, "n_init":"auto"},
+            {"n_clusters":4, "n_init":"auto"},
+            {"n_clusters":5, "n_init":"auto"},
+            {"n_clusters":6, "n_init":"auto"},
+            {"n_clusters":7, "n_init":"auto"},
+            {"n_clusters":8, "n_init":"auto"},
+            {"n_clusters":9, "n_init":"auto"},
         ]
         model = sklearn.cluster.KMeans
         # Catch fire test
@@ -89,7 +89,7 @@ class TestModelSelection(unittest.TestCase):
                   sklearn.cluster.AgglomerativeClustering,
                   sklearn.cluster.AgglomerativeClustering]
         hyperparameters = [
-            {"n_clusters":3},
+            {"n_clusters":3, "n_init":"auto"},
             {"n_clusters":3, "linkage":"complete"},
             {"n_clusters":3, "linkage":"ward"},
         ]
@@ -112,7 +112,7 @@ class TestModelSelection(unittest.TestCase):
         Test eval_models_dict wrapper function
         """
         model_dict = {
-            sklearn.cluster.KMeans:{"n_clusters":3},
+            sklearn.cluster.KMeans:{"n_clusters":3, "n_init":"auto"},
             sklearn.cluster.AgglomerativeClustering:{
             "n_clusters":3, "linkage":"complete"}
         }
@@ -129,7 +129,7 @@ class TestModelSelection(unittest.TestCase):
                   sklearn.cluster.AgglomerativeClustering,
                   sklearn.cluster.AgglomerativeClustering]
         hyperparameters = [
-            {"n_clusters":3},
+            {"n_clusters":3, "n_init":"auto"},
             {"n_clusters":3, "linkage":"complete"},
             {"n_clusters":3, "linkage":"ward"},
         ]
@@ -151,7 +151,7 @@ class TestModelSelection(unittest.TestCase):
                   sklearn.cluster.AgglomerativeClustering,
                   sklearn.cluster.AgglomerativeClustering]
         hyperparameters = [
-            {"n_clusters":3},
+            {"n_clusters":3, "n_init":"auto"},
             {"n_clusters":3, "linkage":"complete"},
             {"n_clusters":3, "linkage":"ward"},
         ]
@@ -173,7 +173,7 @@ class TestModelSelection(unittest.TestCase):
                   sklearn.cluster.AgglomerativeClustering,
                   sklearn.cluster.AgglomerativeClustering]
         hyperparameters = [
-            {"n_clusters":3},
+            {"n_clusters":3, "n_init":"auto"},
             {"n_clusters":3, "linkage":"complete"},
             {"n_clusters":3, "linkage":"ward"},
         ]
@@ -197,7 +197,8 @@ class TestModelSelection(unittest.TestCase):
             list(range(1,10)),
             path,
             True,
-            0.9)
+            0.9,
+            n_init='auto')
         # Check if file was succesfully crated
         self.assertTrue(os.path.isfile(path))
         # Delete file

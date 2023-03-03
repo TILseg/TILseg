@@ -7,9 +7,12 @@ based on the clusters, data from filtered cell clusters will be compiled into
 a CSV.
 """
 import os
+import time
 
 import numpy as np
 import cv2 as cv
+
+start = time.time()
 
 
 def contour_generator(img_mask: np.ndarray):
@@ -23,8 +26,27 @@ def contour_generator(img_mask: np.ndarray):
         coordinates of the relevant pixels
 
     Output:
-    -Contour object?
+    -Contour: list of arrays of points defining the contour
     """
+
+    contours, hierarchy = cv.findContours(img_mask.astype(np.int32),
+                                          cv.RETR_FLOODFILL,
+                                          cv.CHAIN_APPROX_NONE)
+    contours_mod = []
+    for ele in enumerate(contours):
+        if filter_bool(contours[ele[0]]):
+            contours_mod.append(contours[ele[0]])
+    print(len(contours_mod))
+    return contours_mod
+
+
+def filter_bool(contour: np.ndarray):
+    x_pos, y_pos, w_pos, h_pos = cv.boundingRect(contour)
+    aspect_ratio = float(w_pos) / h_pos
+    return bool(cv.contourArea(contour) > 50
+                and cv.contourArea(contour) < 1000
+                and aspect_ratio > 0.75
+                and aspect_ratio < 1.5)
 
 
 def data_summary_generator(cont_dict: dict, filepath: str):
@@ -57,7 +79,7 @@ def gen_base_arrays(ori_image: np.ndarray, num_clust: int, array_dims: list):
     in contour generation.
     """
     four_dim_array = np.expand_dims(ori_image, 0)
-    binary_array = np.full((num_clust, array_dims[0], array_dims[1]), False)
+    binary_array = np.zeros((num_clust, array_dims[0], array_dims[1]))
     final_array = four_dim_array
     for _ in range(num_clust):
         final_array = np.vstack((final_array, four_dim_array))
@@ -72,9 +94,9 @@ def generate_images(image_array: np.ndarray, filepath: str, num_clust: int):
     path = os.path.join(filepath, "Overlaid Images")
     os.mkdir(path)
     os.chdir(path)
-    for i in range(num_clust+1):
+    for m in range(num_clust+1):
         if i != 0:
-            cv.imwrite(f"Image{i}.jpg", image_array[i][:][:][:])
+            cv.imwrite(f"Image{m}.jpg", image_array[i][:][:][:])
         else:
             cv.imwrite("Original.jpg", image_array[i][:][:][:])
     return None
@@ -106,9 +128,9 @@ def image_overlay_generator(img_clust: np.ndarray, original_image: np.ndarray,
         for k in range(dims[1]):
             key = int(img_clust[j][k][3])
             final_arrays[key][j][k] = overlay_color[key]
-            binary_arrays[key][j][k] = True
+            binary_arrays[key][j][k] = 1
 
-    generate_images(final_arrays, filepath, clust_count)
+    # generate_images(final_arrays, filepath, clust_count)
 
     return final_arrays, binary_arrays
 
@@ -118,3 +140,8 @@ test_array = np.load("/home/bradyr18/both.npy")
 
 final, binary = image_overlay_generator(test_array, original_image1,
                                         8, "/home/bradyr18")
+
+mid = time.time()
+
+for i in range(8):
+    area = contour_generator(binary[i])
