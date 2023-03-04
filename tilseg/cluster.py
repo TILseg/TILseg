@@ -209,8 +209,9 @@ def pred_and_cluster(model, in_dir_path, out_dir_path):
             sklearn.utils.validation.check_is_fitted(model)
         except TypeError:
             raise TypeError('model is not an estimator')
-        except NotFittedError:
-            raise NotFittedError('model has not been fitted. Please fit it first using tilseg.cluster.cluster_model_fitter')
+        except:
+            print('Please fit the first using tilseg.cluster.cluster_model_fitter')
+            raise
     
         # Reads the current patch into a numpy uint8 array 
         pred_patch = plt.imread(os.path.join(in_dir_path, file))
