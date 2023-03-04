@@ -8,6 +8,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import sklearn.cluster
 import sklearn.metrics
+import sklearn.utils.validation
 import cv2
 import PIL
 import openslide
@@ -36,12 +37,18 @@ def cluster_model_fitter(patch_path, algorithm, n_clusters=None):
         the fitted model
     """
 
+    if type(patch_path) != str:
+        raise TypeError('patch_path must be a string')
+    else:
+        pass
+
+    # Checking that the patch_path actually exists
     path = pathlib.Path(patch_path)
     if not path.is_file():
         raise ValueError('Please input a path to a file that exists')
     else:
         pass
-    
+
     if algorithm not in ['KMeans']:
         raise ValueError('Please enter a valid clustering algorithm')
     else:
@@ -59,6 +66,8 @@ def cluster_model_fitter(patch_path, algorithm, n_clusters=None):
 
     if type(n_clusters) != int or n_clusters > 8:
         raise ValueError('Please enter an integer less than 9 for n_clusters')
+    else:
+        pass
 
     # Creates a variable which references our preferred parameters for KMeans clustering
     if algorithm == 'KMeans':
@@ -67,10 +76,13 @@ def cluster_model_fitter(patch_path, algorithm, n_clusters=None):
                     n_init=3, tol=1e-3)
         
         # Reads the patch into a numpy uint8 array
+        # class UnidentifiedImageError(Exception):
+        #     pass
         try:    
             fit_patch = plt.imread(patch_path)
         except:
-            raise ValueError('Please use image type compaptible with matplotlib.pyplot.imread()')
+            print('Please use an image that can be read by matplotlib.pyplot.imread()')
+            raise
         
         # Linearizes the array for R, G, and B separately and normalizes
         # The result is an N X 3 array where N=height*width of the patch in pixels
@@ -80,7 +92,7 @@ def cluster_model_fitter(patch_path, algorithm, n_clusters=None):
         model.fit(fit_patch_n)
 
     else:
-        
+
         model = None
 
     # Outputs our specific model of the patch we want to cluster and will be used as input to pred_and_cluster function below
@@ -107,29 +119,45 @@ def clustering_score(model, patch_path):
         Davies-Bouldin score: lower values mean better clustering with zero being the minimum value
     """
 
+    if type(patch_path) != str:
+        raise TypeError('patch_path must be a string')
+    else:
+        pass
+
     path = pathlib.Path(patch_path)
     if not path.is_file():
         raise ValueError('Please input a path to a file that exists')
     else:
         pass
 
-    try:
-    # Reads the current patch into a numpy uint8 array 
+        # Reads the patch into a numpy uint8 array
+        # class UnidentifiedImageError(Exception):
+        #     pass
+    try:    
         pred_patch = plt.imread(patch_path)
     except:
-        raise ValueError('Please enter a valid directory path for patch_path')
+        print('Please use an image that can be read by matplotlib.pyplot.imread()')
+        raise
     
     # Linearizes the array for R, G, and B separately and normalizes
     # The result is an N X 3 array where N=height*width of the patch in pixels
     pred_patch_n = np.float32(pred_patch.reshape((-1, 3))/255.)
 
     try:
+        sklearn.utils.validation.check_is_fitted(model)
+    except TypeError:
+        raise TypeError('model is not an estimator')
+    except:
+        print('Please fit the first using tilseg.cluster.cluster_model_fitter')
+        raise
+    
+    try:
         # Predicting the index/labels of the clusters on the fitted model from 'model' function
         # The result is an N X 3 array where N=height*width of the patch in pixels
         # Each value shows the label of the cluster that pixel belongs to
         labels = model.predict(pred_patch_n)
     except:
-        raise ValueError('Please input a valid sklearn.cluster.model for model')
+        raise ValueError('Please input a valid sklearn.cluster.model for model. This can be produced using tilseg.cluster.cluster_model_fitter')
 
     # scores the clustering based on various metrics
     # Silhoutte score currently takes too long
@@ -176,13 +204,14 @@ def pred_and_cluster(model, in_dir_path, out_dir_path):
             os.mkdir(os.path.join(out_dir_path, file[:-4]))
         except:
             pass
-        
-        # Makes sure that the model is training for 8 clusters
-        if len(model.cluster_centers_) <= 8:
-            pass
-        else:
-            raise ValueError("Looks like the model is being trained for more than 8 clusters. Please consider training it on less number of clusters.")
-        
+
+        try:
+            sklearn.utils.validation.check_is_fitted(model)
+        except TypeError:
+            raise TypeError('model is not an estimator')
+        except NotFittedError:
+            raise NotFittedError('model has not been fitted. Please fit it first using tilseg.cluster.cluster_model_fitter')
+    
         # Reads the current patch into a numpy uint8 array 
         pred_patch = plt.imread(os.path.join(in_dir_path, file))
         # Linearizes the array for R, G, and B separately and normalizes
@@ -195,7 +224,13 @@ def pred_and_cluster(model, in_dir_path, out_dir_path):
             # Each value shows the label of the cluster that pixel belongs to
             labels = model.predict(pred_patch_n)
         except:
-            raise ValueError('Please input a valid sklearn.cluster.model for model')
+            raise ValueError('Please input a valid sklearn.cluster.model for model. This can be produced using tilseg.cluster.cluster_model_fitter')
+
+        # Makes sure that the model is training for 8 clusters
+        if len(model.cluster_centers_) <= 8:
+            pass
+        else:
+            raise ValueError("Looks like the model is being trained for more than 8 clusters. Please consider training it on less number of clusters.")
         
         # creates a copy of the coordinates of the cluster centers in the RGB space
         # The results is 8X3 numpy array
