@@ -368,3 +368,157 @@ def plot_inertia(data: np.array,
                  marker="X")
     plt.savefig(file_path)
     return fig
+def opt_kmeans(data:np.array, n_clusters_list:list, **kwargs):
+    """
+    Function to optimize the number of clusters used by KMeans clustering,
+    wrapper for consistant syntax
+    Parameters
+    ----------
+    data: np array containing pixel data to be clustered
+    n_clusters_lsit: list of n_clusters to try 
+    **kwargs: Keyword args passed to KMeans clustering algorithm
+    Returns
+    -------
+    n_cluster: optimized n_clusters
+    """
+    return eval_km_elbow(data, n_clusters_list, **kwargs)
+def opt_dbscan(data:np.array,
+               eps_list:list,
+               metric:str="silhouette",
+               **kwargs):
+    """
+    Function to optimize the eps hyperparameter for DBSCAN
+    Parameters
+    ----------
+    data: np array containing pixel data to be clustered
+    eps_list: list of eps values to try
+    metric: string with name of metric to use
+    **kwargs: keyword args passed to DBSCAN clustering algorithm
+    Returns
+    -------
+    hyperparameters: dict of "eps":optimized eps value
+    """
+    if metric in ["silhouette", "s", "Silhouette",
+                  "silhouette-score", "Silhouette-Score",
+                  "Silhouette-score", "silhouette score",
+                  "Silhouette score", "Silhouette Score"]:
+        metric_class = sklearn.metrics.silhouette_score
+        metric_direction = "higher"
+    elif metric in ["Davies Bouldin", "Davies-Bouldin", "davies-bouldin", "db", "DB", ]:
+        metric_class = sklearn.metrics.davies_bouldin_score
+        metric_direction = "lower"
+    elif metric in ["Calinski Harabasz", "calinski-harabasz", "Calinski-Harabasz", "ch", "CH"]:
+        metric_class = sklearn.metrics.calinski_harabasz_score
+        metric_direction = "higher"
+    hyperparameters_list = []
+    for eps in eps_list:
+        hyp_dict = {"eps":eps}
+        hyp_dict.update(kwargs)
+        hyperparameters_list+=hyp_dict
+    model = sklearn.cluster.DBSCAN
+    return hyperparameters_list[eval_model_hyperparameters(
+        data=data,
+        model=model,
+        hyperparameters=hyperparameters_list,
+        metric=metric_class,
+        metric_direction=metric_direction,
+        full_return=False)]
+def opt_birch(data:np.array,
+               threshold_list:list,
+               branching_factor_list:list,
+               n_clusters_list:list,
+               metric:str="silhouette",
+               **kwargs):
+    """
+    Function to optimize the eps hyperparameter for DBSCAN
+    Parameters
+    ----------
+    data: np array containing pixel data to be clustered
+    eps_list: list of eps values to try
+    metric: string with name of metric to use
+    **kwargs: keyword args passed to DBSCAN clustering algorithm
+    Returns
+    -------
+    hyperparameters: dict containing the optimized hyperparameters
+    """
+    if len(threshold_list) != len(branching_factor_list):
+        raise ValueError("Argument lists must be the same length")
+    if len(threshold_list) != len(n_clusters_list):
+        raise ValueError("Argument lists must be the same length")
+    if len(branching_factor_list) != len(n_clusters_list):
+        raise ValueError("Argument lists must be the same lenght")
+    if metric in ["silhouette", "s", "Silhouette",
+                  "silhouette-score", "Silhouette-Score",
+                  "Silhouette-score", "silhouette score",
+                  "Silhouette score", "Silhouette Score"]:
+        metric_class = sklearn.metrics.silhouette_score
+        metric_direction = "higher"
+    elif metric in ["Davies Bouldin", "Davies-Bouldin", "davies-bouldin", "db", "DB", ]:
+        metric_class = sklearn.metrics.davies_bouldin_score
+        metric_direction = "lower"
+    elif metric in ["Calinski Harabasz", "calinski-harabasz", "Calinski-Harabasz", "ch", "CH"]:
+        metric_class = sklearn.metrics.calinski_harabasz_score
+        metric_direction = "higher"
+    hyperparameters_list = []
+    for i, threshold in enumerate(threshold_list):
+        hyp_dict = {
+            "threshold":threshold,
+            "branching_factor":branching_factor_list[i],
+            "n_clusters":n_clusters_list[i]
+            }
+        hyp_dict.update(kwargs)
+        hyperparameters_list+=hyp_dict
+    model = sklearn.cluster.Birch
+    return hyperparameters_list[eval_model_hyperparameters(
+        data=data,
+        model=model,
+        hyperparameters=hyperparameters_list,
+        metric = metric_class,
+        metric_direction=metric_direction,
+        full_return=False)]
+def opt_optics(data:np.array,
+               min_samples_list:list,
+               max_eps_list:list,
+               metric:str="silhouette",
+               **kwargs):
+    """
+    Function to optimize the eps hyperparameter for OPTICS
+    Parameters
+    ----------
+    data: np array containing pixel data to be clustered
+    min_samples_list: list of min_samples values to try
+    max_eps_list: list of max_eps values to try
+    metric: string with name of metric to use
+    **kwargs: keyword args passed to DBSCAN clustering algorithm
+    Returns
+    -------
+    eps: optimized eps value
+    """
+    if len(min_samples_list) != len(max_eps_list):
+        raise ValueError("Argument lists must be the same length")
+    if metric in ["silhouette", "s", "Silhouette",
+                  "silhouette-score", "Silhouette-Score",
+                  "Silhouette-score", "silhouette score",
+                  "Silhouette score", "Silhouette Score"]:
+        metric_class = sklearn.metrics.silhouette_score
+        metric_direction = "higher"
+    elif metric in ["Davies Bouldin", "Davies-Bouldin", "davies-bouldin", "db", "DB", ]:
+        metric_class = sklearn.metrics.davies_bouldin_score
+        metric_direction = "lower"
+    elif metric in ["Calinski Harabasz", "calinski-harabasz", "Calinski-Harabasz", "ch", "CH"]:
+        metric_class = sklearn.metrics.calinski_harabasz_score
+        metric_direction = "higher"
+    hyperparameters_list = []
+    for i, min_samples in enumerate(min_samples_list):
+        hyp_dict = {
+            "min_samples":min_samples,
+            "max_eps":max_eps_list[i]
+            }
+        hyp_dict.update(kwargs)
+        hyperparameters_list+=hyp_dict
+    model = sklearn.cluster.OPTICS
+    return hyperparameters_list[eval_model_hyperparameters(
+        data=data,
+        model=model,hyperparameters=hyperparameters_list,
+        metric = metric_class,
+        metric_direction=metric_direction)]
