@@ -312,4 +312,4 @@ def pred_and_cluster(model, in_dir_path, out_dir_path):
         # Thus there will be 1 fully overlayed image identifying all the clusters from each patch
         plt.imsave(os.path.join(out_dir_path, file[:-4], '_full_overlay.jpg'), overlay_img, dpi=1000)
 
-    return None
+    return labels
