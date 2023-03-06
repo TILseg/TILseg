@@ -41,15 +41,20 @@ def contour_generator(img_mask: np.ndarray):
 
 
 def filter_bool(contour: np.ndarray):
-    x_pos, y_pos, w_pos, h_pos = cv.boundingRect(contour)
-    aspect_ratio = float(w_pos) / h_pos
-    return bool(cv.contourArea(contour) > 50
-                and cv.contourArea(contour) < 1000
-                and aspect_ratio > 0.75
-                and aspect_ratio < 1.5)
+    meets_crit = False
+    perimeter = cv.arcLength(contour, True)
+    area = cv.contourArea(contour)
+    if area != 0 and perimeter !=0:
+        Roundness = perimeter**2 / (4 * np.pi * area)
+        meets_crit = bool(area > 200
+                          and area < 2000
+                          and Roundness < 3.0)
+    else:
+        pass
+    return meets_crit
 
 
-def data_summary_generator(cont_dict: dict, filepath: str):
+def data_summary_generator(cont_list: list, filepath: str):
     """
     Generates CSV file with relevant areas, intensities, and circularities
     of previously identified cell groups
@@ -59,8 +64,10 @@ def data_summary_generator(cont_dict: dict, filepath: str):
 '''
 #This is code I used to append two array but not required everytime and
 #relatively slow
-cluster=np.load("/home/bradyr18/cluster.npy")
+cluster=np.load("/home/bradyr18/cluster2.npy")
+cluster=np.reshape(cluster, (3000, 4000))
 patch=np.load("/home/bradyr18/patch.npy")
+print(cluster.shape)
 test_array=np.zeros([3000,4000,4])
 for i in range(3000):
     for j in range(4000):
@@ -95,10 +102,10 @@ def generate_images(image_array: np.ndarray, filepath: str, num_clust: int):
     os.mkdir(path)
     os.chdir(path)
     for m in range(num_clust+1):
-        if i != 0:
-            cv.imwrite(f"Image{m}.jpg", image_array[i][:][:][:])
+        if m != num_clust:
+            cv.imwrite(f"Image{m}.jpg", image_array[m][:][:][:])
         else:
-            cv.imwrite("Original.jpg", image_array[i][:][:][:])
+            cv.imwrite("Original.jpg", image_array[m][:][:][:])
     return None
 
 
@@ -109,14 +116,7 @@ def image_overlay_generator(img_clust: np.ndarray, original_image: np.ndarray,
     original and saves it to the specified filepath
     """
     # Colors that will become associated with each cluster on overlays
-    overlay_color = np.array([[0, 0, 0],
-                              [0, 0, 0],
-                              [0, 0, 0],
-                              [0, 0, 0],
-                              [0, 0, 0],
-                              [0, 0, 0],
-                              [0, 0, 0],
-                              [0, 0, 0]])
+    overlay_color = np.array([0, 0, 0])
 
     # Making a dictionary of the original images that will be overwriten
     dims = img_clust.shape
@@ -127,9 +127,10 @@ def image_overlay_generator(img_clust: np.ndarray, original_image: np.ndarray,
     for j in range(dims[0]):
         for k in range(dims[1]):
             key = int(img_clust[j][k][3])
-            final_arrays[key][j][k] = overlay_color[key]
+            final_arrays[key][j][k] = overlay_color
             binary_arrays[key][j][k] = 1
 
+    # Commented out temporarilly to look at code
     # generate_images(final_arrays, filepath, clust_count)
 
     return final_arrays, binary_arrays
@@ -139,9 +140,9 @@ original_image1 = np.load("/home/bradyr18/patch.npy")
 test_array = np.load("/home/bradyr18/both.npy")
 
 final, binary = image_overlay_generator(test_array, original_image1,
-                                        8, "/home/bradyr18")
+                                        4, "/home/bradyr18")
 
 mid = time.time()
 
-for i in range(8):
+for i in range(4):
     area = contour_generator(binary[i])
