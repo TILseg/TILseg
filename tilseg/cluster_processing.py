@@ -58,7 +58,14 @@ def data_summary_generator(cont_list: list, filepath: str):
     """
     Generates CSV file with relevant areas, intensities, and circularities
     of previously identified cell groups
+
+    Input: 
+    -list of arrays of points corresponding to generated contours
     """
+    data_sum = np.ndarray()
+    for ele in enumerate(cont_list):
+        
+
 
 
 '''
