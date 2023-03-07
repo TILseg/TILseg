@@ -80,7 +80,7 @@ def eval_model_hyperparameters(data: np.array,
                                full_return: bool = False,
                                **kwargs):
     """
-    Function to find hyperparameters based on silhouette coefficient
+    Function to find hyperparameters based on provided metric
     Parameters
     ----------
     data: Data to cluster
@@ -93,10 +93,11 @@ def eval_model_hyperparameters(data: np.array,
     Returns
     -------
     hyperparameter:dict
-     Dictionary with the hyperparameters position in the provided list
+     Dictionary with the hyperparameters 
     or
     scores:dict
-      Dictionary mapping the hyperparameters position to the silhouette coefficient
+      Dictionary mapping the hyperparameters position in provided list
+        to the silhouette coefficient
     """
     # Create a dictionary to hold the scores
     scores = {}
@@ -414,15 +415,16 @@ def opt_dbscan(data:np.array,
     for eps in eps_list:
         hyp_dict = {"eps":eps}
         hyp_dict.update(kwargs)
-        hyperparameters_list+=hyp_dict
+        hyperparameters_list+=[hyp_dict]
     model = sklearn.cluster.DBSCAN
-    return hyperparameters_list[eval_model_hyperparameters(
+    result = eval_model_hyperparameters(
         data=data,
         model=model,
         hyperparameters=hyperparameters_list,
         metric=metric_class,
         metric_direction=metric_direction,
-        full_return=False)]
+        full_return=False)
+    return result
 def opt_birch(data:np.array,
                threshold_list:list,
                branching_factor_list:list,
@@ -467,15 +469,15 @@ def opt_birch(data:np.array,
             "n_clusters":n_clusters_list[i]
             }
         hyp_dict.update(kwargs)
-        hyperparameters_list+=hyp_dict
+        hyperparameters_list+=[hyp_dict]
     model = sklearn.cluster.Birch
-    return hyperparameters_list[eval_model_hyperparameters(
+    return eval_model_hyperparameters(
         data=data,
         model=model,
         hyperparameters=hyperparameters_list,
         metric = metric_class,
         metric_direction=metric_direction,
-        full_return=False)]
+        full_return=False)
 def opt_optics(data:np.array,
                min_samples_list:list,
                max_eps_list:list,
@@ -515,10 +517,10 @@ def opt_optics(data:np.array,
             "max_eps":max_eps_list[i]
             }
         hyp_dict.update(kwargs)
-        hyperparameters_list+=hyp_dict
+        hyperparameters_list+=[hyp_dict]
     model = sklearn.cluster.OPTICS
-    return hyperparameters_list[eval_model_hyperparameters(
+    return eval_model_hyperparameters(
         data=data,
         model=model,hyperparameters=hyperparameters_list,
         metric = metric_class,
-        metric_direction=metric_direction)]
+        metric_direction=metric_direction)
