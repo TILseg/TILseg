@@ -77,8 +77,8 @@ def filter_bool(contour: np.ndarray):
     area = cv.contourArea(contour)
     if area != 0 and perimeter != 0:
         roundness = perimeter**2 / (4 * np.pi * area)
-        meets_crit = all(area > 200, area < 2000,
-                         roundness < 3.0)
+        meets_crit = all([area > 200, area < 2000,
+                         roundness < 3.0])
     else:
         pass
     return meets_crit
@@ -138,7 +138,7 @@ def gen_base_arrays(ori_image: np.ndarray, num_clusts: int):
     binary_array = np.zeros((num_clusts, dims[0], dims[1]))
     all_mask_array = np.zeros((3, dims[0], dims[1]))
     final_array = four_dim_array
-    for _ in range(num_clusts):
+    for _ in range(num_clusts - 1):
         final_array = np.vstack((final_array, four_dim_array))
     return final_array, binary_array, all_mask_array
 
@@ -167,22 +167,23 @@ def image_overlay_generator(img_clust: np.ndarray, original_image: np.ndarray):
     # Colors that will become associated with each cluster on overlays
     black = np.array([0, 0, 0])
 
-    colors_overlay = np.array([0, 0, 0], [255, 0, 0],
-                              [0, 255, 0], [0, 0, 255])
+    colors_overlay = np.array(([0, 0, 0], [255, 0, 0],
+                              [0, 255, 0], [0, 0, 255]))
 
     # Making a dictionary of the original images that will be overwriten
     dims = img_clust.shape
-    num_clust = img_clust.max()
+    num_clust = int(img_clust.max() + 1)
 
     final_arrays, binary_arrays, all_masks = gen_base_arrays(original_image,
                                                              num_clust)
 
     for j in range(dims[0]):
         for k in range(dims[1]):
-            key = int(img_clust[j][k][3])
+            key = int(img_clust[j][k])
             final_arrays[key][j][k] = black
             binary_arrays[key][j][k] = 1
-            all_masks[:][j][k] = colors_overlay[key]
+            for count in range(3):
+                all_masks[count][j][k] = colors_overlay[key][count]
 
     return final_arrays, binary_arrays, all_masks
 
@@ -227,7 +228,8 @@ def image_postprocessing(clusters: np.ndarray, ori_img: np.ndarray,
 
 
 original_image1 = np.load("/home/bradyr18/patch.npy")
-test_array = np.load("/home/bradyr18/both.npy")
+test_array = np.load("/home/bradyr18/cluster2.npy")
+test_array=np.reshape(test_array, (3000, 4000))
 
 final, binary, full_masks = image_overlay_generator(test_array,
                                                     original_image1)
