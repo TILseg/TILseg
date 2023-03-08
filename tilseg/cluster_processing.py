@@ -1,10 +1,12 @@
 """
 This python file is meant to generate human and computer readable data for
 analysis based on the clusters generated via the clustering model previously
-developed. The intended output is a series of images which represent the
+developed. The output is a series of images which represent the
 original image and relevant overlays of the determined clusters. Additionally,
 based on the clusters, data from filtered cell clusters will be compiled into
-a CSV.
+a CSV. Immune cell groups are identified using the contour functionality from
+OpenCV. The implemented filters are based on area and roundness of the derived
+contours.
 """
 import os
 import time
@@ -13,17 +15,48 @@ import numpy as np
 import cv2 as cv
 import pandas as pd
 
-# pylint: disable=locally-disabled, no-member, pointless-string-statement
-# pylint: disable=locally-disabled, too-many-arguments
+
+# pylint: disable=locally-disabled, no-member, too-many-arguments
+# pylint: disable=locally-disabled, no-else-raise
 
 
 def base_results_generator(original_image: np.ndarray,
                            all_clust_image: np.ndarray, filepath: str):
     """
-    This function creates the folder which all result files will be placed in
-    and will also generate an image of the inputted sample and an image of all
-    the clusters in the defined folder.
+    Creates the folder for result files and generates original and all
+    cluster images
+
+    Parameters
+    -----
+    original_image: np.ndarray
+        unmodified image as a 3D numpy array with dimensions X, Y, color
+    all_clust_image: np.ndarray
+        image with all clusters overlaid as a 3D numpy array with dimensions
+        X, Y, color
+    filepath: str
+        the filepath (absolute or relative) where the result files will be
+        saved
     """
+    ori_shape = original_image.shape
+    all_clust_shape = all_clust_image.shape
+
+    if original_image.ndim != 3:
+        raise ValueError(f"Original image has 3 dimensions but "
+                         f"{original_image.ndim} were input")
+    else:
+        pass
+
+    if all_clust_image.ndim != 3:
+        raise ValueError(f"All cluster image has 3 dimensions but "
+                         f"{all_clust_image.ndim} were input")
+    else:
+        pass
+
+    if ori_shape[2] != 3 or all_clust_shape[2] != 3:
+        raise ValueError("Images should have 3 channels for RGB")
+    else:
+        pass
+
     if not os.path.exists(filepath):
         os.mkdir(filepath)
     else:
@@ -38,8 +71,32 @@ def base_results_generator(original_image: np.ndarray,
 def generate_image_series(image_array: np.ndarray, filepath: str, prefix: str):
     """
     This takes in an array of image values and generates a directory of
-    jpg images in a specified file location.
+    .jpg images in the specified file location
+
+    Parameters
+    -----
+    image_array: np.ndarray
+        a 4 dimensional array where the dimensions are image number, X, Y,
+        color from which RGB images are generated
+    filepath: str
+        the filepath (relative or absolute) in which the directory of images
+        is generated
+    prefix: str
+        the name of the directory created to store the generated images
     """
+    
+    if image_array.ndim != 4:
+        raise ValueError(f"All cluster image has 3 dimensions but "
+                         f"{image_array.ndim} were input")
+    else:
+        pass
+
+    image_array_shape = image_array.shape
+    if image_array_shape[3] != 3:
+        raise ValueError("Images should have 3 channels for RGB")
+    else:
+        pass
+
     dims = image_array.shape
     path = os.path.join(filepath, prefix)
     if not os.path.exists(path):
