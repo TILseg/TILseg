@@ -21,54 +21,6 @@ import matplotlib.pyplot as plt
 # pylint: disable=locally-disabled, no-else-raise
 
 
-def base_results_generator(original_image: np.ndarray,
-                           all_clust_image: np.ndarray, filepath: str):
-    """
-    Creates the folder for result files and generates original and all
-    cluster images
-
-    Parameters
-    -----
-    original_image: np.ndarray
-        unmodified image as a 3D numpy array with dimensions X, Y, color
-    all_clust_image: np.ndarray
-        image with all clusters overlaid as a 3D numpy array with dimensions
-        X, Y, color
-    filepath: str
-        the filepath (absolute or relative) where the result files will be
-        saved
-    """
-    ori_shape = original_image.shape
-    all_clust_shape = all_clust_image.shape
-
-    if original_image.ndim != 3:
-        raise ValueError(f"Original image has 3 dimensions but "
-                         f"{original_image.ndim} were input")
-    else:
-        pass
-
-    if all_clust_image.ndim != 3:
-        raise ValueError(f"All cluster image has 3 dimensions but "
-                         f"{all_clust_image.ndim} were input")
-    else:
-        pass
-
-    if ori_shape[2] != 3 or all_clust_shape[2] != 3:
-        raise ValueError("Images should have 3 channels for RGB")
-    else:
-        pass
-
-    if not os.path.exists(filepath):
-        os.mkdir(filepath)
-    else:
-        pass
-
-    ori_filepath = os.path.join(filepath, "Original.jpg")
-    all_clust_filepath = os.path.join(filepath, "AllClusters.jpg")
-    plt.imsave(ori_filepath, original_image)
-    plt.imsave(all_clust_filepath, all_clust_image)
-
-
 def image_series_exceptions(image_array: np.ndarray, rgb_bool: bool = True):
     """
     This function is used by generate_image_series in order to throw
@@ -361,41 +313,40 @@ def immune_cluster_analyzer(masks: list, original_image: np.ndarray,
     that contains the immune cells and export the data as a CSV. It will also
     generate an image of the contours overlaid on the image.
 
-   Parameters
+    Parameters
     -----
     masks: list
         list of masks which are arrays of 0s and 1s corresponding to cluster
         location
-    original_image: np.ndarray
-        the original image as a 3 dimensional array where dimensions
-        correspond to X, Y, and color
-    filepath: str
-        the filepath where the CSV file will be saved
+
+    Returns
+    -----
+    TIL_contour: list
+        list of arrays that correspond to the contours of the filtered TILs
+    max_contour_count
 
     """
 
     contour_list = []
     count_list = []
     count_index = 0
+    max_contour_count = 0
     for ele in enumerate(masks):
         contour_temp, contour_count = contour_generator(masks[ele[0]])
         contour_list.append(contour_temp)
         count_list.append(contour_count)
         if contour_count > count_list[count_index]:
             count_index = ele[0]
+            max_contour_count = contour_count
         else:
             pass
-
-    cv.drawContours(original_image, contour_list[count_index], -1,
-                    (0, 255, 0), 3)
-    contour_img_filepath = os.path.join(filepath, "ContourOverlay.jpg")
-    plt.imsave(contour_img_filepath, original_image)
-
-    csv_results_compiler(contour_list[count_index], filepath)
+    TIL_contour = contour_list[count_index]
+    return TIL_contour, max_contour_count
 
 
 def image_postprocessing(clusters: np.ndarray, ori_img: np.ndarray,
-                         filepath: str, gen_overlays: bool = True,
+                         filepath: str, gen_all_clusters: bool = True,
+                         gen_overlays: bool = True, gen_tils: bool = True,
                          gen_masks: bool = False, gen_csv: bool = True):
     """
     This is a wrapper function that will be used to group all postprocessing
@@ -411,8 +362,12 @@ def image_postprocessing(clusters: np.ndarray, ori_img: np.ndarray,
     ori_img: np.ndarray
         3D array with dimensions X, Y, and color with three color channels
         as RGB. This is the original image clustering was performed on
+    gen_all_clusters: bool
+        determines if image with all clusters visualized will be generated
     gen_overlays: bool
         determines if overlaid images will be generated
+    gen_tils: bool
+        determines if overlaid and mask of TILs will be generated
     gen_masks: bool
         determines if masks will be generated
     gen_csv: bool
@@ -429,18 +384,58 @@ def image_postprocessing(clusters: np.ndarray, ori_img: np.ndarray,
         raise ValueError(f"Original image has 3 dimensions but "
                          f"{ori_img.ndim} were input")
 
+    ori_shape = ori_img.shape
+    if ori_shape[2] != 3:
+        raise ValueError("Images should have 3 channels for RGB")
+    else:
+        pass
+   
     intial_time = time.time()
     masked_images, masks, all_masks = result_image_generator(clusters,
                                                              ori_img)
 
     mod_filepath = os.path.join(filepath, "Clustering Results")
-    base_results_generator(ori_img, all_masks, mod_filepath)
+
+    if not os.path.exists(mod_filepath):
+        os.mkdir(mod_filepath)
+    else:
+        pass
+    
+    if any([gen_overlays, gen_masks, gen_tils, gen_all_clusters]):
+        ori_filepath = os.path.join(mod_filepath, "Original.jpg")
+        plt.imsave(ori_filepath, ori_img)
+    else: 
+        pass
+    
+    if gen_tils or gen_csv:
+        TIL_list, TIL_count = immune_cluster_analyzer(masks, ori_img, mod_filepath)
+    else:
+        pass
+
+    if gen_all_clusters:
+        all_clust_filepath = os.path.join(mod_filepath, "AllClusters.jpg")
+        plt.imsave(all_clust_filepath, all_masks)
+    else:
+        pass
 
     if gen_overlays:
         generate_image_series(masked_images, mod_filepath, "Overlaid Images",
                               True)
     else:
         pass
+
+    if gen_tils:
+        dims = ori_img.shape
+        tils_mask = np.zeros((dims[0], dims[1], 3), np.uint8)        
+        cv.drawContours(tils_mask, TIL_list, -1, (255, 255, 255), 3)
+        contour_mask_filepath = os.path.join(mod_filepath, "ContourMask.jpg")
+        plt.imsave(contour_mask_filepath, tils_mask)
+        cv.drawContours(ori_img, TIL_list, -1, (0, 255, 0), 3)
+        contour_img_filepath = os.path.join(mod_filepath, "ContourOverlay.jpg")
+        plt.imsave(contour_img_filepath, ori_img)
+    else: 
+        pass
+
 
     if gen_masks:
         masks_imgs = masks * 255
@@ -449,8 +444,10 @@ def image_postprocessing(clusters: np.ndarray, ori_img: np.ndarray,
         pass
 
     if gen_csv:
-        immune_cluster_analyzer(masks, ori_img, mod_filepath)
+        csv_results_compiler(TIL_list, mod_filepath)
     else:
         pass
 
     print(f"Time to process image: {time.time()-intial_time:.3f}")
+
+    return TIL_count
