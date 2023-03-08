@@ -748,7 +748,7 @@ def superpatcher(patches_list, sp_width=3):
 
     # initialize the row patch (starting column, adding column wise)
     patch_array_0 = (patches_list[0]).values[0]
-    patch_index = 1
+    patch_index = 2
 
     for j in range(0, sp_height_calc):
         
@@ -756,7 +756,6 @@ def superpatcher(patches_list, sp_width=3):
         for i in range(1, sp_width_calc):
 
             # get patch at index i (in list)
-            # patch_array_i = (patches_list[i+j*sp_width_calc]).values[0]
             patch_array_i = (patches_list[patch_index]).values[0]
             
             patch_index += 1
@@ -780,9 +779,9 @@ def superpatcher(patches_list, sp_width=3):
     return patch_row_1
 
 
-def preprocess(path):
-    dataframe = main_preprocessing(path)
-    plist = get_superpatch_patches(dataframe)
+def preprocess(path, patches=6, training=True, save_im=False, max_tile_x=4000, max_tile_y=3000):
+    dataframe = main_preprocessing(path, training, save_im, max_tile_x, max_tile_y)
+    plist = get_superpatch_patches(dataframe, patches)
     spatch = superpatcher(plist)
 
     return spatch
