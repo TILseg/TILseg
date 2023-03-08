@@ -17,113 +17,38 @@ import pandas as pd
 # pylint: disable=locally-disabled, too-many-arguments
 
 
-def immune_cluster_generator(masks: list, filepath: str):
+def base_results_generator(original_image: np.ndarray,
+                           all_clust_image: np.ndarray, filepath: str):
     """
-    This function will generate the contours, identify the relevant cluster
-    that contains the immune cells and export the data as a CSV
-
-    Inputs:
-    masks - a list of 2D arrays which are binary representations of the
-    clusters
-    filepath - string of where the CSV will be saved
+    This function creates the folder which all result files will be placed in
+    and will also generate an image of the inputted sample and an image of all
+    the clusters in the defined folder.
     """
-
-    contour_list = []
-    count_list = []
-    count_index = 0
-    for ele in enumerate(masks):
-        contour_temp, contour_count = contour_generator(masks[ele[0]])
-        contour_list.append(contour_temp)
-        count_list.append(contour_count)
-        if contour_count > count_list[count_index]:
-            count_index = ele[0]
-        else:
-            pass
-
-    data_summary_generator(masks[count_index], filepath)
-
-
-def contour_generator(img_mask: np.ndarray):
-    """
-    Creates contours based on an inputted mask and parameters defined herein.
-    These parameters define what will be classified as likely an immune
-    cell cluster and can be varied within this code block.
-
-    Input:
-    -img_mask: binary 2D array where the dimensions represent the x and y
-        coordinates of the relevant pixels
-
-    Output:
-    -Contour: list of arrays of points defining the contour
-    """
-
-    contours, _ = cv.findContours(img_mask.astype(np.int32),
-                                  cv.RETR_FLOODFILL,
-                                  cv.CHAIN_APPROX_NONE)
-    contours_mod = []
-    for ele in enumerate(contours):
-        if filter_bool(contours[ele[0]]):
-            contours_mod.append(contours[ele[0]])
-    return contours_mod, len(contours_mod)
-
-
-def filter_bool(contour: np.ndarray):
-    """
-    Determines if a given contour meets the filters that
-    have been defined for TILs
-    """
-    meets_crit = False
-    perimeter = cv.arcLength(contour, True)
-    area = cv.contourArea(contour)
-    if area != 0 and perimeter != 0:
-        roundness = perimeter**2 / (4 * np.pi * area)
-        meets_crit = all([area > 200, area < 2000,
-                         roundness < 3.0])
+    if not os.path.exists(filepath):
+        os.mkdir(filepath)
     else:
         pass
-    return meets_crit
+
+    ori_filepath = os.path.join(filepath, "Original.jpg")
+    all_clust_filepath = os.path.join(filepath, "AllClusters.jpg")
+    cv.imwrite(ori_filepath, original_image)
+    cv.imwrite(all_clust_filepath, all_clust_image)
 
 
-def data_summary_generator(cont_list: list, filepath: str):
+def generate_image_series(image_array: np.ndarray, filepath: str, prefix: str):
     """
-    Generates CSV file with relevant areas, intensities, and circularities
-    of previously identified cell groups
-
-    Input:
-    -list of arrays of points corresponding to generated contours
+    This takes in an array of image values and generates a directory of
+    jpg images in a specified file location.
     """
-    data_sum = np.zeros(len(cont_list), 4)
-    for ele in enumerate(cont_list):
-        temp_area = cv.contourArea(cont_list[ele[0]])
-        temp_per = cv.arcLength(cont_list[ele[0]])
-        _, temp_radius = cv.minEnclosingCircle(cont_list[ele[0]])
-        temp_roundness = temp_per**2 / (4 * np.pi * temp_area)
-        temp_circle_area = np.pi * temp_radius**2
-        data_sum[ele[0]][:] = [temp_area, temp_per, temp_roundness,
-                               temp_circle_area]
-    dataframe = pd.DataFrame(data_sum, columns=["Area", "Perimeter",
-                                                "Roundness",
-                                                "Bounding Circle Area"])
-
-    path = os.path.join(filepath, "Compiled_Data")
-    dataframe.to_csv(path, index=False)
-
-
-'''
-#This is code I used to append two array but not required everytime and
-#relatively slow
-cluster=np.load("/home/bradyr18/cluster2.npy")
-cluster=np.reshape(cluster, (3000, 4000))
-patch=np.load("/home/bradyr18/patch.npy")
-print(cluster.shape)
-test_array=np.zeros([3000,4000,4])
-for i in range(3000):
-    for j in range(4000):
-        for k in range(2):
-            test_array[i][j][k]=patch[i][j][k]
-        test_array[i][j][3]=cluster[i][j]
-np.save("/home/bradyr18/both.npy", test_array)
-'''
+    dims = image_array.shape
+    path = os.path.join(filepath, prefix)
+    if not os.path.exists(path):
+        os.mkdir(path)
+    else:
+        pass
+    os.chdir(path)
+    for count in range(dims[0]):
+        cv.imwrite(f"Image{count + 1}.jpg", image_array[count][:][:][:])
 
 
 def gen_base_arrays(ori_image: np.ndarray, num_clusts: int):
@@ -136,30 +61,14 @@ def gen_base_arrays(ori_image: np.ndarray, num_clusts: int):
     dims = ori_image.shape
     four_dim_array = np.expand_dims(ori_image, 0)
     binary_array = np.zeros((num_clusts, dims[0], dims[1]))
-    all_mask_array = np.zeros((3, dims[0], dims[1]))
+    all_mask_array = np.zeros((dims[0], dims[1], 3))
     final_array = four_dim_array
     for _ in range(num_clusts - 1):
         final_array = np.vstack((final_array, four_dim_array))
     return final_array, binary_array, all_mask_array
 
 
-def generate_image_series(image_array: np.ndarray, filepath: str, prefix: str):
-    """
-    This takes in an array of image values and generates a directory of
-    jpg images in a specified file location.
-    """
-    dims = image_array.shape
-    path = os.path.join(filepath, prefix)
-    if not os.path.exists(filepath):
-        os.mkdir(path)
-    else:
-        pass
-    os.chdir(path)
-    for count in range(dims[2]+1):
-        cv.imwrite(f"Image{count + 1}.jpg", image_array[count][:][:][:])
-
-
-def image_overlay_generator(img_clust: np.ndarray, original_image: np.ndarray):
+def result_image_generator(img_clust: np.ndarray, original_image: np.ndarray):
     """
     Generates series of images equal to the number of clusters plus the
     original and saves it to the specified filepath
@@ -183,9 +92,101 @@ def image_overlay_generator(img_clust: np.ndarray, original_image: np.ndarray):
             final_arrays[key][j][k] = black
             binary_arrays[key][j][k] = 1
             for count in range(3):
-                all_masks[count][j][k] = colors_overlay[key][count]
+                all_masks[j][k][count] = colors_overlay[key][count]
 
     return final_arrays, binary_arrays, all_masks
+
+
+def filter_boolean(contour: np.ndarray):
+    """
+    Determines if a given contour meets the filters that
+    have been defined for TILs
+    """
+    meets_crit = False
+    perimeter = cv.arcLength(contour, True)
+    area = cv.contourArea(contour)
+    if area != 0 and perimeter != 0:
+        roundness = perimeter**2 / (4 * np.pi * area)
+        meets_crit = all([area > 200, area < 2000,
+                         roundness < 3.0])
+    else:
+        pass
+    return meets_crit
+
+
+def contour_generator(img_mask: np.ndarray):
+    """
+    Creates contours based on an inputted mask and parameters defined herein.
+    These parameters define what will be classified as likely an immune
+    cell cluster and can be varied within this code block.
+
+    Input:
+    -img_mask: binary 2D array where the dimensions represent the x and y
+        coordinates of the relevant pixels
+
+    Output:
+    -Contour: list of arrays of points defining the contour
+    """
+
+    contours, _ = cv.findContours(img_mask.astype(np.int32),
+                                  cv.RETR_FLOODFILL,
+                                  cv.CHAIN_APPROX_NONE)
+    contours_mod = []
+    for ele in enumerate(contours):
+        if filter_boolean(contours[ele[0]]):
+            contours_mod.append(contours[ele[0]])
+    return contours_mod, len(contours_mod)
+
+
+def csv_results_compiler(cont_list: list, filepath: str):
+    """
+    Generates CSV file with relevant areas, intensities, and circularities
+    of previously identified cell groups
+
+    Input:
+    -list of arrays of points corresponding to generated contours
+    """
+    data_sum = np.zeros((len(cont_list), 4))
+    for ele in enumerate(cont_list):
+        temp_area = cv.contourArea(cont_list[ele[0]])
+        temp_per = cv.arcLength(cont_list[ele[0]], True)
+        _, temp_radius = cv.minEnclosingCircle(cont_list[ele[0]])
+        temp_roundness = temp_per**2 / (4 * np.pi * temp_area)
+        temp_circle_area = np.pi * temp_radius**2
+        data_sum[ele[0]][:] = [temp_area, temp_per, temp_roundness,
+                               temp_circle_area]
+    dataframe = pd.DataFrame(data_sum, columns=["Area", "Perimeter",
+                                                "Roundness",
+                                                "Bounding Circle Area"])
+
+    path = os.path.join(filepath, "Compiled_Data.csv")
+    dataframe.to_csv(path, index=False)
+
+
+def immune_cluster_analyzer(masks: list, filepath: str):
+    """
+    This function will generate the contours, identify the relevant cluster
+    that contains the immune cells and export the data as a CSV
+
+    Inputs:
+    masks - a list of 2D arrays which are binary representations of the
+    clusters
+    filepath - string of where the CSV will be saved
+    """
+
+    contour_list = []
+    count_list = []
+    count_index = 0
+    for ele in enumerate(masks):
+        contour_temp, contour_count = contour_generator(masks[ele[0]])
+        contour_list.append(contour_temp)
+        count_list.append(contour_count)
+        if contour_count > count_list[count_index]:
+            count_index = ele[0]
+        else:
+            pass
+
+    csv_results_compiler(contour_list[count_index], filepath)
 
 
 def image_postprocessing(clusters: np.ndarray, ori_img: np.ndarray,
@@ -204,37 +205,27 @@ def image_postprocessing(clusters: np.ndarray, ori_img: np.ndarray,
     gen_csv - boolean to determine if CSV of contours will be generated
     """
 
-    masked_images, masks, all_masks = image_overlay_generator(clusters,
-                                                              ori_img)
+    intial_time = time.time()
+    masked_images, masks, all_masks = result_image_generator(clusters,
+                                                             ori_img)
 
-    cv.imwrite("Original.jpg", ori_img)
-    cv.imwrite("AllClusters.jpg", all_masks)
+    mod_filepath = os.path.join(filepath, "Clustering Results")
+    base_results_generator(ori_img, all_masks, mod_filepath)
 
     if gen_overlays:
-        generate_image_series(masked_images, filepath, "Overlaid Images")
+        generate_image_series(masked_images, mod_filepath, "Overlaid Images")
     else:
         pass
 
     if gen_masks:
-        generate_image_series(masks, filepath, "Masks")
+        masks_imgs = masks * 255
+        generate_image_series(masks_imgs, mod_filepath, "Masks")
     else:
         pass
 
     if gen_csv:
-        immune_cluster_generator(masks, filepath)
+        immune_cluster_analyzer(masks, mod_filepath)
     else:
         pass
-    return masked_images, masks
 
-
-original_image1 = np.load("/home/bradyr18/patch.npy")
-test_array = np.load("/home/bradyr18/cluster2.npy")
-test_array=np.reshape(test_array, (3000, 4000))
-
-final, binary, full_masks = image_overlay_generator(test_array,
-                                                    original_image1)
-
-mid = time.time()
-
-for i in range(4):
-    area1 = contour_generator(binary[i])
+    print(f"Time to process image: {time.time()-intial_time:.3f}")
