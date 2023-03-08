@@ -14,6 +14,7 @@ import cv2 as cv
 import pandas as pd
 
 # pylint: disable=locally-disabled, no-member, pointless-string-statement
+# pylint: disable=locally-disabled, too-many-arguments
 
 
 def immune_cluster_generator(masks: list, filepath: str):
@@ -26,6 +27,7 @@ def immune_cluster_generator(masks: list, filepath: str):
     clusters
     filepath - string of where the CSV will be saved
     """
+
     contour_list = []
     count_list = []
     count_index = 0
@@ -102,7 +104,9 @@ def data_summary_generator(cont_list: list, filepath: str):
     dataframe = pd.DataFrame(data_sum, columns=["Area", "Perimeter",
                                                 "Roundness",
                                                 "Bounding Circle Area"])
-    dataframe.to_csv(filepath, index=False)
+
+    path = os.path.join(filepath, "Compiled_Data")
+    dataframe.to_csv(path, index=False)
 
 
 '''
@@ -122,69 +126,70 @@ np.save("/home/bradyr18/both.npy", test_array)
 '''
 
 
-def gen_base_arrays(ori_image: np.ndarray, num_clust: int, array_dims: list):
+def gen_base_arrays(ori_image: np.ndarray, num_clusts: int):
     """
     Generates set of two arrays which will be overlaid with the cluster data.
     The first array contains the number of clusters+1 images which will recieve
     masks based on the associated cluster. The second is a binary array for use
     in contour generation.
     """
+    dims = ori_image.shape
     four_dim_array = np.expand_dims(ori_image, 0)
-    binary_array = np.zeros((num_clust, array_dims[0], array_dims[1]))
+    binary_array = np.zeros((num_clusts, dims[0], dims[1]))
+    all_mask_array = np.zeros((3, dims[0], dims[1]))
     final_array = four_dim_array
-    for _ in range(num_clust):
+    for _ in range(num_clusts):
         final_array = np.vstack((final_array, four_dim_array))
-    return final_array, binary_array
+    return final_array, binary_array, all_mask_array
 
 
-def generate_images(image_array: np.ndarray, filepath: str, num_clust: int):
+def generate_image_series(image_array: np.ndarray, filepath: str, prefix: str):
     """
     This takes in an array of image values and generates a directory of
     jpg images in a specified file location.
     """
-    path = os.path.join(filepath, "Overlaid Images")
+    dims = image_array.shape
+    path = os.path.join(filepath, prefix)
     if not os.path.exists(filepath):
         os.mkdir(path)
     else:
         pass
     os.chdir(path)
-    for count in range(num_clust+1):
-        if count != num_clust:
-            cv.imwrite(f"Image{count + 1}.jpg", image_array[count][:][:][:])
-        else:
-            cv.imwrite("Original.jpg", image_array[count][:][:][:])
+    for count in range(dims[2]+1):
+        cv.imwrite(f"Image{count + 1}.jpg", image_array[count][:][:][:])
 
 
-def image_overlay_generator(img_clust: np.ndarray, original_image: np.ndarray,
-                            clust_count: int, filepath: str):
+def image_overlay_generator(img_clust: np.ndarray, original_image: np.ndarray):
     """
     Generates series of images equal to the number of clusters plus the
     original and saves it to the specified filepath
     """
     # Colors that will become associated with each cluster on overlays
-    overlay_color = np.array([0, 0, 0])
+    black = np.array([0, 0, 0])
+
+    colors_overlay = np.array([0, 0, 0], [255, 0, 0],
+                              [0, 255, 0], [0, 0, 255])
 
     # Making a dictionary of the original images that will be overwriten
     dims = img_clust.shape
+    num_clust = img_clust.max()
 
-    final_arrays, binary_arrays = gen_base_arrays(original_image, clust_count,
-                                                  dims)
+    final_arrays, binary_arrays, all_masks = gen_base_arrays(original_image,
+                                                             num_clust)
 
     for j in range(dims[0]):
         for k in range(dims[1]):
             key = int(img_clust[j][k][3])
-            final_arrays[key][j][k] = overlay_color
+            final_arrays[key][j][k] = black
             binary_arrays[key][j][k] = 1
+            all_masks[:][j][k] = colors_overlay[key]
 
-    # Commented out temporarilly to look at code
-    generate_images(final_arrays, filepath, clust_count)
-
-    return final_arrays, binary_arrays
+    return final_arrays, binary_arrays, all_masks
 
 
 def image_postprocessing(clusters: np.ndarray, ori_img: np.ndarray,
                          filepath: str, gen_overlays: bool = True,
-                         gen_csv: bool = True):
+                         gen_masks: bool = False, gen_csv: bool = True):
     """
     This is a wrapper function that will be used to group all postprocessing
     together.
@@ -198,23 +203,34 @@ def image_postprocessing(clusters: np.ndarray, ori_img: np.ndarray,
     gen_csv - boolean to determine if CSV of contours will be generated
     """
 
-    dim = clusters.max + 1
+    masked_images, masks, all_masks = image_overlay_generator(clusters,
+                                                              ori_img)
+
+    cv.imwrite("Original.jpg", ori_img)
+    cv.imwrite("AllClusters.jpg", all_masks)
+
     if gen_overlays:
-        masked_images, masks = image_overlay_generator(clusters, ori_img,
-                                                       dim, filepath)
+        generate_image_series(masked_images, filepath, "Overlaid Images")
+    else:
+        pass
+
+    if gen_masks:
+        generate_image_series(masks, filepath, "Masks")
     else:
         pass
 
     if gen_csv:
-        image_overlay_generator(clusters, ori_img, dim, filepath)
+        immune_cluster_generator(masks, filepath)
+    else:
+        pass
     return masked_images, masks
 
 
 original_image1 = np.load("/home/bradyr18/patch.npy")
 test_array = np.load("/home/bradyr18/both.npy")
 
-final, binary = image_overlay_generator(test_array, original_image1,
-                                        4, "/home/bradyr18")
+final, binary, full_masks = image_overlay_generator(test_array,
+                                                    original_image1)
 
 mid = time.time()
 
