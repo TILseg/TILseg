@@ -42,7 +42,7 @@ def generate_image_series(image_array: np.ndarray, filepath: str, prefix: str):
     """
     dims = image_array.shape
     path = os.path.join(filepath, prefix)
-    if not os.path.exists(filepath):
+    if not os.path.exists(path):
         os.mkdir(path)
     else:
         pass
@@ -103,7 +103,7 @@ def image_postprocessing(clusters: np.ndarray, ori_img: np.ndarray,
     cv2.imwrite("AllClusters.jpg", all_masks)
 
     if gen_overlays:
-        generate_image_series(masked_images, filepath, "Overlaid Images")
+        generate_image_series(masked_images, filepath, "Overlaid_Images")
     else:
         pass
 
