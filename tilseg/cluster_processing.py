@@ -68,7 +68,48 @@ def base_results_generator(original_image: np.ndarray,
     cv.imwrite(all_clust_filepath, all_clust_image)
 
 
-def generate_image_series(image_array: np.ndarray, filepath: str, prefix: str):
+def image_series_exceptions(image_array: np.ndarray, rgb_bool: bool = True):
+    """
+    This function is used by generate_image_series in order to throw
+    exceptions from recieving incorrect array types.
+
+     Parameters
+    -----
+    image_array: np.ndarray
+        a 4 dimensional array where the dimensions are image number, X, Y,
+        color from which RGB images are generated
+    rgb_bool: bool
+        is the image being passed in color or grayscale
+    """
+
+    if rgb_bool:
+        if image_array.ndim != 4:
+            raise ValueError(f"RGB images should has 4 dimensions but "
+                             f"{image_array.ndim} were input")
+        else:
+            pass
+
+        image_array_shape = image_array.shape
+        if image_array_shape[3] != 3:
+            raise ValueError("Image should have 3 channels for RGB")
+        else:
+            pass
+    else:
+        if image_array.ndim != 3:
+            raise ValueError(f"Grayscale images should has 3 dimensions but "
+                             f"{image_array.ndim} were input")
+        else:
+            pass
+
+        if image_array.max() > 255 or image_array.min() < 0:
+            raise ValueError("Grayscale images should have pixel values"
+                             "between 0 and 255")
+        else:
+            pass
+
+
+def generate_image_series(image_array: np.ndarray, filepath: str,
+                          prefix: str, rgb_bool: bool = True):
     """
     This takes in an array of image values and generates a directory of
     .jpg images in the specified file location
@@ -83,19 +124,11 @@ def generate_image_series(image_array: np.ndarray, filepath: str, prefix: str):
         is generated
     prefix: str
         the name of the directory created to store the generated images
+    rgb_bool: bool
+        is the image being passed in color or grayscale
     """
-    
-    if image_array.ndim != 4:
-        raise ValueError(f"All cluster image has 3 dimensions but "
-                         f"{image_array.ndim} were input")
-    else:
-        pass
 
-    image_array_shape = image_array.shape
-    if image_array_shape[3] != 3:
-        raise ValueError("Images should have 3 channels for RGB")
-    else:
-        pass
+    image_series_exceptions(image_array, rgb_bool)
 
     dims = image_array.shape
     path = os.path.join(filepath, prefix)
@@ -104,16 +137,45 @@ def generate_image_series(image_array: np.ndarray, filepath: str, prefix: str):
     else:
         pass
     os.chdir(path)
-    for count in range(dims[0]):
-        cv.imwrite(f"Image{count + 1}.jpg", image_array[count][:][:][:])
+
+    if rgb_bool:
+        for count in range(dims[0]):
+            cv.imwrite(f"Image{count + 1}.jpg", image_array[count][:][:][:])
+    else:
+        for count in range(dims[0]):
+            cv.imwrite(f"Image{count + 1}.jpg", image_array[count][:][:])
 
 
 def gen_base_arrays(ori_image: np.ndarray, num_clusts: int):
     """
-    Generates set of two arrays which will be overlaid with the cluster data.
-    The first array contains the number of clusters+1 images which will recieve
-    masks based on the associated cluster. The second is a binary array for use
-    in contour generation.
+    Generates three arrays as the basis of cluster assignment. The first array
+    contains the original image and will be used to make overlaid images. The
+    second is all zeros and will be used to generate boolean masks. The third
+    also contains 0 but with different dimensions for use to generate an all
+    cluster image.
+
+    Parameters
+    -----
+    ori_image: np.ndarray
+        the original image as a 3 dimensional array with dimensions of X, Y,
+        color
+    num_clusts: int
+        number of clusters which defines length of added dimension in overlaid
+        and masks arrays
+
+    Returns
+    -----
+    final_array: np.ndarray
+        4 dimensional array best thought of as a series of 3D arrays where
+        each 3D array is the original image and the 4th dimension will
+        correspond to cluster after value assignment
+    binary_array: np.ndarray
+        3 dimensional array where the dimensions correspond to cluster,
+        X and Y. This will be used for generation of binary masks for each
+        cluster.
+    all_mask_array: np.ndarray
+        3 dimensional array where the dimensions correspond to X, Y, color.
+        This will be used to generate an image with all clusters shown.
     """
     dims = ori_image.shape
     four_dim_array = np.expand_dims(ori_image, 0)
@@ -127,9 +189,50 @@ def gen_base_arrays(ori_image: np.ndarray, num_clusts: int):
 
 def result_image_generator(img_clust: np.ndarray, original_image: np.ndarray):
     """
-    Generates series of images equal to the number of clusters plus the
-    original and saves it to the specified filepath
+    Generates 3 arrays from clusters. The first is the each cluster
+    individually overlaid on the original image. The second is a binary mask
+    from each cluster. The third is an array with each pixel colored based on
+    the associated cluster.
+
+    Parameters
+    -----
+    img_clust: np.ndarray
+        a 2D array where the dimensions correspond to X and Y, and the values
+        correspond to the cluster assigned to that pixel
+    original_image: np.ndarray
+        the original image as a 3 dimensional array where dimensions
+        correspond to X, Y, and color
+
+    Returns
+    -----
+    final_arrays: np.ndarray
+        a 4 dimensional array where dimensions correspond to cluster, X, Y,
+        and color. This can be thought of as a list of images with one for
+        each cluster. The images are the original image with cluster pixels
+        labeled black
+    binary_arrays: np.ndarray
+        a 3 dimensional array where dimensions correspond to cluster, X, and
+        Y. This can be thought of as a list of images with one for each
+        cluster. The images will contain 1s in pixels associated with the
+        cluster and 0s everywhere else.
+    all_masks: np.ndarray
+        a 3 dimensional array where dimensions correspond to X, Y and color.
+        The pixels in the array have various colors associated for each
+        cluster.
     """
+
+    if img_clust.ndim != 2:
+        raise ValueError(f"Cluster array has 2 dimensions but "
+                         f"{img_clust.ndim} were input")
+    else:
+        pass
+
+    if original_image.ndim != 3:
+        raise ValueError(f"All cluster image has 3 dimensions but "
+                         f"{original_image.ndim} were input")
+    else:
+        pass
+
     # Colors that will become associated with each cluster on overlays
     black = np.array([0, 0, 0])
 
@@ -158,7 +261,19 @@ def filter_boolean(contour: np.ndarray):
     """
     Determines if a given contour meets the filters that
     have been defined for TILs
+
+    Parameter
+    -----
+    contour: np.ndarray
+        an array of points corresponding to an individual contour
+
+    Returns
+    -----
+    meets_crit: bool
+        boolean that is true if the contour meets the filter and false
+        otherwise
     """
+
     meets_crit = False
     perimeter = cv.arcLength(contour, True)
     area = cv.contourArea(contour)
@@ -173,17 +288,29 @@ def filter_boolean(contour: np.ndarray):
 
 def contour_generator(img_mask: np.ndarray):
     """
-    Creates contours based on an inputted mask and parameters defined herein.
-    These parameters define what will be classified as likely an immune
-    cell cluster and can be varied within this code block.
+    Creates contours based on an inputted mask and parameters defined here and
+    in the filter_boolean function. These parameters define what will be
+    classified as likely an immune cell cluster and can be varied within
+    filter_bool.
 
-    Input:
-    -img_mask: binary 2D array where the dimensions represent the x and y
-        coordinates of the relevant pixels
+    Parameter
+    -----
+    img_mask: np.ndarray
+        binary 2D array where the dimensions represent X, and Y and values are
+        either 0 or 1 based on if the point is contained in the cluster
 
-    Output:
-    -Contour: list of arrays of points defining the contour
+    Returns
+    -----
+    contours_mod: list
+        list of arrays of points which defines all filtered contours
+    contours_count: int
+        number of contours that met the determined filters
     """
+
+    if img_mask.max() > 1 or img_mask.min() < 0:
+        raise ValueError("Mask should only have values of 0 or 1")
+    else:
+        pass
 
     contours, _ = cv.findContours(img_mask.astype(np.int32),
                                   cv.RETR_FLOODFILL,
@@ -192,17 +319,23 @@ def contour_generator(img_mask: np.ndarray):
     for ele in enumerate(contours):
         if filter_boolean(contours[ele[0]]):
             contours_mod.append(contours[ele[0]])
-    return contours_mod, len(contours_mod)
+    contours_count = len(contours_mod)
+    return contours_mod, contours_count
 
 
 def csv_results_compiler(cont_list: list, filepath: str):
     """
-    Generates CSV file with relevant areas, intensities, and circularities
-    of previously identified cell groups
+    Generates CSV file with relevant areas, perimeters, and circularities
+    of filtered contours thought to contain TILs
 
-    Input:
-    -list of arrays of points corresponding to generated contours
+    Parameters
+    -----
+    cont_list: list
+        list of arrays of points corresponding to contours
+    filepath: str
+        the filepath where the CSV file will be saved
     """
+
     data_sum = np.zeros((len(cont_list), 4))
     for ele in enumerate(cont_list):
         temp_area = cv.contourArea(cont_list[ele[0]])
@@ -220,15 +353,24 @@ def csv_results_compiler(cont_list: list, filepath: str):
     dataframe.to_csv(path, index=False)
 
 
-def immune_cluster_analyzer(masks: list, filepath: str):
+def immune_cluster_analyzer(masks: list, original_image: np.ndarray,
+                            filepath: str):
     """
     This function will generate the contours, identify the relevant cluster
-    that contains the immune cells and export the data as a CSV
+    that contains the immune cells and export the data as a CSV. It will also
+    generate an image of the contours overlaid on the image.
 
-    Inputs:
-    masks - a list of 2D arrays which are binary representations of the
-    clusters
-    filepath - string of where the CSV will be saved
+   Parameters
+    -----
+    masks: list
+        list of masks which are arrays of 0s and 1s corresponding to cluster
+        location
+    original_image: np.ndarray
+        the original image as a 3 dimensional array where dimensions
+        correspond to X, Y, and color
+    filepath: str
+        the filepath where the CSV file will be saved
+
     """
 
     contour_list = []
@@ -243,6 +385,11 @@ def immune_cluster_analyzer(masks: list, filepath: str):
         else:
             pass
 
+    cv.drawContours(original_image, contour_list[count_index], -1,
+                    (0, 255, 0), 3)
+    contour_img_filepath = os.path.join(filepath, "ContourOverlay.jpg")
+    cv.imwrite(contour_img_filepath, original_image)
+
     csv_results_compiler(contour_list[count_index], filepath)
 
 
@@ -251,16 +398,35 @@ def image_postprocessing(clusters: np.ndarray, ori_img: np.ndarray,
                          gen_masks: bool = False, gen_csv: bool = True):
     """
     This is a wrapper function that will be used to group all postprocessing
-    together.
+    together. In general postprocessing will generate series of images as well
+    as a CSV with general data derived from contour determination using OpenCV.
+    Also prints the time taken for post-processing.
 
-    Inputs:
-    ori_img - 3D array with dimensions X, Y, and color with three color
-    channels as RGB
-    clusters - 2D array with dimensions X, Y and values as the cluster
-    identified via the model
-    gen_overlays - boolean to determine if overlay images will be generated
-    gen_csv - boolean to determine if CSV of contours will be generated
+    Parameters
+    -----
+    clusters: np.ndarray
+        2D array with dimensions X, and Y and values as the cluster identified
+        via the model
+    ori_img: np.ndarray
+        3D array with dimensions X, Y, and color with three color channels
+        as RGB. This is the original image clustering was performed on
+    gen_overlays: bool
+        determines if overlaid images will be generated
+    gen_masks: bool
+        determines if masks will be generated
+    gen_csv: bool
+        determines if CSV of contours will be generated
     """
+
+    if clusters.ndim != 2:
+        raise ValueError(f"Cluster array has 2 dimensions but "
+                         f"{clusters.ndim} were input")
+    else:
+        pass
+
+    if ori_img.ndim != 3:
+        raise ValueError(f"Original image has 3 dimensions but "
+                         f"{ori_img.ndim} were input")
 
     intial_time = time.time()
     masked_images, masks, all_masks = result_image_generator(clusters,
@@ -270,18 +436,19 @@ def image_postprocessing(clusters: np.ndarray, ori_img: np.ndarray,
     base_results_generator(ori_img, all_masks, mod_filepath)
 
     if gen_overlays:
-        generate_image_series(masked_images, mod_filepath, "Overlaid Images")
+        generate_image_series(masked_images, mod_filepath, "Overlaid Images",
+                              True)
     else:
         pass
 
     if gen_masks:
         masks_imgs = masks * 255
-        generate_image_series(masks_imgs, mod_filepath, "Masks")
+        generate_image_series(masks_imgs, mod_filepath, "Masks", False)
     else:
         pass
 
     if gen_csv:
-        immune_cluster_analyzer(masks, mod_filepath)
+        immune_cluster_analyzer(masks, ori_img, mod_filepath)
     else:
         pass
 
