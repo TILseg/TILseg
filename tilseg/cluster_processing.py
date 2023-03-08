@@ -14,6 +14,7 @@ import time
 import numpy as np
 import cv2 as cv
 import pandas as pd
+import matplotlib.pyplot as plt
 
 
 # pylint: disable=locally-disabled, no-member, too-many-arguments
@@ -64,8 +65,8 @@ def base_results_generator(original_image: np.ndarray,
 
     ori_filepath = os.path.join(filepath, "Original.jpg")
     all_clust_filepath = os.path.join(filepath, "AllClusters.jpg")
-    cv.imwrite(ori_filepath, original_image)
-    cv.imwrite(all_clust_filepath, all_clust_image)
+    plt.imsave(ori_filepath, original_image)
+    plt.imsave(all_clust_filepath, all_clust_image)
 
 
 def image_series_exceptions(image_array: np.ndarray, rgb_bool: bool = True):
@@ -140,10 +141,10 @@ def generate_image_series(image_array: np.ndarray, filepath: str,
 
     if rgb_bool:
         for count in range(dims[0]):
-            cv.imwrite(f"Image{count + 1}.jpg", image_array[count][:][:][:])
+            plt.imsave(f"Image{count + 1}.jpg", image_array[count][:][:][:])
     else:
         for count in range(dims[0]):
-            cv.imwrite(f"Image{count + 1}.jpg", image_array[count][:][:])
+            plt.imsave(f"Image{count + 1}.jpg", image_array[count][:][:])
 
 
 def gen_base_arrays(ori_image: np.ndarray, num_clusts: int):
@@ -388,7 +389,7 @@ def immune_cluster_analyzer(masks: list, original_image: np.ndarray,
     cv.drawContours(original_image, contour_list[count_index], -1,
                     (0, 255, 0), 3)
     contour_img_filepath = os.path.join(filepath, "ContourOverlay.jpg")
-    cv.imwrite(contour_img_filepath, original_image)
+    plt.imsave(contour_img_filepath, original_image)
 
     csv_results_compiler(contour_list[count_index], filepath)
 
