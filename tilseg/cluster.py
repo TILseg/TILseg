@@ -47,7 +47,7 @@ def generate_image_series(image_array: np.ndarray, filepath: str, prefix: str):
     else:
         pass
     os.chdir(path)
-    for count in range(dims[2]):
+    for count in range(dims[0]):
         cv2.imwrite(f"Image{count + 1}.jpg", image_array[count][:][:][:])
 
 
