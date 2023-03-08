@@ -144,7 +144,7 @@ def generate_image_series(image_array: np.ndarray, filepath: str,
             plt.imsave(f"Image{count + 1}.jpg", image_array[count][:][:][:])
     else:
         for count in range(dims[0]):
-            plt.imsave(f"Image{count + 1}.jpg", image_array[count][:][:])
+            cv.imwrite(f"Image{count + 1}.jpg", image_array[count][:][:])
 
 
 def gen_base_arrays(ori_image: np.ndarray, num_clusts: int):
@@ -181,7 +181,7 @@ def gen_base_arrays(ori_image: np.ndarray, num_clusts: int):
     dims = ori_image.shape
     four_dim_array = np.expand_dims(ori_image, 0)
     binary_array = np.zeros((num_clusts, dims[0], dims[1]))
-    all_mask_array = np.zeros((dims[0], dims[1], 3))
+    all_mask_array = np.zeros((dims[0], dims[1], 3), np.uint8)
     final_array = four_dim_array
     for _ in range(num_clusts - 1):
         final_array = np.vstack((final_array, four_dim_array))
@@ -235,10 +235,10 @@ def result_image_generator(img_clust: np.ndarray, original_image: np.ndarray):
         pass
 
     # Colors that will become associated with each cluster on overlays
-    black = np.array([0, 0, 0])
+    black = np.array([0, 0, 0], np.uint8)
 
     colors_overlay = np.array(([0, 0, 0], [255, 0, 0],
-                              [0, 255, 0], [0, 0, 255]))
+                              [0, 255, 0], [0, 0, 255]), np.uint8)
 
     # Making a dictionary of the original images that will be overwriten
     dims = img_clust.shape
