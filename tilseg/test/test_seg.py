@@ -16,7 +16,7 @@ from sklearn.exceptions import NotFittedError
 
 print(os.getcwd())
 
-current_dir = re.findall("/[a-zA-Z0-9]+$",os.getcwd())[0][1:]
+current_dir = re.findall(f"{os.sep}[a-zA-Z0-9]+$",os.getcwd())[0][1:]
 if current_dir == "tilseg":
     test_patch_path = os.path.join("..","abi_patches","test", "test_patch.tif")
     fail_test_patch_path = os.path.join("..","abi_patches","test", "test_img.txt")
