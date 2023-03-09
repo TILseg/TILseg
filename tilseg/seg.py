@@ -19,7 +19,7 @@ import pathlib
 from PIL import UnidentifiedImageError
 from sklearn.exceptions import NotFittedError
 
-from cluster_processing import image_postprocessing
+from tilseg.cluster_processing import image_postprocessing
 
 
 def cluster_model_fit(patch_path: str, 
