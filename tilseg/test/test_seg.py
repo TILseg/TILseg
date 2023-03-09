@@ -136,7 +136,7 @@ class TestClusteringScore(unittest.TestCase):
         """
         Testing if the outputs are floats and the code runs with good inputs
         """
-        [ch_score, db_score] = tilseg.seg.clustering_score(model=model_KMeans, patch_path=test_patch_path)
+        _, ch_score, db_score = tilseg.seg.clustering_score(model=model_KMeans, patch_path=test_patch_path)
         self.assertTrue((isinstance(ch_score, float)))
         self.assertTrue((isinstance(db_score, float)))
 
