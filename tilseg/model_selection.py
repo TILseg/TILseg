@@ -3,6 +3,7 @@ Contains functions for selecting clustering algorithms and their hyperparameters
 """
 # System imports
 from collections.abc import Sequence
+import itertools
 from typing import Callable
 
 # External imports
@@ -14,6 +15,7 @@ import sklearn.metrics
 import scipy.stats
 
 # pylint: disable=locally-disabled, too-many-arguments, too-many-locals
+
 
 def find_elbow(data: np.array, r2_cutoff: float = 0.9) -> int:
     """
@@ -45,7 +47,7 @@ def find_elbow(data: np.array, r2_cutoff: float = 0.9) -> int:
 
 
 def eval_km_elbow(data: np.array,
-                  n_clusters_list: Sequence[int] = range(10),
+                  n_clusters: Sequence[int] = range(10),
                   r2_cutoff=0.9,
                   **kwargs) -> int:
     """
@@ -53,22 +55,20 @@ def eval_km_elbow(data: np.array,
     Parameters
     ----------
     data: Data to cluster
-    n_clusters_list: List of the number of clusters to try
+    n_clusters: List of the number of clusters to try
     r2_cutoff: passed to find_elbow function
     **kwargs: Keyword arguments passed to skleanr.cluster.KMeans
     Returns
     -------
     n_clusters: The number of clusters identified by the elbow method
     """
-    inertia = np.zeros((len(n_clusters_list), 2))
-    row = 0
-    for n_clusters in n_clusters_list:
-        kmeans = sklearn.cluster.KMeans(n_clusters=n_clusters,
+    inertia = np.zeros((len(n_clusters), 2))
+    for row, n_clusters_val in enumerate(n_clusters):
+        kmeans = sklearn.cluster.KMeans(n_clusters=n_clusters_val,
                                         **kwargs)
         kmeans.fit(data)
-        inertia[row, 0] = n_clusters
+        inertia[row, 0] = n_clusters_val
         inertia[row, 1] = kmeans.inertia_
-        row += 1
     return find_elbow(inertia, r2_cutoff=r2_cutoff)
 
 
@@ -109,14 +109,14 @@ def eval_model_hyperparameters(data: np.array,
         # If there are not at least 2 clusters, the metric function
         # won't be able to find a score. If there are less than 2 clusters
         # skip this iteration of the loop
-        if len(np.unique(clusters))<2:
+        if len(np.unique(clusters)) < 2:
             continue
         scores[count] = metric(data, clusters, **kwargs)
         if np.isnan(scores[count]):
             raise ValueError(f"Couldn't find Score for {parameters}")
     # If none of the hyperparameter sets were able to find at least 2 clusters,
     # raise exception
-    if len(scores)<1:
+    if len(scores) < 1:
         raise ValueError("Unable to cluster with any of hyperparameter sets")
     if full_return:
         return scores
@@ -330,28 +330,28 @@ def eval_models_davies_bouldin(data: np.array,
 
 
 def plot_inertia(data: np.array,
-                 n_clusters_list: Sequence[int],
+                 n_clusters: Sequence[int],
                  file_path,
                  mark_elbow: bool = False,
                  r2_cutoff: float = 0.9,
                  **kwargs
                  ):
     """
-    Plots the inertia for each of the n_clusters in n_clusters_list
+    Plots the inertia for each of the n_clusters in n_clusters
     Parameters
     ----------
     data: np.array containing data to cluster
-    n_clusters_list: List of n_clusters to create the inertial plot for
+    n_clusters: List of n_clusters to create the inertial plot for
     file_path: path of where to save the image of the plot, either string or pathlike object
     Returns
     -------
     matplotlib plot object
     """
-    inertia = np.zeros((len(n_clusters_list), 2))
-    for row, n_clusters in enumerate(n_clusters_list):
-        kmeans = sklearn.cluster.KMeans(n_clusters=n_clusters, **kwargs)
+    inertia = np.zeros((len(n_clusters), 2))
+    for row, n_clusters_val in enumerate(n_clusters):
+        kmeans = sklearn.cluster.KMeans(n_clusters=n_clusters_val, **kwargs)
         kmeans.fit(data)
-        inertia[row, 0] = n_clusters
+        inertia[row, 0] = n_clusters_val
         inertia[row, 1] = kmeans.inertia_
     fig = plt.figure()
     axes = plt.axes()
@@ -369,7 +369,9 @@ def plot_inertia(data: np.array,
                  marker="X")
     plt.savefig(file_path)
     return fig
-def opt_kmeans(data:np.array, n_clusters_list:list, **kwargs):
+
+
+def opt_kmeans(data: np.array, n_clusters: list, **kwargs):
     """
     Function to optimize the number of clusters used by KMeans clustering,
     wrapper for consistant syntax
@@ -382,10 +384,20 @@ def opt_kmeans(data:np.array, n_clusters_list:list, **kwargs):
     -------
     n_cluster: optimized n_clusters
     """
-    return eval_km_elbow(data, n_clusters_list, **kwargs)
-def opt_dbscan(data:np.array,
-               eps_list:list,
-               metric:str="silhouette",
+    for i in n_clusters:
+        if i < 1:
+            raise ValueError("n_clusters must be at least 1")
+        try:
+            int(i)
+        except ValueError as exc:
+            raise ValueError(
+                f"Couldn't Convert {i} to int") from exc
+    return eval_km_elbow(data, n_clusters, **kwargs)
+
+
+def opt_dbscan(data: np.array,
+               eps: list,
+               metric: str = "silhouette",
                **kwargs):
     """
     Function to optimize the eps hyperparameter for DBSCAN
@@ -412,10 +424,10 @@ def opt_dbscan(data:np.array,
         metric_class = sklearn.metrics.calinski_harabasz_score
         metric_direction = "higher"
     hyperparameters_list = []
-    for eps in eps_list:
-        hyp_dict = {"eps":eps}
+    for eps_value in eps:
+        hyp_dict = {"eps": eps_value}
         hyp_dict.update(kwargs)
-        hyperparameters_list+=[hyp_dict]
+        hyperparameters_list += [hyp_dict]
     model = sklearn.cluster.DBSCAN
     result = eval_model_hyperparameters(
         data=data,
@@ -425,12 +437,14 @@ def opt_dbscan(data:np.array,
         metric_direction=metric_direction,
         full_return=False)
     return result
-def opt_birch(data:np.array,
-               threshold_list:list,
-               branching_factor_list:list,
-               n_clusters_list:list,
-               metric:str="silhouette",
-               **kwargs):
+
+
+def opt_birch(data: np.array,
+              threshold: list,
+              branching_factor: list,
+              n_clusters: list,
+              metric: str = "silhouette",
+              **kwargs):
     """
     Function to optimize the eps hyperparameter for DBSCAN
     Parameters
@@ -443,11 +457,11 @@ def opt_birch(data:np.array,
     -------
     hyperparameters: dict containing the optimized hyperparameters
     """
-    if len(threshold_list) != len(branching_factor_list):
+    if len(threshold) != len(branching_factor):
         raise ValueError("Argument lists must be the same length")
-    if len(threshold_list) != len(n_clusters_list):
+    if len(threshold) != len(n_clusters):
         raise ValueError("Argument lists must be the same length")
-    if len(branching_factor_list) != len(n_clusters_list):
+    if len(branching_factor) != len(n_clusters):
         raise ValueError("Argument lists must be the same lenght")
     if metric in ["silhouette", "s", "Silhouette",
                   "silhouette-score", "Silhouette-Score",
@@ -462,41 +476,43 @@ def opt_birch(data:np.array,
         metric_class = sklearn.metrics.calinski_harabasz_score
         metric_direction = "higher"
     hyperparameters_list = []
-    for i, threshold in enumerate(threshold_list):
+    for i, threshold_value in enumerate(threshold):
         hyp_dict = {
-            "threshold":threshold,
-            "branching_factor":branching_factor_list[i],
-            "n_clusters":n_clusters_list[i]
-            }
+            "threshold": threshold_value,
+            "branching_factor": branching_factor[i],
+            "n_clusters": n_clusters[i]
+        }
         hyp_dict.update(kwargs)
-        hyperparameters_list+=[hyp_dict]
+        hyperparameters_list += [hyp_dict]
     model = sklearn.cluster.Birch
     return eval_model_hyperparameters(
         data=data,
         model=model,
         hyperparameters=hyperparameters_list,
-        metric = metric_class,
+        metric=metric_class,
         metric_direction=metric_direction,
         full_return=False)
-def opt_optics(data:np.array,
-               min_samples_list:list,
-               max_eps_list:list,
-               metric:str="silhouette",
+
+
+def opt_optics(data: np.array,
+               min_samples: list,
+               max_eps: list,
+               metric: str = "silhouette",
                **kwargs):
     """
     Function to optimize the eps hyperparameter for OPTICS
     Parameters
     ----------
     data: np array containing pixel data to be clustered
-    min_samples_list: list of min_samples values to try
-    max_eps_list: list of max_eps values to try
+    min_samples: list of min_samples values to try
+    max_eps: list of max_eps values to try
     metric: string with name of metric to use
     **kwargs: keyword args passed to DBSCAN clustering algorithm
     Returns
     -------
     eps: optimized eps value
     """
-    if len(min_samples_list) != len(max_eps_list):
+    if len(min_samples) != len(max_eps):
         raise ValueError("Argument lists must be the same length")
     if metric in ["silhouette", "s", "Silhouette",
                   "silhouette-score", "Silhouette-Score",
@@ -511,16 +527,60 @@ def opt_optics(data:np.array,
         metric_class = sklearn.metrics.calinski_harabasz_score
         metric_direction = "higher"
     hyperparameters_list = []
-    for i, min_samples in enumerate(min_samples_list):
+    for i, min_samples_val in enumerate(min_samples):
         hyp_dict = {
-            "min_samples":min_samples,
-            "max_eps":max_eps_list[i]
-            }
+            "min_samples": min_samples_val,
+            "max_eps": max_eps[i]
+        }
         hyp_dict.update(kwargs)
-        hyperparameters_list+=[hyp_dict]
+        hyperparameters_list += [hyp_dict]
     model = sklearn.cluster.OPTICS
     return eval_model_hyperparameters(
         data=data,
-        model=model,hyperparameters=hyperparameters_list,
-        metric = metric_class,
+        model=model, hyperparameters=hyperparameters_list,
+        metric=metric_class,
         metric_direction=metric_direction)
+
+
+def sample_patch(data: np.array, sample: int) -> np.array:
+    """
+    Take a sample of the patch to speed up hyperparameter tuning
+    Parameters
+    ----------
+    data: numpy array to sample rows from
+    sample: int representing number of rows in returned array
+    Returns
+    -------
+    sampled_array: numpy array with the rows sampled from data
+    """
+    try:
+        sample = int(sample)
+    except ValueError as exc:
+        raise ValueError(
+            f"Unable to coerce {sample} to int") from exc
+    return data[
+        np.random.choice(list(range(len(data))), sample,
+        replace=False).astype(int), :]
+
+
+def generate_hyperparameter_combinations(hyperparameter_dict: dict) -> dict:
+    """
+    Generate a dicionary of hyperparameter:list with all combinations of 
+    provided hyperparameters dictionaries 
+    Parameters
+    ----------
+    hyperparameter_dict: dict of hyperparameter: list of values
+    Returns
+    -------
+    dict of hyperparameter: list of values, but with all combinations of
+    the values of the hyperparameters
+    """
+    return_dict = {}
+    keys = list(hyperparameter_dict.keys())
+    for key in keys:
+        return_dict[key]=[]
+    dict_values = [hyperparameter_dict[i] for i in keys]
+    for combintation in itertools.product(*dict_values):
+        for i, key in enumerate(keys):
+            return_dict[key] += [combintation[i]]
+    return return_dict
