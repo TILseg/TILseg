@@ -15,9 +15,9 @@ test_patch_path = '/Users/abishek/Desktop/DataScienceClasses/TILSeg/abi_patches/
 fail_test_patch_path = '/Users/abishek/Desktop/DataScienceClasses/TILSeg/abi_patches/test/test_img.txt'
 
 
-class TestClusterModelFitter(unittest.TestCase):
+class TestClusterModelFit(unittest.TestCase):
     """
-    Unittests for tilseg.cluster.cluster_model_fitter
+    Unittests for tilseg.cluster.cluster_model_fit
     """
 
     def test_smoke(self):
@@ -25,7 +25,7 @@ class TestClusterModelFitter(unittest.TestCase):
         Tests if code runs with correct inputs
         """
         try:
-            model = tilseg.cluster.cluster_model_fitter(
+            model = tilseg.cluster.cluster_model_fit(
                 patch_path=test_patch_path,
                 algorithm='KMeans',
                 n_clusters=4)
@@ -37,7 +37,7 @@ class TestClusterModelFitter(unittest.TestCase):
         Tests that non-string input for patch_path is dealt with
         """
         with self.assertRaises(TypeError):
-            model = tilseg.cluster.cluster_model_fitter(
+            model = tilseg.cluster.cluster_model_fit(
                 patch_path=2,
                 algorithm='KMeans',
                 n_clusters=4)
@@ -47,7 +47,7 @@ class TestClusterModelFitter(unittest.TestCase):
         Testing when input file does not exist
         """
         with self.assertRaises(ValueError):
-            model = tilseg.cluster.cluster_model_fitter(
+            model = tilseg.cluster.cluster_model_fit(
                 patch_path=test_patch_path+'blahblah',
                 algorithm='KMeans',
                 n_clusters=4)
@@ -57,7 +57,7 @@ class TestClusterModelFitter(unittest.TestCase):
         Testing when input file is not an image
         """
         with self.assertRaises(UnidentifiedImageError):
-            model = tilseg.cluster.cluster_model_fitter(
+            model = tilseg.cluster.cluster_model_fit(
                 patch_path=fail_test_patch_path,
                 algorithm='KMeans',
                 n_clusters=4)
@@ -67,7 +67,7 @@ class TestClusterModelFitter(unittest.TestCase):
         Testing when non-string input for algorithm
         """
         with self.assertRaises(ValueError):
-            model = tilseg.cluster.cluster_model_fitter(
+            model = tilseg.cluster.cluster_model_fit(
                 patch_path=test_patch_path,
                 algorithm=5,
                 n_clusters=4)
@@ -77,7 +77,7 @@ class TestClusterModelFitter(unittest.TestCase):
         Testing that n_clusters is numerical when algorithm is KMeans
         """
         with self.assertRaises(ValueError):
-            model = tilseg.cluster.cluster_model_fitter(
+            model = tilseg.cluster.cluster_model_fit(
                 patch_path=test_patch_path,
                 algorithm='KMeans'
                 )
@@ -87,7 +87,7 @@ class TestClusterModelFitter(unittest.TestCase):
         Tests when n_cluster input is not an integer
         """
         with self.assertRaises(ValueError):
-            model = tilseg.cluster.cluster_model_fitter(
+            model = tilseg.cluster.cluster_model_fit(
                 patch_path=test_patch_path,
                 algorithm='KMeans',
                 n_clusters='4'
@@ -98,13 +98,13 @@ class TestClusterModelFitter(unittest.TestCase):
         Tests when n_cluster input is more than 8
         """
         with self.assertRaises(ValueError):
-            model = tilseg.cluster.cluster_model_fitter(
+            model = tilseg.cluster.cluster_model_fit(
                 patch_path=test_patch_path,
                 algorithm='KMeans',
                 n_clusters=9
                 )
 
-model_KMeans = tilseg.cluster.cluster_model_fitter(
+model_KMeans = tilseg.cluster.cluster_model_fit(
                 patch_path=test_patch_path,
                 algorithm='KMeans',
                 n_clusters=4)
