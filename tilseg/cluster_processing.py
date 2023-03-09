@@ -234,6 +234,49 @@ def result_image_generator(img_clust: np.ndarray, original_image: np.ndarray):
     return final_arrays, binary_arrays, all_masks
 
 
+def mask_only_generator(img_clust: np.ndarray):
+    """
+    Generates 1 array from cluster. It is a binary mask from each cluster.
+
+    Parameters
+    -----
+    img_clust: np.ndarray
+        a 2D array where the dimensions correspond to X and Y, and the values
+        correspond to the cluster assigned to that pixel
+
+
+    Returns
+    -----
+    binary_arrays: np.ndarray
+        a 3 dimensional array where dimensions correspond to cluster, X, and
+        Y. This can be thought of as a list of images with one for each
+        cluster. The images will contain 1s in pixels associated with the
+        cluster and 0s everywhere else.
+    """
+    # generate error if the cluster is the wrong dimensions
+    if img_clust.ndim != 2:
+        raise ValueError(f"Cluster array has 2 dimensions but "
+                         f"{img_clust.ndim} were input")
+    else:
+        pass
+
+    # making a dictionary of the original images that will be overwriten
+    dims = img_clust.shape
+    num_clust = int(img_clust.max() + 1)
+
+    # make empty array based on dimensions and number of clusters
+    binary_arrays = np.zeros((num_clust, dims[0], dims[1]), np.uint8)
+
+    # itterate over every pixel in the image
+    for j in range(dims[0]):
+        for k in range(dims[1]):
+            # get the cluster and assign it to key
+            key = int(img_clust[j][k])
+            # reassign pixel in mask layer based on relevant cluster
+            binary_arrays[key][j][k] = 1
+    return binary_arrays
+
+
 def filter_boolean(contour: np.ndarray):
     """
     Determines if a given contour meets the filters that
@@ -463,8 +506,11 @@ def image_postprocessing(clusters: np.ndarray, ori_img: np.ndarray,
 
     # generate masked images, masks and all cluster image via previously
     # defined function
-    masked_images, masks, all_masks = result_image_generator(clusters,
-                                                             ori_img)
+    if any((gen_all_clusters, gen_overlays, gen_masks)):
+        masked_images, masks, all_masks = result_image_generator(clusters,
+                                                                 ori_img)
+    else:
+        masks = mask_only_generator(clusters)
 
     # modify filepath and then make directory with predefined name
     mod_filepath = os.path.join(filepath, "Clustering Results")
