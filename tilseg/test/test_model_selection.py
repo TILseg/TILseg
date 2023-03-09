@@ -13,7 +13,6 @@ import sklearn.base
 import sklearn.cluster
 import sklearn.datasets
 import sklearn.metrics
-from sklearn.utils._param_validation import InvalidParameterError
 
 # Local imports
 import tilseg.model_selection
@@ -59,7 +58,7 @@ class TestModelSelection(unittest.TestCase):
         n_clusters = tilseg.model_selection.eval_km_elbow(self.cluster_data,
                                                           list(range(1, 10)),
                                                           r2_cutoff=0.9,
-                                                          n_init="auto")
+                                                          n_init=10)
         self.assertAlmostEqual(n_clusters, 3)
         self.assertIsInstance(n_clusters, int)
 
@@ -69,14 +68,14 @@ class TestModelSelection(unittest.TestCase):
         """
         # Create hyperparameter dictionary list
         hyper = [
-            {"n_clusters": 2, "n_init": "auto"},
-            {"n_clusters": 3, "n_init": "auto"},
-            {"n_clusters": 4, "n_init": "auto"},
-            {"n_clusters": 5, "n_init": "auto"},
-            {"n_clusters": 6, "n_init": "auto"},
-            {"n_clusters": 7, "n_init": "auto"},
-            {"n_clusters": 8, "n_init": "auto"},
-            {"n_clusters": 9, "n_init": "auto"},
+            {"n_clusters": 2, "n_init": 10},
+            {"n_clusters": 3, "n_init": 10},
+            {"n_clusters": 4, "n_init": 10},
+            {"n_clusters": 5, "n_init": 10},
+            {"n_clusters": 6, "n_init": 10},
+            {"n_clusters": 7, "n_init": 10},
+            {"n_clusters": 8, "n_init": 10},
+            {"n_clusters": 9, "n_init": 10},
         ]
         model = sklearn.cluster.KMeans
         # Catch fire test
@@ -97,7 +96,7 @@ class TestModelSelection(unittest.TestCase):
                   sklearn.cluster.AgglomerativeClustering,
                   sklearn.cluster.AgglomerativeClustering]
         hyperparameters = [
-            {"n_clusters": 3, "n_init": "auto"},
+            {"n_clusters": 3, "n_init": 10},
             {"n_clusters": 3, "linkage": "complete"},
             {"n_clusters": 3, "linkage": "ward"},
         ]
@@ -121,7 +120,7 @@ class TestModelSelection(unittest.TestCase):
         Test eval_models_dict wrapper function
         """
         model_dict = {
-            sklearn.cluster.KMeans: {"n_clusters": 3, "n_init": "auto"},
+            sklearn.cluster.KMeans: {"n_clusters": 3, "n_init": 10},
             sklearn.cluster.AgglomerativeClustering: {
                 "n_clusters": 3, "linkage": "complete"}
         }
@@ -139,7 +138,7 @@ class TestModelSelection(unittest.TestCase):
                   sklearn.cluster.AgglomerativeClustering,
                   sklearn.cluster.AgglomerativeClustering]
         hyperparameters = [
-            {"n_clusters": 3, "n_init": "auto"},
+            {"n_clusters": 3, "n_init": 10},
             {"n_clusters": 3, "linkage": "complete"},
             {"n_clusters": 3, "linkage": "ward"},
         ]
@@ -162,7 +161,7 @@ class TestModelSelection(unittest.TestCase):
                   sklearn.cluster.AgglomerativeClustering,
                   sklearn.cluster.AgglomerativeClustering]
         hyperparameters = [
-            {"n_clusters": 3, "n_init": "auto"},
+            {"n_clusters": 3, "n_init": 10},
             {"n_clusters": 3, "linkage": "complete"},
             {"n_clusters": 3, "linkage": "ward"},
         ]
@@ -185,7 +184,7 @@ class TestModelSelection(unittest.TestCase):
                   sklearn.cluster.AgglomerativeClustering,
                   sklearn.cluster.AgglomerativeClustering]
         hyperparameters = [
-            {"n_clusters": 3, "n_init": "auto"},
+            {"n_clusters": 3, "n_init": 10},
             {"n_clusters": 3, "linkage": "complete"},
             {"n_clusters": 3, "linkage": "ward"},
         ]
@@ -211,7 +210,7 @@ class TestModelSelection(unittest.TestCase):
             path,
             True,
             0.9,
-            n_init='auto')
+            n_init=10)
         # Check if file was succesfully crated
         self.assertTrue(os.path.isfile(path))
         # Delete file
@@ -224,11 +223,11 @@ class TestModelSelection(unittest.TestCase):
         Test opt_kmeans function
         """
         opt_kmeans_result = tilseg.model_selection.opt_kmeans(
-            self.cluster_data, list(range(1, 10)), n_init="auto")
+            self.cluster_data, list(range(1, 10)), n_init=10)
         self.assertAlmostEqual(opt_kmeans_result, 3.0)
-        with self.assertRaises(InvalidParameterError):
+        with self.assertRaises(ValueError):
             _ = tilseg.model_selection.opt_kmeans(
-                self.cluster_data, list(range(10)), n_init="auto")
+                self.cluster_data, list(range(10)), n_init=10)
 
     def test_opt_dbscan(self):
         """
@@ -236,12 +235,12 @@ class TestModelSelection(unittest.TestCase):
         """
         # Catch fire test
         result = tilseg.model_selection.opt_dbscan(
-            self.cluster_data, eps_list=[0.1, 0.7, 1.4, 2.1, 3.0])
+            self.cluster_data, eps=[0.1, 0.7, 1.4, 2.1, 3.0])
         # Known value
         self.assertAlmostEqual(result['eps'], 2.1)
         with self.assertRaises(ValueError):
             _ = tilseg.model_selection.opt_dbscan(
-                self.cluster_data, eps_list=[0.001, 0.02, 0.3])
+                self.cluster_data, eps=[0.001, 0.02, 0.3])
 
     def test_opt_birch(self):
         """
@@ -250,9 +249,9 @@ class TestModelSelection(unittest.TestCase):
         # Catch fire test
         result = tilseg.model_selection.opt_birch(
             self.cluster_data,
-            threshold_list=[0.25, 0.5, 1.0],
-            branching_factor_list=[10, 25, 30],
-            n_clusters_list=[None, None, None],
+            threshold=[0.25, 0.5, 1.0],
+            branching_factor=[10, 25, 30],
+            n_clusters=[None, None, None],
         )
         # Known output shape
         self.assertEqual(len(result), 3)
@@ -263,19 +262,50 @@ class TestModelSelection(unittest.TestCase):
 
     def test_opt_optics(self):
         """
-        test opt_optics function
+        Test opt_optics function
         """
         # Catch fire test
         result = tilseg.model_selection.opt_optics(
             self.cluster_data,
-            min_samples_list=[2, 5, 10],
-            max_eps_list=[3, 5, np.inf]
+            min_samples=[2, 5, 10],
+            max_eps=[3, 5, np.inf]
         )
         # Known shape of output
         self.assertEqual(len(result), 2)
         # Known output
         self.assertDictEqual(result, {"min_samples": 10, "max_eps": np.inf})
-
+    def test_sample_patch(self):
+        """
+        Test sample_patch function
+        """
+        sample = tilseg.model_selection.sample_patch(
+            self.cluster_data, sample=20)
+        self.assertAlmostEqual(len(sample), 20)
+        with self.assertRaises(ValueError):
+            _ = tilseg.model_selection.sample_patch(
+                self.cluster_data, sample="hi")
+    def test_generate_hyperparameter_combinations(self):
+        """
+        test generate_hyperparameter_combinations
+        """
+        combinations = \
+        tilseg.\
+            model_selection.\
+            generate_hyperparameter_combinations({"min_eps":[0.1,0.3],
+                                                  "n_clusters":[1,3,5]})
+        expected_result_dict = {
+            'min_eps': [0.1, 0.1, 0.1, 0.3, 0.3, 0.3],
+            'n_clusters': [1, 3, 5, 1, 3, 5]}
+        self.assertDictEqual(combinations, expected_result_dict)
+        combinations2 = \
+        tilseg.\
+            model_selection.\
+            generate_hyperparameter_combinations({"a":[1], "b":[2]})
+        expected_result_dict2 = {
+            "a":[1],
+            "b":[2]
+        }
+        self.assertDictEqual(combinations2, expected_result_dict2)
 
 if __name__ == "__main__":
     unittest.main()

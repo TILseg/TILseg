@@ -19,7 +19,7 @@ import pathlib
 from PIL import UnidentifiedImageError
 from sklearn.exceptions import NotFittedError
 
-from cluster_processing import image_postprocessing
+from tilseg.cluster_processing import image_postprocessing
 
 
 def cluster_model_fit(patch_path: str, 
@@ -213,7 +213,6 @@ def segment_TILs(model: sklearn.base.ClusterMixin,
         the directory path where output images will be saved
     """
 
-
     if not os.path.isdir(in_dir_path):
         raise ValueError('Please enter a valid input directory')
     else:
@@ -226,6 +225,9 @@ def segment_TILs(model: sklearn.base.ClusterMixin,
             pass
     else:
         pass
+
+    # Initializing dicitonary with the count of the TILs in each path in the input directory
+    TIL_count_dict = {}
 
     # Iterating over every patch in the directory
     for file in os.listdir(in_dir_path):
@@ -277,4 +279,6 @@ def segment_TILs(model: sklearn.base.ClusterMixin,
                          gen_masks=save_cluster_masks, 
                          gen_csv=save_csv)
 
-    return TIL_count
+    TIL_count_dict[file[:-4]] = TIL_count
+
+    return TIL_count_dict
