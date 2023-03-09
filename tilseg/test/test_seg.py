@@ -11,8 +11,8 @@ import sklearn.cluster
 from PIL import UnidentifiedImageError
 from sklearn.exceptions import NotFittedError
 
-test_patch_path = '/Users/abishek/Desktop/DataScienceClasses/TILSeg/abi_patches/test_patch.tif'
-fail_test_patch_path = '/Users/abishek/Desktop/DataScienceClasses/TILSeg/abi_patches/test_img.txt'
+test_patch_path = '/Users/abishek/Desktop/DataScienceClasses/TILSeg/abi_patches/test/test_patch.tif'
+fail_test_patch_path = '/Users/abishek/Desktop/DataScienceClasses/TILSeg/abi_patches/test/test_img.txt'
 
 
 class TestClusterModelFitter(unittest.TestCase):
