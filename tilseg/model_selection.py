@@ -3,6 +3,7 @@ Contains functions for selecting clustering algorithms and their hyperparameters
 """
 # System imports
 from collections.abc import Sequence
+import json
 import itertools
 from typing import Callable
 
@@ -584,3 +585,23 @@ def generate_hyperparameter_combinations(hyperparameter_dict: dict) -> dict:
         for i, key in enumerate(keys):
             return_dict[key] += [combintation[i]]
     return return_dict
+
+def read_json_hyperparameters(file_path:str)->dict:
+    """
+    Function to read a json file containing hyperparameters
+    Parameters
+    ----------
+    file_path: path to the json file
+    Returns
+    -------
+    hyperparameters: dict with the hyperparameters
+    """
+    with open(file_path) as file:
+        hyperparameters = json.load(file)
+    for key, value in hyperparameters.items():
+        if value in ["np.inf", "inf", "Inf", "INF"]:
+            hyperparameters[key] = np.inf
+        elif value in ["None", "none", "NaN", "NA", "Na"]:
+            hyperparameters[key] = None
+    return hyperparameters
+    

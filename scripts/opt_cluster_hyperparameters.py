@@ -68,7 +68,7 @@ def parse_args():
                         optimization. If None, entire patch is used. 
                         Default None.                        
                         """)
-    parser.add_argument("-c","--combinations",
+    parser.add_argument("--combinations",
                         action="store_true",
                         dest = "combinations",
                         help = """
@@ -90,7 +90,7 @@ def main():
     with open(args.hyperparameter_path, "r") as file:
         hyperparameters = json.load(file)
     # adjust for "inf" and "None" which can't be naturally encoded in json
-    for key, item in hyperparameters:
+    for key, item in hyperparameters.items():
         modified_list = []
         for i in item:
             if i in ["inf", "Inf", "np.inf", "np.Inf"]:
@@ -98,7 +98,7 @@ def main():
             elif i in ["None", "none", "NaN", "NA"]:
                 modified_list+=[None]
             else:
-                modified_list+=[item]
+                modified_list+=[i]
         hyperparameters[key] = modified_list
     if args.combinations:
         hyperparameters = model_selection.\
@@ -109,7 +109,7 @@ def main():
     if args.sample:
         patch = model_selection.sample_patch(patch, sample = args.sample)
     # Find which clustering algorithm is desired and
-    if args.cluster_algorithm in ["KMeans", "Kmeans", "KMEANS", "KM", "km"]:
+    if args.cluster_algorithm in ["KMeans", "Kmeans", "KMEANS", "KM", "km", "kmeans"]:
         # Transform result into dictionary so it can be written to
         #   a json like the others
         result = {
@@ -134,9 +134,15 @@ def main():
             threshold=hyperparameters["threshold"],
             branching_factor=hyperparameters["branching_factor"],
             n_clusters=hyperparameters["n_clusters"],
-            metric=args.matric)
+            metric=args.metric)
     else:
         raise AttributeError("Couldn't parse provided clusterer name")
+    # Change np.inf and None to strings so they can be written to json
+    for key, value in result.items():
+        if value == np.inf:
+            result[key] = "inf"
+        if value is None:
+            result[key] = "None"
     # Write result
     with open(args.out_file, "w") as file:
         json.dump(result, file)
