@@ -11,11 +11,10 @@ contours.
 import os
 import time
 
-import numpy as np
 import cv2 as cv
-import pandas as pd
 import matplotlib.pyplot as plt
-
+import numpy as np
+import pandas as pd
 
 # pylint: disable=locally-disabled, no-member, too-many-arguments
 # pylint: disable=locally-disabled, no-else-raise
@@ -459,8 +458,8 @@ def draw_til_images(img: np.ndarray, contours: list, filepath: str):
 
 
 def image_postprocessing(clusters: np.ndarray, ori_img: np.ndarray,
-                         filepath: str, gen_all_clusters: bool = True,
-                         gen_overlays: bool = True, gen_tils: bool = True,
+                         filepath: str, gen_all_clusters: bool = False,
+                         gen_overlays: bool = False, gen_tils: bool = True,
                          gen_masks: bool = False, gen_csv: bool = True):
     """
     This is a wrapper function that will be used to group all postprocessing
@@ -523,8 +522,7 @@ def image_postprocessing(clusters: np.ndarray, ori_img: np.ndarray,
         plt.imsave(ori_filepath, ori_img)
 
     # generate contours if images or CSV of TILs is required
-    if gen_tils or gen_csv:
-        til_list, til_count = immune_cluster_analyzer(masks)
+    til_list, til_count = immune_cluster_analyzer(masks)
 
     # save image with all clusters if specified
     if gen_all_clusters:
