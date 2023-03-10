@@ -88,7 +88,9 @@ def generate_image_series(image_array: np.ndarray, filepath: str,
 
     # find dimensions of array as first dimension is number of images
     dims = image_array.shape
-    # define filepath of new directory and create if it does not exist
+    # save current directory and define filepath of new directory then create
+    # if it does not exist
+    home = os.getcwd()
     path = os.path.join(filepath, prefix)
     if not os.path.exists(path):
         os.mkdir(path)
@@ -104,6 +106,8 @@ def generate_image_series(image_array: np.ndarray, filepath: str,
     else:
         for count in range(dims[0]):
             cv.imwrite(f"Image{count + 1}.jpg", image_array[count][:][:])
+    # go back to the original directory
+    os.chdir(home)
 
 
 def gen_base_arrays(ori_image: np.ndarray, num_clusts: int):
@@ -331,7 +335,8 @@ def contour_generator(img_mask: np.ndarray):
         number of contours that met the determined filters
     """
     # raise an error if the image mask is not binary
-    if img_mask.max() > 1 or img_mask.min() < 0:
+    vals = np.unique(img_mask)
+    if not(all(vals == [0, 1]) or all(vals == [False, True])):
         raise ValueError("Mask should only have values of 0 or 1")
     else:
         pass
@@ -459,8 +464,8 @@ def draw_til_images(img: np.ndarray, contours: list, filepath: str):
 
 def image_postprocessing(clusters: np.ndarray, ori_img: np.ndarray,
                          filepath: str, gen_all_clusters: bool = False,
-                         gen_overlays: bool = False, gen_tils: bool = True,
-                         gen_masks: bool = False, gen_csv: bool = True):
+                         gen_overlays: bool = False, gen_tils: bool = False,
+                         gen_masks: bool = False, gen_csv: bool = False):
     """
     This is a wrapper function that will be used to group all postprocessing
     together. In general postprocessing will generate series of images as well
