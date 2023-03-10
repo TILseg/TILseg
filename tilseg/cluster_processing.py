@@ -423,7 +423,7 @@ def immune_cluster_analyzer(masks: list):
         count_list.append(contour_count)
         # check if the amount of contours is the largest seen and if so
         # redefine max index and value
-        if contour_count > count_list[count_index]:
+        if contour_count >= count_list[count_index]:
             count_index = ele[0]
             max_contour_count = contour_count
         else:
@@ -491,6 +491,9 @@ def image_postprocessing(clusters: np.ndarray, ori_img: np.ndarray,
     gen_csv: bool
         determines if CSV of contours will be generated
     """
+    # get time to track function run time
+    intial_time = time.time()
+
     # generate errors if cluster and image have incorrect dimensions
     if clusters.ndim != 2:
         raise ValueError(f"Cluster array has 2 dimensions but "
@@ -502,11 +505,13 @@ def image_postprocessing(clusters: np.ndarray, ori_img: np.ndarray,
 
     # generate error if the image does not have RGB channels
     ori_shape = ori_img.shape
+    clusters_shape = clusters.shape
     if ori_shape[2] != 3:
         raise ValueError("Images should have 3 channels for RGB")
 
-    # get time to track function run time
-    intial_time = time.time()
+    if ori_shape[0] != clusters_shape[0] or ori_shape[1] != clusters_shape[1]:
+        raise ValueError("Image and cluster should have same X any Y"
+                         "dimensions")
 
     # generate masked images, masks and all cluster image via previously
     # defined function
@@ -516,11 +521,15 @@ def image_postprocessing(clusters: np.ndarray, ori_img: np.ndarray,
     else:
         masks = mask_only_generator(clusters)
 
-    # modify filepath and then make directory with predefined name
-    mod_filepath = os.path.join(filepath, "Clustering Results")
-    if not os.path.exists(mod_filepath):
-        os.mkdir(mod_filepath)
-
+    # modify filepath and then make directory with predefined name if saving
+    # any images or data
+    home = os.getcwd()
+    if any((gen_all_clusters, gen_overlays, gen_tils, gen_masks, gen_csv)):
+        mod_filepath = os.path.join(filepath, "Clustering Results")
+        if not os.path.exists(mod_filepath):
+            os.mkdir(mod_filepath)
+        os.chdir(mod_filepath)
+        
     # if any image generation is required, generate original image
     if any([gen_overlays, gen_masks, gen_tils, gen_all_clusters]):
         ori_filepath = os.path.join(mod_filepath, "Original.jpg")
@@ -552,6 +561,9 @@ def image_postprocessing(clusters: np.ndarray, ori_img: np.ndarray,
     # generate CSV and save if specified
     if gen_csv:
         csv_results_compiler(til_list, mod_filepath)
+
+    # go back to home directory
+    os.chdir(home)
 
     # print time taken to process
     print(f"Time to process image: {time.time()-intial_time:.3f}")
