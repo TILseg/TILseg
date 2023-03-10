@@ -428,6 +428,11 @@ def segment_TILs(in_dir_path: str,
         generate image of all the clusters
     save_csv: bool
         generate CSV file containing countour information of each TIL segmented from the patch
+
+    Returns
+    -----
+    TIL_count_dict: dict
+        contains patch filenames without the extension as the key and TIL counts in respective pathces as the values
     """
 
     # Checks that the path to the input directory is a string
