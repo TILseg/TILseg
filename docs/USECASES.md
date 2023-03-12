@@ -6,7 +6,7 @@
 
 2. User wants to quantify immune cell clusters using H&E stained images
     - User inputs: H&E stained image(s)
-    - User receives: Statistical summary of immune cells clusters (including counts, sizes, circularity etc.)
+    - User receives: Count of filtered immune cell clusters and optionally feature data (including perimeter, area, circularity etc.)
 <br/>
 
 3. User wants to segment images into various tissue types
@@ -21,4 +21,10 @@
 
 5. User wants guidance on H&E stained image analysis for diagnosis  
     - User inputs: H&E stained image(s)
-    - User receives: Locations of high immune cell density for further analysis
+    - User receives: Locations of high immune cell density via overlaid immune cell clusters
+<br/>
+
+6. User wants to quickly count immune cell clusters using H&E stained images
+    - User inputs: H&E stained image(s)
+    - User receives: Count of filtered immune cell clusters
+    - Application Note: Image post-processing contains boolean options for outputs, minimizing calculation time if only TIL counts are desired
