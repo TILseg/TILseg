@@ -243,32 +243,18 @@ def save_all_images(df, path, f):
 
     # name all used directories
     slide_name_path = os.path.join(path, slide_name)
-    save_path_background = os.path.join(path, slide_name, 'Background')
-    save_path_tissue = os.path.join(path, slide_name, 'Tissue')
 
     # make all necessary directories
     os.mkdir(slide_name_path)
-    os.mkdir(save_path_background)
-    os.mkdir(save_path_tissue)
 
     # iterate through all rows of the dataframe
     for index, row in df.iterrows():
 
-        # check if the row is classified as background or not
-        if row['background']:
+        # name the file that will be saved based on its index on the whole slide image
+        name = 'position_'+str(row['patch_xy'][0])+'_'+str(row['patch_xy'][1])+'tissue.tif'
 
-            # name the file that will be saved based on its index on the whole slide image
-            name = 'position_'+str(row['patch_xy'][0])+'_'+str(row['patch_xy'][1])+'background.tif'
-
-            # save the image
-            save_image(save_path_background, name, row['patches'])
-
-        else:
-            # name the file that will be saved based on its index on the whole slide image
-            name = 'position_'+str(row['patch_xy'][0])+'_'+str(row['patch_xy'][1])+'tissue.tif'
-
-            # save the image
-            save_image(save_path_tissue, name, row['patches'])
+        # save the image
+        save_image(slide_name_path, name, row['patches'])
 
     return
 
@@ -490,7 +476,7 @@ def sort_patches(df, lin_space=100, approx_between=200):
     return df
 
 
-def main_preprocessing(complete_path, training=True, save_im=False, max_tile_x=4000, max_tile_y=3000):
+def main_preprocessing(complete_path, training=True, save_im=True, max_tile_x=4000, max_tile_y=3000):
     """
     The primary function to perform all preprocessing
     of the data, creating patches and returning a final
@@ -503,8 +489,8 @@ def main_preprocessing(complete_path, training=True, save_im=False, max_tile_x=4
         svs file to get an output value
     training: a boolean that indicates if this preprocessing is
         for training data or if it to only be used for the existing model
-    save_im: a boolean that indicates if all images should be saved 
-        (beware this is a lot of data, at least 20GB per slide)
+    save_im: a boolean that indicates if tissue images should be saved 
+        (beware this is a lot of data, at least 10GB per slide)
     max_tile_x: the maximum x dimension size, in pixels,
         of a slide patch (default is 4000)
     max_tile_y: the maximum y dimension size, in pixels,
@@ -544,11 +530,11 @@ def main_preprocessing(complete_path, training=True, save_im=False, max_tile_x=4
                 # determine if patches are background or not
                 sorted_df = sort_patches(dataframe_patches)
 
-                # save all images to correct directory if desired
-                if save_im: save_all_images(sorted_df, complete_path, file)
-
                 # drop all background images from dataframe
                 sorted_df = sorted_df.loc[~sorted_df.background, :]
+
+                # save all images to correct directory if desired
+                if save_im: save_all_images(sorted_df, complete_path, file)
 
                 # create a unique id for this slide image
                 sorted_df['UUID'] = uuid.uuid4()
@@ -590,11 +576,11 @@ def main_preprocessing(complete_path, training=True, save_im=False, max_tile_x=4
         # determine if patches are background or not
         sorted_df = sort_patches(dataframe_patches)
 
-        # save all images to correct directory if desired
-        if save_im: save_all_images(sorted_df, complete_path, file)
-
         # drop all background images from dataframe
         sorted_df = sorted_df.loc[~sorted_df.background, :]
+
+        # save all images to correct directory if desired
+        if save_im: save_all_images(sorted_df, complete_path, file)
 
         # print out the percent of pixels lost
         print(f'Percent of Pixels Lost in Pre-Processing: {loss_percentage} %')
@@ -779,9 +765,14 @@ def superpatcher(patches_list, sp_width=3):
     return patch_row_1
 
 
-def preprocess(path, patches=6, training=True, save_im=False, max_tile_x=4000, max_tile_y=3000):
-    dataframe = main_preprocessing(path, training, save_im, max_tile_x, max_tile_y)
-    plist = get_superpatch_patches(dataframe, patches)
-    spatch = superpatcher(plist)
+def preprocess(path, patches=6, training=True, save_im=True, max_tile_x=4000, max_tile_y=3000):
+    if training:
+        dataframe = main_preprocessing(path, training, save_im, max_tile_x, max_tile_y)
+        plist = get_superpatch_patches(dataframe, patches)
+        spatch = superpatcher(plist)
+        save_image(path, 'superpatch_training.tif', spatch)
+
+    else:
+        main_preprocessing(path, training, save_im, max_tile_x, max_tile_y)
 
     return spatch
