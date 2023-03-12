@@ -35,7 +35,7 @@ More specifically, the arguments taken for the main function are outlined below:
     - `True` indicates that a superpatch will be created
     - `False` indicates that no superpatch will be created, but filtered patches will still be saved
 
-- **save_im (default=False):** a boolean that describes if the preprocessing step should also save all images after filtering out background, to a subdirectory within the original directory for each slide. For either case, the superpatch will be saved as an image and the numpy array will still be returned.
+- **save_im (default=True):** a boolean that describes if the preprocessing step should also save all images after filtering out background, to a subdirectory within the original directory for each slide. For either case, the superpatch will be saved as an image and the numpy array will still be returned.
     - `True` indicates that all filtered images will be saved
     - `False` indicates that all filtered images will not be saved
 
