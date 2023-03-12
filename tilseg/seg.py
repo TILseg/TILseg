@@ -22,7 +22,7 @@ from sklearn.exceptions import NotFittedError
 from cluster_processing import image_postprocessing
 
 
-def KMeans_superpatch_fit(patch_path: str, hyperparameter_dict: dict):
+def KMeans_superpatch_fit(patch_path: str, hyperparameter_dict: dict={'n_clusters: 4'}):
 
     """
     Fits a KMeans clustering model to a patch that will be used to cluster other patches
@@ -54,7 +54,7 @@ def KMeans_superpatch_fit(patch_path: str, hyperparameter_dict: dict):
     # Checks that the patch_path actually exists
     path = pathlib.Path(patch_path)
     if not path.is_file():
-        raise ValueError('Please input a path to a file that exists')
+        raise FileNotFoundError('Please input a path to a file that exists')
     else:
         pass
 
@@ -160,11 +160,17 @@ def clustering_score(patch_path: str,
     # Checks that the patch_path actually exists
     path = pathlib.Path(patch_path)
     if not path.is_file():
-        raise ValueError('Please input a path to a file that exists')
+        raise FileNotFoundError('Please input a path to a file that exists')
     else:
         pass
 
-    # Checks that the inputted algorithm is one that can be supported by this function
+    # Checks that algorithm is a string
+    if type(algorithm) != str:
+        raise TypeError('Please enter a string for algorithm')
+    else:
+        pass
+
+  # Checks that the inputted algorithm is one that can be supported by this function
     # Also checks for string as the type and any typos in the input
     if algorithm not in ['KMeans', 'DBSCAN', 'OPTICS', 'BIRCH']:
         raise ValueError('Please enter a valid clustering algorithm')
@@ -173,18 +179,18 @@ def clustering_score(patch_path: str,
 
     # Checks that gen_s_score is a boolean
     if type(gen_s_score) != bool:
-        raise ValueError('gen_s_score must be a boolean')
+        raise TypeError('gen_s_score must be a boolean')
     else:
         pass
 
     # Checks that gen_ch_score is a boolean
     if type(gen_ch_score) != bool:
-        raise ValueError('gen_ch_score must be a boolean')
+        raise TypeError('gen_ch_score must be a boolean')
     else:
         pass
     # Checks that gen_db_score is a boolean
     if type(gen_db_score) != bool:
-        raise ValueError('gen_db_score must be a boolean')
+        raise TypeError('gen_db_score must be a boolean')
     else:
         pass
 
@@ -247,6 +253,12 @@ def clustering_score(patch_path: str,
     # If scoring on a model that is to be fitted on the same patch that it is supposed to cluster
     else:
 
+        # Checks that hyperparameter_dict is not None since no fitted model is input
+        if hyperparameter_dict == None:
+            raise ValueError('hyperparameter_dict must be a specified since no fitted model is input')
+        else:
+            pass
+
         # Checks that hyperparameter_dict is a dictionary
         # Hyperparameters should be specified in this case because the fitting is also happening
         # before prediction/clustering
@@ -287,8 +299,8 @@ def clustering_score(patch_path: str,
                 pass
 
             # Checking that eps is an integer or a float
-            if type(hyperparameter_dict['eps']) != int or type(hyperparameter_dict['eps']) != float:
-                raise ValueError('Please enter an integer or float for eps')
+            if type(hyperparameter_dict['eps']) != int and type(hyperparameter_dict['eps']) != float:
+                raise TypeError('Please enter an integer or float for eps')
             else:
                 pass
             # Initializes a DBSCAN model with optimized and other default hyperparameters
@@ -305,14 +317,14 @@ def clustering_score(patch_path: str,
                 pass
 
             # Checks that min_samples is an integer or a float
-            if type(hyperparameter_dict['min_samples']) != int or type(hyperparameter_dict['min_samples']) != float:
-                raise ValueError('Please enter an integer or float for min_samples')
+            if type(hyperparameter_dict['min_samples']) != int and type(hyperparameter_dict['min_samples']) != float:
+                raise TypeError('Please enter an integer or float for min_samples')
             else:
                 pass
 
             # Checks that max_eps is an integer, float or numpy.infinity
-            if type(hyperparameter_dict['max_eps']) != int or type(hyperparameter_dict['max_eps']) != float or hyperparameter_dict['max_eps'] != np.inf:
-                raise ValueError('Please enter an integer, float, or numpy.inf for max_eps')
+            if type(hyperparameter_dict['max_eps']) != int and type(hyperparameter_dict['max_eps']) != float and hyperparameter_dict['max_eps'] != np.inf:
+                raise TypeError('Please enter an integer, float, or numpy.inf for max_eps')
             else:
                 pass
 
@@ -330,20 +342,20 @@ def clustering_score(patch_path: str,
                 pass
 
             # Checks that threshold is an integer or a float
-            if type(hyperparameter_dict['threshold']) != int or type(hyperparameter_dict['threshold']) != float:
-                raise ValueError('Please enter an integer or float for threshold')
+            if type(hyperparameter_dict['threshold']) != int and type(hyperparameter_dict['threshold']) != float:
+                raise TypeError('Please enter an integer or float for threshold')
             else:
                 pass
 
             # Checks that branching_factor is an integer
             if type(hyperparameter_dict['branching_factor']) != int:
-                raise ValueError('Please enter an integer for branch_factor')
+                raise TypeError('Please enter an integer for branch_factor')
             else:
                 pass
 
             # Checks that n_clusters is an integer or None
-            if type(hyperparameter_dict['n_clusters']) != int or hyperparameter_dict['n_clusters'] != None:
-                raise ValueError('Please enter an integer or None for n_clusters')
+            if type(hyperparameter_dict['n_clusters']) != int and hyperparameter_dict['n_clusters'] != None:
+                raise TypeError('Please enter an integer or None for n_clusters')
             else:
                 pass
 
@@ -432,62 +444,82 @@ def segment_TILs(in_dir_path: str,
     Returns
     -----
     TIL_count_dict: dict
-        contains patch filenames without the extension as the key and TIL counts in respective pathces as the values
+        contains patch filenames without the extension as the key and TIL counts in respective patches as the values
     """
 
     # Checks that the path to the input directory is a string
     if type(in_dir_path) != str:
-        raise TypeError('patch_path must be a string')
+        raise TypeError('in_dir_path must be a string')
     else:
         pass
 
-    # Checks that teh input directory actually exists
+    # Checks that the input directory actually exists
     if not os.path.isdir(in_dir_path):
-        raise ValueError('Please enter a valid input directory')
+        raise NotADirectoryError('Please enter a valid input directory')
+    else:
+        pass
+
+    # Checks that algorithm is a string
+    if type(algorithm) != str:
+        raise TypeError('Please enter a string for algorithm')
+    else:
+        pass
+
+    # Checks that the inputted algorithm is one that can be supported by this function
+    # Also checks for string as the type and any typos in the input
+    if algorithm not in ['KMeans', 'DBSCAN', 'OPTICS', 'BIRCH']:
+        raise ValueError('Please enter a valid clustering algorithm')
     else:
         pass
 
     # Checks that save_TILs_overlay is a boolean
     if type(save_TILs_overlay) != bool:
-        raise ValueError('save_TILs_overlay must be a boolean')
+        raise TypeError('save_TILs_overlay must be a boolean')
     else:
         pass
 
     # Checks that save_cluster_masks is a boolean
     if type(save_cluster_masks) != bool:
-        raise ValueError('save_cluster_masks must be a boolean')
+        raise TypeError('save_cluster_masks must be a boolean')
     else:
         pass
 
     # Checks that save_cluster_overlays is a boolean
     if type(save_cluster_overlays) != bool:
-        raise ValueError('save_cluster_overlays must be a boolean')
+        raise TypeError('save_cluster_overlays must be a boolean')
     else:
         pass
 
     # Checks that save_all_clusters_img is a boolean
     if type(save_all_clusters_img) != bool:
-        raise ValueError('save_all_clusters_img must be a boolean')
+        raise TypeError('save_all_clusters_img must be a boolean')
     else:
         pass
 
     # Checks that save_csv is a boolean
     if type(save_csv) != bool:
-        raise ValueError('save_csv must be a boolean')
+        raise TypeError('save_csv must be a boolean')
     else:
         pass
 
     # Conditions when at least one boolean for files to be saved is True
     if save_TILs_overlay or save_cluster_masks or save_cluster_overlays or save_all_clusters_img or save_csv:
+
+        # Checks that the output directory path is not None
+        if out_dir_path == None:
+            raise ValueError('Please input out_dir_path to save files to')
+        else:
+            pass
+
         # Checks that the output directory path is a string
         if type(out_dir_path) != str:
-            raise TypeError('patch_path must be a string')
+            raise TypeError('out_dir_path must be a string')
         else:
             pass
         
         # Checks that the output directory actually exists
         if not os.path.isdir(out_dir_path):
-            raise ValueError('Please enter a valid output directory')
+            raise NotADirectoryError('Please enter a valid output directory')
         else:
             pass
     else:
@@ -532,6 +564,12 @@ def segment_TILs(in_dir_path: str,
 
     else:
 
+        # Checks that hyperparameter_dict is not None since no fitted model is input
+        if hyperparameter_dict == None:
+            raise ValueError('hyperparameter_dict must be a specified since no fitted model is input')
+        else:
+            pass
+
         # Checks that hyperparameter_dict is a dictionary
         if type(hyperparameter_dict) != dict:
             raise TypeError('hyperparameter_dict must be a dictionary')
@@ -547,8 +585,14 @@ def segment_TILs(in_dir_path: str,
             else:
                 pass
 
-            # Checks that n_clusters hyperparamter is an integer less than 9
-            if type(hyperparameter_dict['n_clusters']) != int or hyperparameter_dict['n_clusters'] > 8:
+            # Checks that n_clusters is an integer
+            if type(hyperparameter_dict['n_clusters']) != int:
+                raise TypeError('Please enter an integer for n_clusters')
+            else:
+                pass
+
+            # Checks that n_clusters hyperparamter is less than 9
+            if hyperparameter_dict['n_clusters'] > 8:
                 raise ValueError('Please enter an integer less than 9 for n_clusters')
             else:
                 pass
@@ -571,8 +615,8 @@ def segment_TILs(in_dir_path: str,
                 pass
 
             # Checking that eps is an integer or a float
-            if type(hyperparameter_dict['eps']) != int or type(hyperparameter_dict['eps']) != float:
-                raise ValueError('Please enter an integer or float for eps')
+            if type(hyperparameter_dict['eps']) != int and type(hyperparameter_dict['eps']) != float:
+                raise TypeError('Please enter an integer or float for eps')
             else:
                 pass
 
@@ -591,14 +635,14 @@ def segment_TILs(in_dir_path: str,
                 pass
 
             # Checks that min_samples is an integer or a float
-            if type(hyperparameter_dict['min_samples']) != int or type(hyperparameter_dict['min_samples']) != float:
-                raise ValueError('Please enter an integer or float for min_samples')
+            if type(hyperparameter_dict['min_samples']) != int and type(hyperparameter_dict['min_samples']) != float:
+                raise TypeError('Please enter an integer or float for min_samples')
             else:
                 pass
 
             # Checks that max_eps is an integer, float or numpy.infinity
-            if type(hyperparameter_dict['max_eps']) != int or type(hyperparameter_dict['max_eps']) != float or hyperparameter_dict['max_eps'] != np.inf:
-                raise ValueError('Please enter an integer, float, or numpy.inf for max_eps')
+            if type(hyperparameter_dict['max_eps']) != int and type(hyperparameter_dict['max_eps']) != float and hyperparameter_dict['max_eps'] != np.inf:
+                raise TypeError('Please enter an integer, float, or numpy.inf for max_eps')
             else:
                 pass
 
@@ -617,20 +661,20 @@ def segment_TILs(in_dir_path: str,
                 pass
 
             # Checks that threshold is an integer or a float
-            if type(hyperparameter_dict['threshold']) != int or type(hyperparameter_dict['threshold']) != float:
-                raise ValueError('Please enter an integer or float for threshold')
+            if type(hyperparameter_dict['threshold']) != int and type(hyperparameter_dict['threshold']) != float:
+                raise TypeError('Please enter an integer or float for threshold')
             else:
                 pass
 
             # Checks that branching_factor is an integer
             if type(hyperparameter_dict['branching_factor']) != int:
-                raise ValueError('Please enter an integer for branch_factor')
+                raise TypeError('Please enter an integer for branch_factor')
             else:
                 pass
 
             # Checks that n_clusters is an integer or None
-            if type(hyperparameter_dict['n_clusters']) != int or hyperparameter_dict['n_clusters'] != None:
-                raise ValueError('Please enter an integer or None for n_clusters')
+            if type(hyperparameter_dict['n_clusters']) != int and hyperparameter_dict['n_clusters'] != None:
+                raise TypeError('Please enter an integer or None for n_clusters')
             else:
                 pass
 
@@ -660,7 +704,7 @@ def segment_TILs(in_dir_path: str,
             pred_patch = plt.imread(os.path.join(in_dir_path, file))
         # Makes sure that the fie is readable by matplotlib, which uses PIL
         except UnidentifiedImageError:
-            print('Please use an image that can be opened by PIL.Image.open')
+            print('There is a file in the directory that cannot be opened by PIL.Image.open')
             raise
 
         # Linearizes the array for R, G, and B separately and normalizes
