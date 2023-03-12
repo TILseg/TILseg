@@ -30,10 +30,11 @@
     - Output labeled image with clusters assigned to pixels 
 <br/>
 
-6. Cell Group Generator
+6. Immune Contour Generator
     - Access labeled images with clusters
-    - Generate groups based on pixel location and cluster 
-    - Generate statistics for derived groups (size, circularity etc.)
+    - Generate contours based on pixel location and cluster
+    - Filter contours based on size and roundness
+    - Output filtered contours identified as immune cells
 <br/>
 
 7. Immune Cluster Identifier
@@ -42,12 +43,14 @@
     - Output immune cell groups from all clusters
 <br/>
 
-8. Overlay Generator
-    - Access labeled image with clusters assigned to pixels
+8. Cluster Image Generator
+    - Access labeled images with clusters assigned to pixels
     - Generate image files converting clusters to RGB values
-    - Output overlayed image and cluster location image
+    - Output overlaid images and cluster mask images
 <br/>
 
-9. Statistical Summary Generator
-    - Access statistics for cell clusters
-    - Output well-formated summary and relevant data
+9. Contour Data Generator
+    - Access filtered contours identified as immune clusters
+    - Use OpenCV to calculate feature values for each filtered contour
+    - Optionally generate and output filtered contour overlaid image and mask
+    - Output comma seperated value file with features calculated for filtered contours
