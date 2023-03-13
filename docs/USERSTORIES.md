@@ -4,7 +4,7 @@ Bob is a graduate student whose research focuses on developing translational can
 <br>
 <br>
 **Immediate Future User: Package User (Maria)**<br>
-Maria is a research scientist whose work requires use and analysis of H&E stained images. From these images, Maria must be able to identify and enumerate immune cells in the sample. She will use this software package to aquire these parameters from recently aquired H&E stained images. Maria does not have a programming background. She hopes to integrate this software into a larger workflow that evaluates treatment outcomes based on disease subtypes.
+Maria is a research scientist whose work requires use and analysis of H&E stained images. From these images, Maria must be able to identify and enumerate immune cells in the sample. She will use this software package to aquire these parameters from recently aquired H&E stained images. Maria does not have a programming background. She hopes to integrate this software into a larger workflow that evaluates treatment outcomes based on disease subtypes. She has a large number of images and wants to be able to modify the specific outputs to minimize computation time. 
 <br>
 <br>
 **Distant Future User: Biotechnology Software Developer (Alice)**<br>
