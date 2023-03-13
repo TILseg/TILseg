@@ -5,6 +5,17 @@ This is best done following hyperparameter optimization using
 tilseg.model_selection
 """
 
+# This nature of this code requires dictionaries to be default arguments for
+# ease of functionality:
+# pylint: disable=dangerous-default-value
+# KMeans and TILs do not conform to snake-case naming:
+# pylint: disable=invalid-name
+# Need to check types of inputs and outputs which have protected class type
+# e.g. sklearn models:
+# pylint: disable=protected-access
+# The purpose is to give the user choice of funtionality to suit their needs:
+# pylint: disable=too-many-arguments
+
 import pathlib
 import os
 import numpy as np
@@ -15,7 +26,7 @@ import sklearn.cluster
 import sklearn.metrics
 import sklearn.utils.validation
 
-from cluster_processing import image_postprocessing
+from tilseg.cluster_processing import image_postprocessing
 
 
 def KMeans_superpatch_fit(patch_path: str,

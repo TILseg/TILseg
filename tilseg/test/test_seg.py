@@ -2,6 +2,12 @@
 Unittests for seg module
 """
 
+# KMeans and TILs do not conform to snake-case naming:
+# pylint: disable=invalid-name
+# Need to check types of inputs and outputs which have protected class type
+# e.g. sklearn models:
+# pylint: disable=protected-access
+
 import os
 import unittest
 import numpy as np
@@ -13,27 +19,17 @@ from PIL import UnidentifiedImageError
 
 import tilseg.seg
 import tilseg.cluster_processing
+import tilseg
 
-print(os.getcwd())
-
-# current_dir = re.findall(f"{os.sep}[a-zA-Z0-9]+$",os.getcwd())[0][1:]
-# if current_dir == "tilseg":
-#     TEST_PATCH_PATH = os.path.join("..","abi_patches","test", "test_patch.tif")
-#     FAIL_TEST_PATCH_PATH = os.path.join("..","abi_patches","test", "test_img.txt")
-#     small_TEST_PATCH_PATH = os.path.join("..","abi_patches","test", "test_small_patch.tif")
-# elif current_dir == "TILseg":
-#     TEST_PATCH_PATH = os.path.join("abi_patches","test", "test_patch.tif")
-#     FAIL_TEST_PATCH_PATH = os.path.join("abi_patches","test", "test_img.txt")
-#     small_TEST_PATCH_PATH = os.path.join("..","abi_patches","test", "test_small_patch.tif")
-# elif current_dir == "test":
-#     TEST_PATCH_PATH = os.path.join("..","..","abi_patches","test", "test_patch.tif")
-#     FAIL_TEST_PATCH_PATH = os.path.join("..","..","abi_patches","test", "test_img.txt")
-#     small_TEST_PATCH_PATH = os.path.join("..","abi_patches","test", "test_small_patch.tif")
-
-TEST_PATCH_PATH = '/Users/abishek/Desktop/DataScienceClasses/TILseg/abi_patches/test/patches/test_small_patch.tif'
-FAIL_TEST_PATCH_PATH = '/Users/abishek/Desktop/DataScienceClasses/TILseg/abi_patches/test/test_img.txt'
-TEST_IN_DIR_PATH = '/Users/abishek/Desktop/DataScienceClasses/TILseg/abi_patches/test/patches'
-SUPERPATCH_PATH = '/Users/abishek/Desktop/DataScienceClasses/TILseg/abi_patches/test/test_superpatch.tif'
+TEST_PATCH_PATH = os.path.join(os.path.dirname(tilseg.__file__), 'test',
+                               'test_patches', 'patches',
+                               'test_small_patch.tif')
+FAIL_TEST_PATCH_PATH = os.path.join(os.path.dirname(tilseg.__file__), 'test',
+                                    'test_patches', 'test_img.txt')
+TEST_IN_DIR_PATH = os.path.join(os.path.dirname(tilseg.__file__), 'test',
+                                'test_patches', 'patches')
+SUPERPATCH_PATH = os.path.join(os.path.dirname(tilseg.__file__), 'test',
+                               'test_patches', 'test_superpatch.tif')
 
 files = []
 for file in os.listdir(TEST_IN_DIR_PATH):
