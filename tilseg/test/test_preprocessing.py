@@ -2,18 +2,23 @@
 
 import collections
 import openslide
+import os
+import PIL
 import unittest
-import preprocessing
 
 import numpy as np
 import pandas as pd
 pd.options.mode.chained_assignment = None
 
+from PIL import Image
+
+import preprocessing
+
 collections.Callable = collections.abc.Callable
 
 class TestPreProcessing(unittest.TestCase):
     """Test case for the functions within preprocessing.py"""
-    
+
     def test_open_slide(self):
         """
         open_slide testings
