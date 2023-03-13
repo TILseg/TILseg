@@ -313,16 +313,19 @@ class TestModelSelection(unittest.TestCase):
         """
         test read_json_hyperparameters
         """
-        hyperparameter_dict = tilseg.\
-            model_selection.\
-                read_json_hyperparameters(
-                    os.path.join(os.path.dirname(tilseg.__file__),"test","birch_hyperparameters.json"))
+        hyperparameter_dict =\
+            tilseg.model_selection.\
+            read_json_hyperparameters(
+                os.path.join(os.path.dirname(tilseg.__file__),
+                             "test",
+                             "birch_hyperparameters.json"))
         expected_results = {
-            "threshold":np.inf,
-            "branching_factor":10,
-            "n_clusters":None
+            "threshold": np.inf,
+            "branching_factor": 10,
+            "n_clusters": None
         }
-        self.assertDictEqual(hyperparameter_dict,expected_results)
+        self.assertDictEqual(hyperparameter_dict, expected_results)
+
 
 if __name__ == "__main__":
     unittest.main()

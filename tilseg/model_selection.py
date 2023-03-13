@@ -1,5 +1,6 @@
 """
-Contains functions for selecting clustering algorithms and their hyperparameters
+Contains functions for selecting clustering
+algorithms and their hyperparameters
 """
 # System imports
 from collections.abc import Sequence
@@ -52,7 +53,8 @@ def eval_km_elbow(data: np.array,
                   r2_cutoff=0.9,
                   **kwargs) -> int:
     """
-    Function to find ideal number of clusters for knn using inertia plots and elbow method
+    Function to find ideal number of clusters for knn using
+        inertia plots and elbow method
     Parameters
     ----------
     data: Data to cluster
@@ -76,18 +78,21 @@ def eval_km_elbow(data: np.array,
 def eval_model_hyperparameters(data: np.array,
                                model: sklearn.base.ClusterMixin,
                                hyperparameters: Sequence[dict],
-                               metric: Callable = sklearn.metrics.silhouette_score,
+                               metric: Callable = sklearn.
+                               metrics.silhouette_score,
                                metric_direction: str = "max",
                                full_return: bool = False,
-                               verbose:bool = False,
+                               verbose: bool = False,
                                **kwargs):
     """
     Function to find hyperparameters based on provided metric
     Parameters
     ----------
     data: Data to cluster
-    model: Cluster class (not object or instance) for which to evaluate the hyperparameters
-    hyperparameters: Sequence (list) of dictionaries containing hyperparameters to test
+    model: Cluster class (not object or instance) used to
+        evaluate the hyperparameters
+    hyperparameters: Sequence (list) of dictionaries containing hyperparameters
+        to test
     metric: Metric to use for scoring
     metric_direction: Determines whether greater or smaller scores are better
     full_return: whether to return all the scores, or just the best parameters
@@ -96,7 +101,7 @@ def eval_model_hyperparameters(data: np.array,
     Returns
     -------
     hyperparameter:dict
-     Dictionary with the hyperparameters 
+     Dictionary with the hyperparameters
     or
     scores:dict
       Dictionary mapping the hyperparameters position in provided list
@@ -110,7 +115,8 @@ def eval_model_hyperparameters(data: np.array,
         clusterer = model(**parameters)
         clusters = clusterer.fit_predict(data)
         if verbose:
-            print(f"Hyperparameters: {parameters}, clusters:{np.unique(clusters)}")
+            print(f"Hyperparameters: {parameters}",
+                  f"clusters:{np.unique(clusters)}")
         # If there are not at least 2 clusters, the metric function
         # won't be able to find a score. If there are less than 2 clusters
         # skip this iteration of the loop
@@ -125,7 +131,8 @@ def eval_model_hyperparameters(data: np.array,
         raise ValueError("Unable to cluster with any of hyperparameter sets")
     if full_return:
         return scores
-    if metric_direction in ["max", "maximum", "greater", "->", ">", "right", "higher"]:
+    if metric_direction in ["max", "maximum", "greater", "->", ">",
+                            "right", "higher"]:
         max_val = np.NINF
         max_val_parameters = None
         for key, value in scores.items():
@@ -133,7 +140,8 @@ def eval_model_hyperparameters(data: np.array,
                 max_val = value
                 max_val_parameters = key
         return hyperparameters[max_val_parameters]
-    if metric_direction in ["min", "minimum", "less", "<-", "<", "left", "lower"]:
+    if metric_direction in ["min", "minimum", "less", "<-", "<",
+                            "left", "lower"]:
         min_val = np.Inf
         min_val_parameters = None
         for key, value in scores.items():
@@ -156,11 +164,14 @@ def eval_models(data: np.array,
     Parameters
     ----------
     data: np.array containing data for clustering
-    models: Sequence (list) of models to evaluate (should be class, not object or instance)
-    hyperparameters: Sequence of hyperparameters (dicts) to create the models to compare
+    models: Sequence (list) of models to evaluate
+        (should be class, not object or instance)
+    hyperparameters: Sequence of hyperparameters (dicts) to
+        create the models to compare
     metric: Metric to evaluate the clustering methods with (function)
     metric_direction: Determines whether greater or smaller scores are better
-    full_return: Whether to return dictionary of models: scores, or just best scoring model
+    full_return: Whether to return dictionary of models: scores,
+        or just best scoring model
     **kwargs: Keyword arguments passed to metric function
     Returns
     -------
@@ -184,7 +195,8 @@ def eval_models(data: np.array,
             data, clusterer.fit_predict(data), **kwargs)
     if full_return:
         return model_scores
-    if metric_direction in ["max", "maximum", "greater", "->", ">", "right", "higher"]:
+    if metric_direction in ["max", "maximum", "greater", "->", ">",
+                            "right", "higher"]:
         max_val = np.NINF
         max_val_model = None
         for key, value in model_scores.items():
@@ -192,7 +204,8 @@ def eval_models(data: np.array,
                 max_val = value
                 max_val_model = key
         return max_val_model
-    if metric_direction in ["min", "minimum", "less", "<-", "<", "left", "lower"]:
+    if metric_direction in ["min", "minimum", "less", "<-", "<",
+                            "left", "lower"]:
         min_val = np.Inf
         min_val_model = None
         for key, value in model_scores.items():
@@ -210,14 +223,16 @@ def eval_models_dict(data: np.array,
                      full_return: bool = False,
                      **kwargs):
     """
-    Convinience method to take a model:hyperparameter dictionary, and call eval_models
+    Convinience method to take a model:hyperparameter dictionary,
+        and call eval_models
     Parameters
     ----------
     data: np.array containing data for clustering
     model_parameter_dict: dict of model:parameters
     metric: Metric to evaluate the clustering methods with (function)
     metric_direction: Determines whether greater or smaller scores are better
-    full_return: Whether to return dictionary of models: scores, or just best scoring model
+    full_return: Whether to return dictionary of models: scores,
+        or just best scoring model
     **kwargs: Keyword arguments passed to metric function
     Returns
     -------
@@ -251,9 +266,12 @@ def eval_models_silhouette_score(data: np.array,
     Parameters
     ----------
     data: np.array containing data for clustering
-    models: Sequence (list) of models to evaluate (should be class, not object or instance)
-    hyperparameters: Sequence of hyperparameters (dicts) to create the models to compare
-    full_return: Whether to return dictionary of models: scores, or just best scoring model
+    models: Sequence (list) of models to evaluate (should be class,
+        not object or instance)
+    hyperparameters: Sequence of hyperparameters (dicts)
+        to create the models to compare
+    full_return: Whether to return dictionary of models: scores,
+        or just best scoring model
     **kwargs: Keyword arguments passed to metric function
     Returns
     -------
@@ -282,14 +300,18 @@ def eval_models_calinski_harabasz(data: np.array,
     Parameters
     ----------
     data: np.array containing data for clustering
-    models: Sequence (list) of models to evaluate (should be class, not object or instance)
-    hyperparameters: Sequence of hyperparameters (dicts) to create the models to compare
-    full_return: Whether to return dictionary of models: scores, or just best scoring model
+    models: Sequence (list) of models to evaluate (should be class,
+        not object or instance)
+    hyperparameters: Sequence of hyperparameters (dicts)
+        to create the models to compare
+    full_return: Whether to return dictionary of models: scores,
+        or just best scoring model
     **kwargs: Keyword arguments passed to metric function
     Returns
     -------
     model: sklearn.base.ClusterMixin
-        model which clusters the data beest according to Calinski Harabasz index
+        model which clusters the data beest according to
+        Calinski Harabasz index
     or
     model_dictionary: dict
         dictionary mapping models to Calinski Harabasz index
@@ -313,9 +335,12 @@ def eval_models_davies_bouldin(data: np.array,
     Parameters
     ----------
     data: np.array containing data for clustering
-    models: Sequence (list) of models to evaluate (should be class, not object or instance)
-    hyperparameters: Sequence of hyperparameters (dicts) to create the models to compare
-    full_return: Whether to return dictionary of models: scores, or just best scoring model
+    models: Sequence (list) of models to evaluate (should be class,
+        not object or instance)
+    hyperparameters: Sequence of hyperparameters (dicts)
+        to create the models to compare
+    full_return: Whether to return dictionary of models: scores,
+        or just best scoring model
     **kwargs: Keyword arguments passed to metric function
     Returns
     -------
@@ -347,7 +372,8 @@ def plot_inertia(data: np.array,
     ----------
     data: np.array containing data to cluster
     n_clusters: List of n_clusters to create the inertial plot for
-    file_path: path of where to save the image of the plot, either string or pathlike object
+    file_path: path of where to save the image of the plot,
+        either string or pathlike object
     Returns
     -------
     matplotlib plot object
@@ -383,7 +409,7 @@ def opt_kmeans(data: np.array, n_clusters: list, **kwargs):
     Parameters
     ----------
     data: np array containing pixel data to be clustered
-    n_clusters_lsit: list of n_clusters to try 
+    n_clusters_lsit: list of n_clusters to try
     **kwargs: Keyword args passed to KMeans clustering algorithm
     Returns
     -------
@@ -402,7 +428,7 @@ def opt_kmeans(data: np.array, n_clusters: list, **kwargs):
 
 def opt_dbscan(data: np.array,
                eps: list,
-               min_samples:list,
+               min_samples: list,
                metric: str = "silhouette",
                verbose: bool = False,
                **kwargs):
@@ -425,15 +451,17 @@ def opt_dbscan(data: np.array,
                   "Silhouette score", "Silhouette Score"]:
         metric_class = sklearn.metrics.silhouette_score
         metric_direction = "higher"
-    elif metric in ["Davies Bouldin", "Davies-Bouldin", "davies-bouldin", "db", "DB", ]:
+    elif metric in ["Davies Bouldin", "Davies-Bouldin",
+                    "davies-bouldin", "db", "DB", ]:
         metric_class = sklearn.metrics.davies_bouldin_score
         metric_direction = "lower"
-    elif metric in ["Calinski Harabasz", "calinski-harabasz", "Calinski-Harabasz", "ch", "CH"]:
+    elif metric in ["Calinski Harabasz", "calinski-harabasz",
+                    "Calinski-Harabasz", "ch", "CH"]:
         metric_class = sklearn.metrics.calinski_harabasz_score
         metric_direction = "higher"
     hyperparameters_list = []
     for count, eps_value in enumerate(eps):
-        hyp_dict = {"eps": eps_value, "min_samples":min_samples[count]}
+        hyp_dict = {"eps": eps_value, "min_samples": min_samples[count]}
         hyp_dict.update(kwargs)
         hyperparameters_list += [hyp_dict]
     model = sklearn.cluster.DBSCAN
@@ -479,10 +507,18 @@ def opt_birch(data: np.array,
                   "Silhouette score", "Silhouette Score"]:
         metric_class = sklearn.metrics.silhouette_score
         metric_direction = "higher"
-    elif metric in ["Davies Bouldin", "Davies-Bouldin", "davies-bouldin", "db", "DB", ]:
+    elif metric in ["Davies Bouldin",
+                    "Davies-Bouldin",
+                    "davies-bouldin",
+                    "db",
+                    "DB"]:
         metric_class = sklearn.metrics.davies_bouldin_score
         metric_direction = "lower"
-    elif metric in ["Calinski Harabasz", "calinski-harabasz", "Calinski-Harabasz", "ch", "CH"]:
+    elif metric in ["Calinski Harabasz",
+                    "calinski-harabasz",
+                    "Calinski-Harabasz",
+                    "ch",
+                    "CH"]:
         metric_class = sklearn.metrics.calinski_harabasz_score
         metric_direction = "higher"
     hyperparameters_list = []
@@ -533,10 +569,18 @@ def opt_optics(data: np.array,
                   "Silhouette score", "Silhouette Score"]:
         metric_class = sklearn.metrics.silhouette_score
         metric_direction = "higher"
-    elif metric in ["Davies Bouldin", "Davies-Bouldin", "davies-bouldin", "db", "DB", ]:
+    elif metric in ["Davies Bouldin",
+                    "Davies-Bouldin",
+                    "davies-bouldin",
+                    "db",
+                    "DB"]:
         metric_class = sklearn.metrics.davies_bouldin_score
         metric_direction = "lower"
-    elif metric in ["Calinski Harabasz", "calinski-harabasz", "Calinski-Harabasz", "ch", "CH"]:
+    elif metric in ["Calinski Harabasz",
+                    "calinski-harabasz",
+                    "Calinski-Harabasz",
+                    "ch",
+                    "CH"]:
         metric_class = sklearn.metrics.calinski_harabasz_score
         metric_direction = "higher"
     hyperparameters_list = []
@@ -574,13 +618,13 @@ def sample_patch(data: np.array, sample: int) -> np.array:
             f"Unable to coerce {sample} to int") from exc
     return data[
         np.random.choice(list(range(len(data))), sample,
-        replace=False).astype(int), :]
+                         replace=False).astype(int), :]
 
 
 def generate_hyperparameter_combinations(hyperparameter_dict: dict) -> dict:
     """
-    Generate a dicionary of hyperparameter:list with all combinations of 
-    provided hyperparameters dictionaries 
+    Generate a dicionary of hyperparameter:list with all combinations of
+    provided hyperparameters dictionaries
     Parameters
     ----------
     hyperparameter_dict: dict of hyperparameter: list of values
@@ -592,14 +636,15 @@ def generate_hyperparameter_combinations(hyperparameter_dict: dict) -> dict:
     return_dict = {}
     keys = list(hyperparameter_dict.keys())
     for key in keys:
-        return_dict[key]=[]
+        return_dict[key] = []
     dict_values = [hyperparameter_dict[i] for i in keys]
     for combintation in itertools.product(*dict_values):
         for i, key in enumerate(keys):
             return_dict[key] += [combintation[i]]
     return return_dict
 
-def read_json_hyperparameters(file_path:str)->dict:
+
+def read_json_hyperparameters(file_path: str) -> dict:
     """
     Function to read a json file containing hyperparameters
     Parameters
@@ -609,7 +654,7 @@ def read_json_hyperparameters(file_path:str)->dict:
     -------
     hyperparameters: dict with the hyperparameters
     """
-    with open(file_path) as file:
+    with open(file_path, "r", encoding="utf-8") as file:
         hyperparameters = json.load(file)
     for key, value in hyperparameters.items():
         if value in ["np.inf", "inf", "Inf", "INF"]:
@@ -617,4 +662,3 @@ def read_json_hyperparameters(file_path:str)->dict:
         elif value in ["None", "none", "NaN", "NA", "Na"]:
             hyperparameters[key] = None
     return hyperparameters
-    
