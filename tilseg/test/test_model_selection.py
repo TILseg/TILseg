@@ -15,6 +15,7 @@ import sklearn.datasets
 import sklearn.metrics
 
 # Local imports
+import tilseg
 import tilseg.model_selection
 
 
@@ -241,7 +242,8 @@ class TestModelSelection(unittest.TestCase):
         self.assertAlmostEqual(result['eps'], 2.1)
         with self.assertRaises(ValueError):
             _ = tilseg.model_selection.opt_dbscan(
-                self.cluster_data, eps=[0.001, 0.02, 0.3])
+                self.cluster_data, eps=[0.001, 0.02, 0.3],
+                min_samples=[5,5,5])
 
     def test_opt_birch(self):
         """
@@ -314,7 +316,7 @@ class TestModelSelection(unittest.TestCase):
         hyperparameter_dict = tilseg.\
             model_selection.\
                 read_json_hyperparameters(
-                    os.path.join(".","birch_hyperparameters.json"))
+                    os.path.join(os.path.dirname(tilseg.__file__),"test","birch_hyperparameters.json"))
         expected_results = {
             "threshold":np.inf,
             "branching_factor":10,

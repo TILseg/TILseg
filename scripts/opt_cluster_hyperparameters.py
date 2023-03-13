@@ -117,7 +117,7 @@ def main():
         # Transform result into dictionary so it can be written to
         #   a json like the others
         result = {
-            "n_cluster": model_selection.opt_kmeans(
+            "n_clusters": model_selection.opt_kmeans(
                 patch,
                 n_clusters=hyperparameters["n_clusters"])
         }
