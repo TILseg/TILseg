@@ -79,6 +79,7 @@ def eval_model_hyperparameters(data: np.array,
                                metric: Callable = sklearn.metrics.silhouette_score,
                                metric_direction: str = "max",
                                full_return: bool = False,
+                               verbose:bool = False,
                                **kwargs):
     """
     Function to find hyperparameters based on provided metric
@@ -90,6 +91,7 @@ def eval_model_hyperparameters(data: np.array,
     metric: Metric to use for scoring
     metric_direction: Determines whether greater or smaller scores are better
     full_return: whether to return all the scores, or just the best parameters
+    verbose: whether a verbose output is desired
     **kwargs: Keyword arguments passed to sklearn metric function
     Returns
     -------
@@ -107,6 +109,8 @@ def eval_model_hyperparameters(data: np.array,
     for count, parameters in enumerate(hyperparameters):
         clusterer = model(**parameters)
         clusters = clusterer.fit_predict(data)
+        if verbose:
+            print(f"Hyperparameters: {parameters}, clusters:{np.unique(clusters)}")
         # If there are not at least 2 clusters, the metric function
         # won't be able to find a score. If there are less than 2 clusters
         # skip this iteration of the loop
@@ -398,7 +402,9 @@ def opt_kmeans(data: np.array, n_clusters: list, **kwargs):
 
 def opt_dbscan(data: np.array,
                eps: list,
+               min_samples:list,
                metric: str = "silhouette",
+               verbose: bool = False,
                **kwargs):
     """
     Function to optimize the eps hyperparameter for DBSCAN
@@ -407,6 +413,7 @@ def opt_dbscan(data: np.array,
     data: np array containing pixel data to be clustered
     eps_list: list of eps values to try
     metric: string with name of metric to use
+    verbose: whether a verbose output is desired
     **kwargs: keyword args passed to DBSCAN clustering algorithm
     Returns
     -------
@@ -425,8 +432,8 @@ def opt_dbscan(data: np.array,
         metric_class = sklearn.metrics.calinski_harabasz_score
         metric_direction = "higher"
     hyperparameters_list = []
-    for eps_value in eps:
-        hyp_dict = {"eps": eps_value}
+    for count, eps_value in enumerate(eps):
+        hyp_dict = {"eps": eps_value, "min_samples":min_samples[count]}
         hyp_dict.update(kwargs)
         hyperparameters_list += [hyp_dict]
     model = sklearn.cluster.DBSCAN
@@ -436,7 +443,8 @@ def opt_dbscan(data: np.array,
         hyperparameters=hyperparameters_list,
         metric=metric_class,
         metric_direction=metric_direction,
-        full_return=False)
+        full_return=False,
+        verbose=verbose)
     return result
 
 
@@ -445,6 +453,7 @@ def opt_birch(data: np.array,
               branching_factor: list,
               n_clusters: list,
               metric: str = "silhouette",
+              verbose: bool = False,
               **kwargs):
     """
     Function to optimize the eps hyperparameter for DBSCAN
@@ -492,13 +501,15 @@ def opt_birch(data: np.array,
         hyperparameters=hyperparameters_list,
         metric=metric_class,
         metric_direction=metric_direction,
-        full_return=False)
+        full_return=False,
+        verbose=verbose)
 
 
 def opt_optics(data: np.array,
                min_samples: list,
                max_eps: list,
                metric: str = "silhouette",
+               verbose: bool = False,
                **kwargs):
     """
     Function to optimize the eps hyperparameter for OPTICS
@@ -508,6 +519,7 @@ def opt_optics(data: np.array,
     min_samples: list of min_samples values to try
     max_eps: list of max_eps values to try
     metric: string with name of metric to use
+    verbose: whether a verbose output is desired
     **kwargs: keyword args passed to DBSCAN clustering algorithm
     Returns
     -------
@@ -540,7 +552,8 @@ def opt_optics(data: np.array,
         data=data,
         model=model, hyperparameters=hyperparameters_list,
         metric=metric_class,
-        metric_direction=metric_direction)
+        metric_direction=metric_direction,
+        verbose=verbose)
 
 
 def sample_patch(data: np.array, sample: int) -> np.array:

@@ -49,7 +49,7 @@ def parse_args():
     # Add argument for hyperparameter input file
     parser.add_argument("-p", "--hyperparameters",
                         dest="hyperparameter_path",
-                        default=os.path.join(".", "hyperparameters.json"),
+                        default=os.path.join(".", "inputs", "kmeans_hyperparameters.json"),
                         help="""File containig hyperparameters to try, should be a json.
                 An object of hyperparameter:values[array]""")
     # Add argument for scoring method
@@ -75,6 +75,10 @@ def parse_args():
                         Whether to use all possible combinations of
                         the hyperparameters"""
                         )
+    parser.add_argument("-v", "--verbose",
+                        action="store_true",
+                        dest="verbose",
+                        help="Whether a verbose output is desired")
     return parser.parse_args()
 
 
@@ -120,21 +124,24 @@ def main():
     elif args.cluster_algorithm in ["DBSCAN", "dbscan", "Dbscan"]:
         result = model_selection.opt_dbscan(patch,
                                             eps=hyperparameters["eps"],
-                                            metric=args.metric)
+                                            min_samples = hyperparameters["min_samples"],
+                                            metric=args.metric,
+                                            verbose=args.verbose)
     elif args.cluster_algorithm in ["OPTICS", "optics", "Optics"]:
         result = model_selection.opt_optics(
             patch,
             min_samples=hyperparameters["min_samples"],
             max_eps=hyperparameters["max_eps"],
-            metric=args.metric
-        )
+            metric=args.metric,
+            verbose=args.verbose)
     elif args.cluster_algorithm in ["BIRCH", "birch", "Birch"]:
         result = model_selection.opt_birch(
             patch,
             threshold=hyperparameters["threshold"],
             branching_factor=hyperparameters["branching_factor"],
             n_clusters=hyperparameters["n_clusters"],
-            metric=args.metric)
+            metric=args.metric,
+            verbose = args.verbose)
     else:
         raise AttributeError("Couldn't parse provided clusterer name")
     # Change np.inf and None to strings so they can be written to json

@@ -235,7 +235,8 @@ class TestModelSelection(unittest.TestCase):
         """
         # Catch fire test
         result = tilseg.model_selection.opt_dbscan(
-            self.cluster_data, eps=[0.1, 0.7, 1.4, 2.1, 3.0])
+            self.cluster_data, eps=[0.1, 0.7, 1.4, 2.1, 3.0],
+            min_samples=[5,5,5,5,5])
         # Known value
         self.assertAlmostEqual(result['eps'], 2.1)
         with self.assertRaises(ValueError):
@@ -306,6 +307,20 @@ class TestModelSelection(unittest.TestCase):
             "b":[2]
         }
         self.assertDictEqual(combinations2, expected_result_dict2)
+    def test_read_json_hyperparameters(self):
+        """
+        test read_json_hyperparameters
+        """
+        hyperparameter_dict = tilseg.\
+            model_selection.\
+                read_json_hyperparameters(
+                    os.path.join(".","birch_hyperparameters.json"))
+        expected_results = {
+            "threshold":np.inf,
+            "branching_factor":10,
+            "n_clusters":None
+        }
+        self.assertDictEqual(hyperparameter_dict,expected_results)
 
 if __name__ == "__main__":
     unittest.main()
