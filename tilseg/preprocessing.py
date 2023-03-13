@@ -9,6 +9,7 @@ a consequtive module.
 
 from skimage import io
 
+import collections
 import math
 import openslide
 import os
@@ -238,11 +239,47 @@ def save_all_images(df, path, f):
     None, but all images are saved
     """
 
+    # check if the path exists
+    if not os.path.exists(path):
+        raise FileNotFoundError('The file path given does not exist.')
+    else:
+        pass
+
+    # check if the file name has an extension
+    if '.' not in f:
+        raise TypeError('The file name provided for the image has no extension.')
+    else:
+        pass
+
+    # check that dataframe is actually a dataframe
+    if not isinstance(df, pd.DataFrame):
+        raise TypeError('The dataframe entered is not a dataframe object.')
+    else:
+        pass
+
+    # check that the dataframe has a position column
+    if 'patch_xy' not in df.columns:
+        raise ValueError('The dataframe does not have positions shown \
+                          under a patch_xy column for each patch.')
+    else:
+        pass
+
+    # check that the dataframe column patch_xy only contains tuples
+    for elem in df.patch_xy:
+        if not isinstance(elem, tuple):
+            raise TypeError('The position column does not contain only tuples.')
+        else:
+            pass
+
     # get name of file without extension
     slide_name = f.split('.')[0]
 
     # name all used directories
     slide_name_path = os.path.join(path, slide_name)
+
+    # check if the folder does not already exist
+    assert not os.path.isfile(slide_name_path), 'An existing \
+        folder with the slide name already exists.'
 
     # make all necessary directories
     os.mkdir(slide_name_path)
@@ -275,6 +312,30 @@ def find_max(arr, cutoff, greater):
     -----
     loc: the index (from zero) at which the maximum value occurs
     """
+
+    # check that greater is a boolean
+    if not isinstance(greater, bool) or (greater != True and greater != False):
+        raise TypeError('The greater argument must be True or False.')
+    else:
+        pass
+
+    # check that arr is a list or array
+    if not isinstance(arr, (collections.abc.Sequence, np.ndarray)):
+        raise TypeError('The input list must be an array or list.')
+    else:
+        pass
+
+    # check that the cutoff value is an integer or float
+    if not isinstance(cutoff, (int, float)):
+        raise TypeError('The cutoff value must be an integer or float value.')
+    else:
+        pass
+
+    # check that all list values are positive
+    if any(item < 0 for item in arr):
+        raise ValueError('The list can only contain non-negative values.')
+    else:
+        pass
 
     # a dummy number for the max that will never actually be the max
     maximum = 0
@@ -322,6 +383,34 @@ def find_min(arr, range_min, range_max):
     loc: the index (from zero) at which the minimum value occurs
     """
 
+    # check that the range_max value is an integer or float
+    if not isinstance(range_max, (int, float)):
+        raise TypeError('The range_max value must be an integer or float value.')
+    else:
+        pass
+
+    # check that the range_min value is an integer or float
+    if not isinstance(range_min, (int, float)):
+        raise TypeError('The range_min value must be an integer or float value.')
+    else:
+        pass
+
+    # check that arr is a list or array
+    if not isinstance(arr, (collections.abc.Sequence, np.ndarray)):
+        raise TypeError('The input list must be an array or list.')
+    else:
+        pass
+
+    # check that all list values are positive
+    if any(item < 0 for item in arr):
+        raise ValueError('The list can only contain non-negative values.')
+    else:
+        pass
+
+    # check that the range min and range max are less than or greater than
+    assert range_min < range_max, 'The range minimum is greater than the maximum.'
+    assert range_min != range_max, 'The range minimum and maximum are the same.'
+
     # a dummy number for the min that will never actually be the min
     minimum = 1000000
 
@@ -359,8 +448,8 @@ def compile_patch_data(slide, ypatch, xpatch, xdim, ydim):
     Parameters
     -----
     slide: the OpenSlide object of the entire slide
-    ypatch: the dimension of the patch in the y direction
-    xpatch: the dimension of the patch in the x direction
+    ypatch: the number of patches in the y direction
+    xpatch: the number of patches in the x direction
     xdim: the size of the patch in the x direction
     ydim: the size of the patch in the y direction
 
@@ -439,6 +528,27 @@ def sort_patches(df, lin_space=100, approx_between=200):
     df: an updated dataframe with a background column that indicates
         if a patch should be considered background or not
     """
+
+    # check that the input is a dataframe
+    if not isinstance(df, pd.DataFrame):
+        raise TypeError('The input dataframe is not a dataframe.')
+    else:
+        pass
+
+    # check that the dataframe contains a greys column
+    if 'greys' not in df.columns:
+        raise KeyError('The input dataframe does not contain a greys column.')
+    else:
+        pass
+
+    # check that the dataframe column greys only contains numeric values
+    for elem in df.greys:
+        if not isinstance(elem, (int, float)):
+            raise TypeError('The position column does not contain only \
+                            numeric values.')
+        else:
+            pass
+
 
     # calculate min, max, and range of grey values
     minimum_grey = int(df['greys'].min())
