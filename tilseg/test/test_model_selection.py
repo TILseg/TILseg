@@ -237,13 +237,13 @@ class TestModelSelection(unittest.TestCase):
         # Catch fire test
         result = tilseg.model_selection.opt_dbscan(
             self.cluster_data, eps=[0.1, 0.7, 1.4, 2.1, 3.0],
-            min_samples=[5,5,5,5,5])
+            min_samples=[5, 5, 5, 5, 5])
         # Known value
         self.assertAlmostEqual(result['eps'], 2.1)
         with self.assertRaises(ValueError):
             _ = tilseg.model_selection.opt_dbscan(
                 self.cluster_data, eps=[0.001, 0.02, 0.3],
-                min_samples=[5,5,5])
+                min_samples=[5, 5, 5])
 
     def test_opt_birch(self):
         """
@@ -277,6 +277,7 @@ class TestModelSelection(unittest.TestCase):
         self.assertEqual(len(result), 2)
         # Known output
         self.assertDictEqual(result, {"min_samples": 10, "max_eps": np.inf})
+
     def test_sample_patch(self):
         """
         Test sample_patch function
@@ -287,42 +288,46 @@ class TestModelSelection(unittest.TestCase):
         with self.assertRaises(ValueError):
             _ = tilseg.model_selection.sample_patch(
                 self.cluster_data, sample="hi")
+
     def test_generate_hyperparameter_combinations(self):
         """
         test generate_hyperparameter_combinations
         """
         combinations = \
-        tilseg.\
+            tilseg.\
             model_selection.\
-            generate_hyperparameter_combinations({"min_eps":[0.1,0.3],
-                                                  "n_clusters":[1,3,5]})
+            generate_hyperparameter_combinations({"min_eps": [0.1, 0.3],
+                                                  "n_clusters": [1, 3, 5]})
         expected_result_dict = {
             'min_eps': [0.1, 0.1, 0.1, 0.3, 0.3, 0.3],
             'n_clusters': [1, 3, 5, 1, 3, 5]}
         self.assertDictEqual(combinations, expected_result_dict)
         combinations2 = \
-        tilseg.\
-            model_selection.\
-            generate_hyperparameter_combinations({"a":[1], "b":[2]})
+            tilseg.model_selection.generate_hyperparameter_combinations(
+                {"a": [1], "b": [2]})
         expected_result_dict2 = {
-            "a":[1],
-            "b":[2]
+            "a": [1],
+            "b": [2]
         }
         self.assertDictEqual(combinations2, expected_result_dict2)
+
     def test_read_json_hyperparameters(self):
         """
         test read_json_hyperparameters
         """
-        hyperparameter_dict = tilseg.\
-            model_selection.\
-                read_json_hyperparameters(
-                    os.path.join(os.path.dirname(tilseg.__file__),"test","birch_hyperparameters.json"))
+        hyperparameter_dict =\
+            tilseg.model_selection.\
+            read_json_hyperparameters(
+                os.path.join(os.path.dirname(tilseg.__file__),
+                             "test",
+                             "birch_hyperparameters.json"))
         expected_results = {
-            "threshold":np.inf,
-            "branching_factor":10,
-            "n_clusters":None
+            "threshold": np.inf,
+            "branching_factor": 10,
+            "n_clusters": None
         }
-        self.assertDictEqual(hyperparameter_dict,expected_results)
+        self.assertDictEqual(hyperparameter_dict, expected_results)
+
 
 if __name__ == "__main__":
     unittest.main()
