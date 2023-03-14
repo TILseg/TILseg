@@ -29,7 +29,7 @@ This software is broken into three different modules that users can call: `prepr
 
 ### METHODOLOGY: ###
 - - - -
-![image](https://user-images.githubusercontent.com/121836393/225151711-c4770c32-a50c-4e57-987c-b19912495cca.png)
+![image](![image](https://user-images.githubusercontent.com/121836393/225160411-8b266f0a-7fbc-481d-a1cc-4c88981631ca.png))
 
 ### INSTALLATION: ###
 - - - -
