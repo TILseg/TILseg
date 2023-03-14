@@ -11,12 +11,13 @@ Last Updated: March 12th, 2023
 7. References
 8. Repo Structure
 
+
+Need to discuss if we need these:
 2. Preprocessing
 3. Model Selection
 4. Segmentation (Seg)
 5. Cluster Processing
-6. Example Use Case
-7. References
+
 
 ### 1. ABOUT: ###
 - - - -
@@ -130,5 +131,7 @@ docs/
 environment.yml
 LICENSE
 README.md
-tilseg_example.ipynb
+examples/
+|-tilseg_example.ipynb
+.gitignore
 ```
