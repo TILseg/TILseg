@@ -70,19 +70,31 @@ if needed
 ```
 TILseg
 -----
-Digital_segmentation_BRCA_547_Capstone/
-|-tilseg
-|-docs/
-| |-example/paper/
-| | |-_init_.py
-| |-Use_cases_and_design_components.docx
-| |-Use_cases_and_design_components.pdf
-| |-ChemE_547_Final_Poster.pdf
-| |-Pitch.docx
-|-tests/
-| |-_init_.py  
-|-environment.yml
-|-test_cluster.py
-|LICENSE
-|tilseg_example.ipynb
+tilseg/
+|-__init__.py
+|-preprocessing.py
+|-model_selection.py
+|-cluster_processing.py
+|-seg.py
+|-test/
+||-__init__.py
+||-test_preprocessing.py
+||-test_model_selection.py
+||-test_cluster_processing.py
+||-test_seg.py
+||-test_patches/
+|||-test_img.txt
+|||-test_patch.tif
+|||-test_superpatch.tif
+|||-patches/
+||||-test_small_patch.tif
+||||-test_small_patch_2.tif
+docs/
+|-COMPONENTS.md
+|-USECASES.md
+|-USERSTORIES.md
+environment.yml
+LICENSE
+README.md
+tilseg_example.ipynb
 ```
