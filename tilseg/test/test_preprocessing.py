@@ -12,7 +12,7 @@ pd.options.mode.chained_assignment = None
 
 from PIL import Image
 
-import tilseg.preprocessing
+import tilseg.preprocessing as preprocessing
 
 collections.Callable = collections.abc.Callable
 
