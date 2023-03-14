@@ -29,7 +29,7 @@ This software is broken into three different modules that users can call: `prepr
 
 ### METHODOLOGY: ###
 - - - -
-Ryan's flowchart
+[Flowchart](https://github.com/TILseg/TILseg/blob/main/tilseg/test/test_patches/patches/tilseg_workflow.png)
 
 ### INSTALLATION: ###
 - - - -
