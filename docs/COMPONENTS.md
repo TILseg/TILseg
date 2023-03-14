@@ -19,13 +19,19 @@
     - Output directory of superpatches
 <br/>
 
-4. KMeans Model Fitter to Superpatch
+4. Hyperparameter Optimizer
+    - Access saved superpatches
+    - Score cluster algorithm hyperparameters
+    - Output optimized hyperparameters
+<br/>
+
+5. KMeans Model Fitter to Superpatch
     - Access saved superpatches
     - Fit KMeans clustering model to superpatch
     - Output clustering model
 <br/>
 
-4. Clustering Scorer
+6. Clustering Scorer
     - Access saved model or fit a new model
     - Access saved patch of interest
     - Perform clustering to obtain cluster labels
@@ -33,7 +39,7 @@
     - Output scores
 <br/>
 
-5. TILs Segmentor
+7. TILs Segmentor
     - Access saved model or fit new model
     - Acess patches of interest from input directory
     - Perform clustering on all to obtain cluster labels
@@ -42,26 +48,26 @@
     - Save transformed images containing cluster and TILs information
 <br/>
 
-6. Immune Contour Generator
+8. Immune Contour Generator
     - Access labeled images with clusters
     - Generate contours based on pixel location and cluster
     - Filter contours based on size and roundness
     - Output filtered contours identified as immune cells
 <br/>
 
-7. Immune Cluster Identifier
+9. Immune Cluster Identifier
     - Access cell groups and relevant statistics
     - Identify immune cell cluster based on analysis of cell group statistics
     - Output immune cell groups from all clusters
 <br/>
 
-8. Cluster Image Generator
+10. Cluster Image Generator
     - Access labeled images with clusters assigned to pixels
     - Generate image files converting clusters to RGB values
     - Output overlaid images and cluster mask images
 <br/>
 
-9. Contour Data Generator
+11. Contour Data Generator
     - Access filtered contours identified as immune clusters
     - Use OpenCV to calculate feature values for each filtered contour
     - Optionally generate and output filtered contour overlaid image and mask
