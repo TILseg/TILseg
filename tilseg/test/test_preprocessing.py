@@ -3,6 +3,7 @@
 import collections
 import os
 import unittest
+import tilseg
 import openslide
 import tilseg.preprocessing as preprocessing
 
@@ -155,8 +156,7 @@ class TestPreProcessing(unittest.TestCase):
 
     def test_create_patches(self):
         """Test create_patches function."""
-        slide = openslide.OpenSlide('/home/braden/TILseg/TCGA-3C\
-                                    -AALI-01Z-00-DX1.svs')
+        slide = openslide.OpenSlide
 
         # edge test: ensure ypatch must be an int
         with self.assertRaises(TypeError):
@@ -349,6 +349,10 @@ class TestPreProcessing(unittest.TestCase):
 
     def test_count_images(self):
         """Test count_images function."""
+        # make svs dummy file path
+        svs_path = os.path.join(os.path.dirname(tilseg.__file__), 'test',
+                                'test_patches', 'dummy.svs')
+
         # smoke test: make sure the function runs
         preprocessing.count_images()
 
@@ -358,23 +362,24 @@ class TestPreProcessing(unittest.TestCase):
 
         # BKC: MAYBE DELETE!!!!!!!!!!!1
         # pattern test: this writer knows there one file in this dir
-        assert np.isclose(1, preprocessing.count_images('/home/bra\
-                                                        den/TILseg'))
+        assert np.isclose(1, preprocessing.count_images(svs_path))
 
         return
 
     def test_patches_per_img(self):
         """Test patches_per_img function"""
+        # make svs dummy file path
+        svs_path = os.path.join(os.path.dirname(tilseg.__file__), 'test',
+                                'test_patches', 'dummy.svs')
+
         # smoke test: making sure the function runs
         preprocessing.patches_per_img(6)
 
         # pattern test: test writer knows there are no images in cwd
         assert np.isclose(0, preprocessing.patches_per_img(6))
 
-        # pattern test: test writer knows there one image in this path
-        assert np.isclose(6, preprocessing.patches_per_img(6,
-                                                           '/home/bra\
-                                                            den/TILseg'))
+        # # pattern test: test writer knows there one image in this path
+        assert np.isclose(6, preprocessing.patches_per_img(6, svs_path))
 
         # edge test: ensure string value not accepted for num_patches
         with self.assertRaises(TypeError):
@@ -386,53 +391,67 @@ class TestPreProcessing(unittest.TestCase):
 
     def test_get_superpatch_patches(self):
         """Test get_superpatch_patches"""
+        # make svs dummy file path
+        svs_path = os.path.join(os.path.dirname(tilseg.__file__), 'test',
+                                'test_patches', 'dummy.svs')
+
+        # make csv dummy file path
+        csv_path = os.path.join(os.path.dirname(tilseg.__file__), 'test',
+                                'test_patches', 'dummy.csv')
+
         # edge test: make sure nondataframe is not accepted
         dummy_img = np.random.rand(100, 100)
         with self.assertRaises(TypeError):
             preprocessing.get_superpatch_patches(dummy_img)
 
         # edge test: make sure nonexistent path is caught
-        test_df = pd.read_csv('/home/braden/Project/dummy.csv')
+        test_df = pd.read_csv(csv_path)
         with self.assertRaises(ValueError):
             preprocessing.get_superpatch_patches(test_df,
-                                                 path='/home/braden/poo')
+                                                 path='.')
 
         # edge test: make sure non int patches is not accepted
         with self.assertRaises(TypeError):
             df1 = pd.DataFrame(data=dummy_img)
             preprocessing.get_superpatch_patches(df1, '6')
 
-        # smoke test: make sure function runs
+        # # smoke test: make sure function runs
         preprocessing.get_superpatch_patches(test_df,
-                                             path='/home/braden/TILseg')
+                                             path=svs_path)
 
         # edge test: make sure dataframe contains patches column
         test_df1 = test_df.drop(['patches'], axis=1)
         with self.assertRaises(KeyError):
             preprocessing.get_superpatch_patches(test_df1,
-                                                 path='/home/braden/TILseg')
+                                                 path=svs_path)
 
         # edge test: make sure dataframe contains id columns
         test_df2 = test_df.drop(['id'], axis=1)
         with self.assertRaises(KeyError):
             preprocessing.get_superpatch_patches(test_df2,
-                                                 path='/home/braden/TILseg')
+                                                 path=svs_path)
 
         # pattern test: know six patches should be output
         expected = len(preprocessing.get_superpatch_patches(test_df,
                                                             patches=5,
-                                                            path='/home/br\
-                                                                aden/TILseg'))
+                                                            path=svs_path))
         assert np.isclose(5, expected)
 
         return
 
     def test_superpatcher(self):
         """Test superpatcher function"""
-        test_df = pd.read_csv('/home/braden/Project/dummy.csv')
+        # make svs dummy file path
+        svs_path = os.path.join(os.path.dirname(tilseg.__file__), 'test',
+                                'test_patches', 'dummy.svs')
+
+        # make csv dummy file path
+        csv_path = os.path.join(os.path.dirname(tilseg.__file__), 'test',
+                                'test_patches', 'dummy.csv')
+
+        test_df = pd.read_csv(csv_path)
         expected = preprocessing.get_superpatch_patches(test_df, patches=5,
-                                                        path='/home/br\
-                                                        aden/TILseg')
+                                                        path=svs_path)
 
         # edge test: ensure nonint sp_width not accepted
         with self.assertRaises(TypeError):
