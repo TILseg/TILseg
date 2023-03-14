@@ -7,19 +7,23 @@ machine learning model or for superpatch creation in
 a consequtive module.
 """
 
-import skimage
-from skimage import io
-
 import collections
 import math
-import openslide
 import os
-import scipy
 import uuid
+import openslide
+import scipy
+import skimage
+
+from skimage import io
 
 import numpy as np
 import pandas as pd
 pd.options.mode.chained_assignment = None
+
+# pylint: disable=no-else-raise,unused-variable
+# noqa: E722,F841
+
 
 def open_slide(slidepath):
     """
@@ -36,12 +40,13 @@ def open_slide(slidepath):
     slide_x: the x dimension of the slide
     slide_y: the y dimension of the slide
     """
+
     # check datatype of filepath
     if isinstance(slidepath, str):
         pass
     else:
         raise TypeError('slidepath must be a string')
-    
+
     # acc file types
     file_type = ['.svs', '.tif', '.ndpi', '.vms', '.vmu'
                  '.scn', '.mrxs', '.tiff', '.svslide', '.bif',]
@@ -53,13 +58,15 @@ def open_slide(slidepath):
     if file_ext in file_type:
         pass
     else:
-        raise TypeError('File provided in path not supported. Must be .svs file')
-    
+        raise TypeError('File provided in path not supported. \
+                        Must be .svs file')
+
     # check the file path exists
     if os.path.exists(slidepath):
         pass
     else:
-        raise ValueError('System cannot find the specified path to slide. Please ensure os.stat() can run on your path.')
+        raise ValueError('System cannot find the specified path to slide. \
+                         Please ensure os.stat() can run on your path.')
 
     # get the slide object
     slide = openslide.OpenSlide(slidepath)
@@ -93,35 +100,34 @@ def get_tile_size(maximum, size, cutoff=4):
         pass
     else:
         raise TypeError('maximum tile size must be an integer')
-    
+
     # check size of image datatype
     if isinstance(size, int):
         pass
     else:
         raise TypeError('tile size must be an integer')
-        
+
     # check cutoff datatype
     if isinstance(cutoff, int):
         pass
     else:
         raise TypeError('cutoff must be an integer')
-    
+
     # check that max is not bigger than the slide
     if maximum >= size:
         raise ValueError('maximum patch size must be smaller than slide size')
     else:
         pass
-    
 
     # iterate through possible sizes of tiles starting
     # with the largest possible tile size
     for dimension in reversed(range(0, (maximum+1))):
-        
+
         # calculate the remainder (number of pixels missing)
         remainder = size % dimension
-        
+
         # check if the remainder is less than cutoff
-    
+
         if remainder <= cutoff:
 
             # calculate the number of patches made
@@ -129,7 +135,7 @@ def get_tile_size(maximum, size, cutoff=4):
 
             # return requested values
             return dimension, slices, remainder
-      
+
 
 def percent_of_pixels_lost(lost_x, patch_x, lost_y, patch_y, x_size, y_size):
     """
@@ -149,56 +155,60 @@ def percent_of_pixels_lost(lost_x, patch_x, lost_y, patch_y, x_size, y_size):
     -----
     percent: the percent of pixels deleted, rounded to two places
     """
+
     # check xpatch datatype
     if isinstance(patch_x, int):
         pass
     else:
         raise TypeError('patch_x must be an integer')
-    
+
     # check xloss datatype
     if isinstance(lost_x, int):
         pass
     else:
         raise TypeError('lost_x must be an integer')
-    
+
     # check xslide datatype
     if isinstance(x_size, int):
         pass
     else:
         raise TypeError('x_size must be an integer')
-    
+
     # check ypatch datatype
     if isinstance(patch_y, int):
         pass
     else:
         raise TypeError('patch_y must be an integer')
-    
+
     # check yloss datatype
     if isinstance(lost_y, int):
         pass
     else:
         raise TypeError('lost_y must be an integer')
-    
+
     # check yslide datatype
     if isinstance(y_size, int):
         pass
     else:
         raise TypeError('y_size must be an integer')
-    
+
     # check that loss and patch is not bigger than image (x-dir)
     if (lost_x + patch_x) > x_size:
-        raise ValueError('(x-dir) patch and loss cannot be bigger than the image')
+        raise ValueError('(x-dir) patch and loss cannot be \
+                         bigger than the image')
     else:
         pass
 
     # check that loss and patch is not bigger than image (x-dir)
     if (lost_y + patch_y) > y_size:
-        raise ValueError('(y-dir) patch and loss cannot be bigger than the image')
+        raise ValueError('(y-dir) patch and loss cannot \
+                         be bigger than the image')
     else:
         pass
 
     # calculate the percent
-    percent = (lost_x * (patch_x-1) + lost_y * (patch_y -1) + lost_x * lost_y) / (x_size * y_size) * 100
+    percent = (lost_x * (patch_x - 1) + lost_y * (patch_y - 1)
+               + lost_x * lost_y) / (x_size * y_size) * 100
 
     return percent
 
@@ -225,17 +235,17 @@ def save_image(path, name, image_array):
         pass
     else:
         raise TypeError('name must be a string')
-    
+
     # check datatype of image_array
     if isinstance(image_array, (np.ndarray, np.generic)):
         pass
     else:
         raise TypeError('image array must be an array')
-    
+
     # make sure it has more than one dimension
     try:
-        indx = image_array.shape[2]
-    except:
+        indx = image_array.shape[2]  # noqa: F841
+    except:  # noqa: E722
         raise IndexError('image array must be an NxMx3 array')
 
     # check shape of np_array
@@ -243,8 +253,8 @@ def save_image(path, name, image_array):
         pass
     else:
         raise IndexError('image must NxMx3 array')
-    
-    # check to make sure there is a file extension in name 
+
+    # check to make sure there is a file extension in name
     ext = os.path.splitext(name)[-1].lower()
 
     if len(ext) == 0:
@@ -256,7 +266,8 @@ def save_image(path, name, image_array):
     if os.path.exists(path):
         pass
     else:
-        raise ValueError('System cannot find the specified path. Please ensure os.stat() can run on your path.')
+        raise ValueError('System cannot find the specified path. \
+                         Please ensure os.stat() can run on your path.')
 
     # create the entire saving directory
     save_as = os.path.join(path, name)
@@ -297,38 +308,44 @@ def create_patches(slide, xpatch, ypatch, xdim, ydim):
     if isinstance(ypatch, int):
         pass
     else:
-        raise TypeError('ypatch (number of patches in y-direction) must be an int')
-    
+        raise TypeError('ypatch (number of patches in y-direction)\
+                        must be an int')
+
     # check datatype of xpatch
     if isinstance(xpatch, int):
         pass
     else:
-        raise TypeError('xpatch (number of patches in x-direction) must be an int')
-    
+        raise TypeError('xpatch (number of patches in x-direction) \
+                        must be an int')
+
     # check datatype of xdim
     if isinstance(xdim, int):
         pass
     else:
-        raise TypeError('xdim (size of patch in the x-direction) must be an int')
-    
+        raise TypeError('xdim (size of patch in the x-direction) \
+                        must be an int')
+
     # check datatype of ydim
     if isinstance(ydim, int):
         pass
     else:
-        raise TypeError('ydim (size of patch in the y-direction) must be an int')
-    
+        raise TypeError('ydim (size of patch in the y-direction) \
+                        must be an int')
+
     # make sure slide is big enough wrt patch size
     xslide, yslide = slide.dimensions
 
     # checking x patches size
     if xpatch*xdim > xslide:
-        raise IndexError('size of total xpatches is bigger than provided (out of range) slide')
+        raise IndexError('size of total xpatches is bigger than provided \
+                         (out of range) slide')
     else:
         pass
 
     # checking y patches size
     if ypatch*ydim > yslide:
-        raise IndexError('size of total ypatches is bigger than provided (out of range) slide')
+        raise IndexError('size of total ypatches is bigger than provided \
+                         (out of range) slide')
     else:
         pass
 
@@ -351,10 +368,11 @@ def create_patches(slide, xpatch, ypatch, xdim, ydim):
             start_y = (ypatches - 1) * ydim
 
             # convert patch into np array
-            npimage = np.asarray(slide.read_region((start_x, start_y), 0, (xdim, ydim)))
+            npimage = np.asarray(slide.read_region((start_x, start_y), 0,
+                                                   (xdim, ydim)))
 
             # reformat array so it can be read properly
-            np_patch = np.array(npimage)[:,:,:3]
+            np_patch = np.array(npimage)[:, :, :3]
 
             # append new patch to the master list of patches
             np_patches.append(np_patch)
@@ -372,24 +390,25 @@ def get_average_color(img):
 
     Parameters
     -----
-    img: a numpy array containing all information about the RGB colors in a patch
+    img: a numpy array containing all information about the
+        RGB colors in a patch
 
     Returns
     -----
     average: a numpy array containing the RGB code for the average color
         of the entire patch
     """
- 
+
     # check datatype of image_array
     if isinstance(img, (np.ndarray, np.generic)):
         pass
     else:
         raise TypeError('image array must be an np array')
-    
+
     # make sure it has more than one dimension
     try:
-        indx = img.shape[2]
-    except:
+        indx = img.shape[2]  # noqa: F841
+    except:  # noqa: E722
         raise IndexError('image array must be an NxMx3 array')
 
     # check shape of np_array
@@ -419,23 +438,24 @@ def get_grey(rgb):
     """
 
     # check datatype of input
-    if isinstance(rgb,(list,pd.core.series.Series,np.ndarray)):
+    if isinstance(rgb, (list, pd.core.series.Series, np.ndarray)):
         pass
     else:
-        raise TypeError('rgb argument must be a list, pandas series, or np array')
-    
+        raise TypeError('rgb argument must be a list, \
+                        pandas series, or np array')
+
     # make sure length can be accessed
     try:
-        rgb_len = len(rgb)
-    except:
+        rgb_len = len(rgb)  # noqa: F841
+    except:  # noqa: E722
         raise TypeError('cannot get length of rgb')
-    
+
     # make sure it is the correct length
     if len(rgb) == 3:
         pass
     else:
         raise IndexError('input not correct size; must have three entries')
-    
+
     grey = (rgb[0] + rgb[1] + rgb[2]) / 3
 
     return grey
@@ -465,7 +485,8 @@ def save_all_images(df, path, f):
 
     # check if the file name has an extension
     if '.' not in f:
-        raise TypeError('The file name provided for the image has no extension.')
+        raise TypeError('The file name provided for the image \
+                        has no extension.')
     else:
         pass
 
@@ -485,7 +506,8 @@ def save_all_images(df, path, f):
     # check that the dataframe column patch_xy only contains tuples
     for elem in df.patch_xy:
         if not isinstance(elem, tuple):
-            raise TypeError('The position column does not contain only tuples.')
+            raise TypeError('The position column does \
+                            not contain only tuples.')
         else:
             pass
 
@@ -505,8 +527,10 @@ def save_all_images(df, path, f):
     # iterate through all rows of the dataframe
     for index, row in df.iterrows():
 
-        # name the file that will be saved based on its index on the whole slide image
-        name = 'position_'+str(row['patch_xy'][0])+'_'+str(row['patch_xy'][1])+'tissue.tif'
+        # name the file that will be saved based on
+        # its index on the whole slide image
+        name = 'position_' + str(row['patch_xy'][0]) + '_' + \
+            str(row['patch_xy'][1]) + 'tissue.tif'
 
         # save the image
         save_image(slide_name_path, name, row['patches'])
@@ -532,7 +556,7 @@ def find_max(arr, cutoff, greater):
     """
 
     # check that greater is a boolean
-    if not isinstance(greater, bool) or (greater != True and greater != False):
+    if not isinstance(greater, bool) or (greater and not greater):
         raise TypeError('The greater argument must be True or False.')
     else:
         pass
@@ -571,10 +595,12 @@ def find_max(arr, cutoff, greater):
         if not greater and index < cutoff:
             continue
 
-        # check if the number in the appropriate range is greater than the maximum
+        # check if the number in the appropriate range is
+        # greater than the maximum
         if number > maximum:
 
-            # if it is, reassign the maximum value at this new value and record the index
+            # if it is, reassign the maximum value at this new
+            # value and record the index
             maximum = number
             loca = index
 
@@ -603,13 +629,15 @@ def find_min(arr, range_min, range_max):
 
     # check that the range_max value is an integer or float
     if not isinstance(range_max, (int, float)):
-        raise TypeError('The range_max value must be an integer or float value.')
+        raise TypeError('The range_max value must be an \
+                        integer or float value.')
     else:
         pass
 
     # check that the range_min value is an integer or float
     if not isinstance(range_min, (int, float)):
-        raise TypeError('The range_min value must be an integer or float value.')
+        raise TypeError('The range_min value must be an \
+                        integer or float value.')
     else:
         pass
 
@@ -626,8 +654,10 @@ def find_min(arr, range_min, range_max):
         pass
 
     # check that the range min and range max are less than or greater than
-    assert range_min < range_max, 'The range minimum is greater than the maximum.'
-    assert range_min != range_max, 'The range minimum and maximum are the same.'
+    assert range_min < range_max, 'The range minimum is \
+        greater than the maximum.'
+    assert range_min != range_max, 'The range minimum and \
+        maximum are the same.'
 
     # a dummy number for the min that will never actually be the min
     minimum = 1000000
@@ -647,12 +677,13 @@ def find_min(arr, range_min, range_max):
                 minimum = number
                 loca = index
 
-            # if it is in the correct range but not less than the 
+            # if it is in the correct range but not less than the
             # current minimum then continue through the loop and do nothing
             else:
                 continue
 
-        # if the index is out of the desired range, continue and do nothing with that index
+        # if the index is out of the desired range,
+        # continue and do nothing with that index
         else:
             continue
 
@@ -661,7 +692,8 @@ def find_min(arr, range_min, range_max):
 
 def compile_patch_data(slide, ypatch, xpatch, xdim, ydim):
     """
-    A function that compiles all relevant data for all patches into a dataframe.
+    A function that compiles all relevant data for
+    all patches into a dataframe.
 
     Parameters
     -----
@@ -689,10 +721,14 @@ def compile_patch_data(slide, ypatch, xpatch, xdim, ydim):
     patchdf['patch_xy'] = index_list
 
     # for each patch, calculate the average RGB value of the entire patch
-    patchdf['RGB_avg'] = patchdf.apply(lambda row: get_average_color(row['patches']), axis=1)
+    patchdf['RGB_avg'] = patchdf.apply(lambda row:
+                                       get_average_color(row['patches']),
+                                       axis=1)
 
-    # add another column that converts the average RGB color to a greyscale color
-    patchdf['greys'] = patchdf.apply(lambda row: get_grey(row['RGB_avg']), axis=1)
+    # add another column that converts the
+    # average RGB color to a greyscale color
+    patchdf['greys'] = patchdf.apply(lambda row:
+                                     get_grey(row['RGB_avg']), axis=1)
 
     return patchdf
 
@@ -708,7 +744,8 @@ def is_it_background(cutoff, actual):
 
     Returns
     -----
-    background: a boolean that is True if the patch should be considered background
+    background: a boolean that is True if the patch
+        should be considered background
     """
 
     # test if the actual value is greater than the cutoff
@@ -767,7 +804,6 @@ def sort_patches(df, lin_space=100, approx_between=200):
         else:
             pass
 
-
     # calculate min, max, and range of grey values
     minimum_grey = int(df['greys'].min())
     maximum_grey = int(df['greys'].max())
@@ -776,18 +812,23 @@ def sort_patches(df, lin_space=100, approx_between=200):
     # put all grey values into a list
     list_of_greys = df['greys'].values.tolist()
 
-    # create a linspace for all grey values for which the PDF will be calculated
-    grey_space = np.linspace(minimum_grey, maximum_grey, range_grey * lin_space)
+    # create a linspace for all grey values for
+    # which the PDF will be calculated
+    grey_space = np.linspace(minimum_grey, maximum_grey,
+                             range_grey * lin_space)
 
     # create a KDE distribution from the list of greys
     kde_distr = scipy.stats.gaussian_kde(list_of_greys)
 
-    # use the KDE distribution to create a PDF of the grey values along the grey space
+    # use the KDE distribution to create a PDF of
+    # the grey values along the grey space
     kde_pdf = kde_distr(grey_space)
 
     # find all local maxima and minima
-    color_max = find_max(kde_pdf, (approx_between - minimum_grey) * lin_space, True) 
-    background_max = find_max(kde_pdf, (maximum_grey - approx_between) * lin_space, False)
+    color_max = find_max(kde_pdf, (approx_between - minimum_grey)
+                         * lin_space, True)
+    background_max = find_max(kde_pdf, (maximum_grey - approx_between)
+                              * lin_space, False)
     minimum = find_min(kde_pdf, color_max, background_max)
 
     # complete correct reindexing
@@ -799,12 +840,15 @@ def sort_patches(df, lin_space=100, approx_between=200):
     cutoff_value = (background_max + minimum) / 2
 
     # add column to dataframe that classifies each image as background or not
-    df['background'] = df.apply(lambda row: is_it_background(cutoff_value, row['greys']), axis=1)
+    df['background'] = df.apply(lambda row: is_it_background(cutoff_value,
+                                                             row['greys']),
+                                axis=1)
 
     return df
 
 
-def main_preprocessing(complete_path, training=True, save_im=True, max_tile_x=4000, max_tile_y=3000):
+def main_preprocessing(complete_path, training=True, save_im=True,
+                       max_tile_x=4000, max_tile_y=3000):
     """
     The primary function to perform all preprocessing
     of the data, creating patches and returning a final
@@ -813,16 +857,17 @@ def main_preprocessing(complete_path, training=True, save_im=True, max_tile_x=40
     Parameters
     -----
     complete_path: the full path to the file containing all svs
-        files that will be used for training the model or a single
-        svs file to get an output value
+                   files that will be used for training the model or a single
+                   svs file to get an output value
     training: a boolean that indicates if this preprocessing is
-        for training data or if it to only be used for the existing model
-    save_im: a boolean that indicates if tissue images should be saved 
-        (beware this is a lot of data, at least 10GB per slide)
+              for training data or if it to only be used for the
+              existing model
+    save_im: a boolean that indicates if tissue images should be saved
+             (beware this is a lot of data, at least 10GB per slide)
     max_tile_x: the maximum x dimension size, in pixels,
-        of a slide patch (default is 4000)
+                of a slide patch (default is 4000)
     max_tile_y: the maximum y dimension size, in pixels,
-        of a slide patch (default is 3000)
+                of a slide patch (default is 3000)
 
     Returns
     -----
@@ -847,13 +892,13 @@ def main_preprocessing(complete_path, training=True, save_im=True, max_tile_x=40
                 # calculate dimensions and losses
                 ydim, ypatch, yloss = get_tile_size(max_tile_y, slide_y)
                 xdim, xpatch, xloss = get_tile_size(max_tile_x, slide_x)
-                loss_percentage = percent_of_pixels_lost(xloss, xpatch, 
-                                                        yloss, ypatch, 
-                                                        slide_x, slide_y)
-                
+                loss_percentage = percent_of_pixels_lost(xloss, xpatch,
+                                                         yloss, ypatch,
+                                                         slide_x, slide_y)
+
                 # get the dataframe for all patches in the slide
-                dataframe_patches = compile_patch_data(slide_file, ypatch, 
-                                                    xpatch, xdim, ydim)
+                dataframe_patches = compile_patch_data(slide_file, ypatch,
+                                                       xpatch, xdim, ydim)
 
                 # determine if patches are background or not
                 sorted_df = sort_patches(dataframe_patches)
@@ -862,7 +907,8 @@ def main_preprocessing(complete_path, training=True, save_im=True, max_tile_x=40
                 sorted_df = sorted_df.loc[~sorted_df.background, :]
 
                 # save all images to correct directory if desired
-                if save_im: save_all_images(sorted_df, complete_path, file)
+                if save_im:
+                    save_all_images(sorted_df, complete_path, file)
 
                 # create a unique id for this slide image
                 sorted_df['UUID'] = uuid.uuid4()
@@ -871,7 +917,8 @@ def main_preprocessing(complete_path, training=True, save_im=True, max_tile_x=40
                 all_df = pd.concat([all_df, sorted_df], ignore_index=True)
 
                 # print out the percent of pixels lost
-                print(f'Percent of pixels lost in pre-processing for {file}: {loss_percentage} %')
+                print(f'Percent of pixels lost in pre-processing for {file}: \
+                      {loss_percentage} %')
 
             # if the file is not a slide image then do nothing and continue
             else:
@@ -882,24 +929,24 @@ def main_preprocessing(complete_path, training=True, save_im=True, max_tile_x=40
 
         # remove UUID column across the entire dataframe
         all_df = all_df.drop(columns='UUID')
-        
+
         return all_df
 
     else:
-        
+
         # open the slide file
         slide_file, slide_x, slide_y = open_slide(complete_path)
 
         # calculate dimensions and losses
         ydim, ypatch, yloss = get_tile_size(max_tile_y, slide_y)
         xdim, xpatch, xloss = get_tile_size(max_tile_x, slide_x)
-        loss_percentage = percent_of_pixels_lost(xloss, xpatch, 
-                                                yloss, ypatch, 
-                                                slide_x, slide_y)
-        
+        loss_percentage = percent_of_pixels_lost(xloss, xpatch,
+                                                 yloss, ypatch,
+                                                 slide_x, slide_y)
+
         # get the dataframe for all patches in the slide
-        dataframe_patches = compile_patch_data(slide_file, ypatch, 
-                                            xpatch, xdim, ydim)
+        dataframe_patches = compile_patch_data(slide_file, ypatch,
+                                               xpatch, xdim, ydim)
 
         # determine if patches are background or not
         sorted_df = sort_patches(dataframe_patches)
@@ -908,7 +955,8 @@ def main_preprocessing(complete_path, training=True, save_im=True, max_tile_x=40
         sorted_df = sorted_df.loc[~sorted_df.background, :]
 
         # save all images to correct directory if desired
-        if save_im: save_all_images(sorted_df, complete_path, file)
+        if save_im:
+            save_all_images(sorted_df, complete_path, file)
 
         # print out the percent of pixels lost
         print(f'Percent of Pixels Lost in Pre-Processing: {loss_percentage} %')
@@ -919,9 +967,9 @@ def main_preprocessing(complete_path, training=True, save_im=True, max_tile_x=40
 def count_images(path=os.getcwd()):
     """
     Count images finds the number of whole slide images available
-    in your current working directory. 
+    in your current working directory.
 
-    Parameters
+    Parameters:
     ------------
     None
 
@@ -934,15 +982,16 @@ def count_images(path=os.getcwd()):
         pass
     else:
         raise TypeError('path must be a string')
-    
+
     # check the directory/path exists
     if os.path.exists(path):
         pass
     else:
-        raise ValueError('System cannot find the specified path. Please ensure os.stat() can run on your path.')
-    
+        raise ValueError('System cannot find the specified path.\
+                          Please ensure os.stat() can run on your path.')
+
     file_list = os.listdir(path)
-    
+
     # count the number of svs images in cwd
     img_count = 0
     for file in file_list:
@@ -950,7 +999,7 @@ def count_images(path=os.getcwd()):
             img_count += 1
         else:
             continue
-        
+
     return img_count
 
 
@@ -976,18 +1025,19 @@ def patches_per_img(num_patches, path=os.getcwd()):
         pass
     else:
         raise TypeError('num_patches must be an int')
-    
+
     # check path datatypes
     if isinstance(path, str):
         pass
     else:
         raise TypeError('path must be a string')
-    
+
     # check the file path exists
     if os.path.exists(path):
         pass
     else:
-        raise ValueError('System cannot find the specified path. Please ensure os.stat() can run on your path.')
+        raise ValueError('System cannot find the specified path.\
+                          Please ensure os.stat() can run on your path.')
 
     # find the number of images in cwd
     img_count = count_images(path)
@@ -997,128 +1047,130 @@ def patches_per_img(num_patches, path=os.getcwd()):
         patch_img = 0
     else:
         # find the patches per image
-        patch_img  = num_patches/img_count
+        patch_img = num_patches / img_count
 
     # return patches per image
     return patch_img
 
 
 def get_superpatch_patches(patches_df, patches=6, path=os.getcwd()):
-   """
-   This function finds the patches to comprise the superpatch.
-   The patches are selected based off of distribution of 
-   average color and the source image. This way, the superpatch
-   is not entirely made of patches from one image (unless there is
-   only one image available).
+    """
+    This function finds the patches to comprise the superpatch.
+    The patches are selected based off of distribution of
+    average color and the source image. This way, the superpatch
+    is not entirely made of patches from one image (unless there is
+    only one image available).
 
-   Parameters:
-   -------------
-   df (pandas df): MUST be dataframe from main_preprocessing output
+    Parameters:
+    -------------
+    df (pandas df): MUST be dataframe from main_preprocessing output
 
-   Returns:
-   -------------
-   patches_list: list of the patches to be included in superpatch
-                 individual patches are stored as np arrays
-   """
+    Returns:
+    -------------
+    patches_list: list of the patches to be included in superpatch
+                    individual patches are stored as np arrays
+    """
 
-   # check datatype of patches_df
-   if isinstance(patches_df, pd.DataFrame):
-       pass
-   else:
-       raise TypeError('patches_df must be a pandas dataframe')
-   
-   # check datatype of patches
-   if isinstance(patches, int):
-       pass
-   else:
-       raise TypeError('patches must be an int')
-   
-   # check path datatype
-   if isinstance(path, str):
+    # check datatype of patches_df
+    if isinstance(patches_df, pd.DataFrame):
         pass
-   else:
+    else:
+        raise TypeError('patches_df must be a pandas dataframe')
+
+    # check datatype of patches
+    if isinstance(patches, int):
+        pass
+    else:
+        raise TypeError('patches must be an int')
+
+    # check path datatype
+    if isinstance(path, str):
+        pass
+    else:
         raise TypeError('path must be a string')
-    
-   # check the file path exists
-   if os.path.exists(path):
+
+    # check the file path exists
+    if os.path.exists(path):
         pass
-   else:
-        raise ValueError('System cannot find the specified path. Please ensure os.stat() can run on your path.')
+    else:
+        raise ValueError('System cannot find the specified path. \
+                         Please ensure os.stat() can run on your path.')
 
-   # remove all unnecessary columns
-   try:
-       df = patches_df.drop(['background', 'RGB_avg'], axis=1)
-   except: 
-       raise KeyError('patches_df must contain background and RGB_avg column')
-   
-   # make sure necessary columns exist
-   try:
-       col1 = df['patches']
-       col2 = df['id']
-   except:
-       raise KeyError('patches_df must have patches and id columns')
+    # remove all unnecessary columns
+    try:
+        df = patches_df.drop(['background', 'RGB_avg'], axis=1)
+    except:  # noqa: E722
+        raise KeyError('patches_df must contain background and RGB_avg column')
 
-   # make sure there are enough patches
-   if len(df.index) >= patches:
-      pass
-   else:
-    raise IndexError('Fewer patches available in dataframe than requested for superpatch')
-   
-   # force number of patches to be even
-   if patches % 2 == 0:
-      pass
-   else:
-      ValueError('Number of patches must be an even integer')
-   
-   # patches list
-   patches_list = []
+    # make sure necessary columns exist
+    try:
+        col1 = df['patches']  # noqa: F841
+        col2 = df['id']  # noqa: F841
+    except:  # noqa: E722
+        raise KeyError('patches_df must have patches and id columns')
 
-   # calculate patches per image
-   # need to change this
-   patch_per = math.floor(patches_per_img(patches, path))
-   
-   # bin the average values for each patch
-   df['grey_binned'] = pd.cut(df['greys'], bins=(patches+1))
+    # make sure there are enough patches
+    if len(df.index) >= patches:
+        pass
+    else:
+        raise IndexError('Fewer patches available in dataframe than \
+                        requested for superpatch')
 
-   # find the bins and the img_labels
-   bins = df['grey_binned'].unique()
-   img_labels = df['id'].unique()
+    # force number of patches to be even
+    if patches % 2 == 0:
+        pass
+    else:
+        ValueError('Number of patches must be an even integer')
 
-   for img in img_labels:
+    # patches list
+    patches_list = []
 
-      # get only the patches of the image
-      img_df = df.loc[df['id'] == img]
+    # calculate patches per image
+    # need to change this
+    patch_per = math.floor(patches_per_img(patches, path))
 
-      # start counting the number of patches
-      # from this image
-      patch_count = 0
+    # bin the average values for each patch
+    df['grey_binned'] = pd.cut(df['greys'], bins=(patches+1))
 
-      for bin_i in bins:
+    # find the bins and the img_labels
+    bins = df['grey_binned'].unique()
+    img_labels = df['id'].unique()
 
-         # get the dataframe that contains the
-         # patches with the average color of interest
-         bin_df = img_df.loc[img_df['grey_binned'] == bin_i]
+    for img in img_labels:
 
-         # pick a patch from this set of relevant patches
-         patch_df = bin_df.sample()
-         actual_patch = patch_df['patches']
+        # get only the patches of the image
+        img_df = df.loc[df['id'] == img]
 
-         # add patch to list of patches to access later
-         patches_list.append(actual_patch)
+        # start counting the number of patches
+        # from this image
+        patch_count = 0
 
-         # count the patches used for this image
-         patch_count += 1
-         
-         # get only the number of patches per image
-         if patch_count >= patch_per:
-            # leave the for loop if you have the number of patches
-            break
-         else:
-            # keep looping if you need more patches from this image
-            continue
-        
-   # return the list of patches that make up the superpatch
-   return patches_list
+        for bin_i in bins:
+
+            # get the dataframe that contains the
+            # patches with the average color of interest
+            bin_df = img_df.loc[img_df['grey_binned'] == bin_i]
+
+            # pick a patch from this set of relevant patches
+            patch_df = bin_df.sample()
+            actual_patch = patch_df['patches']
+
+            # add patch to list of patches to access later
+            patches_list.append(actual_patch)
+
+            # count the patches used for this image
+            patch_count += 1
+
+            # get only the number of patches per image
+            if patch_count >= patch_per:
+                # leave the for loop if you have the number of patches
+                break
+            else:
+                # keep looping if you need more patches from this image
+                continue
+
+    # return the list of patches that make up the superpatch
+    return patches_list
 
 
 def superpatcher(patches_list, sp_width=3):
@@ -1144,11 +1196,12 @@ def superpatcher(patches_list, sp_width=3):
         raise TypeError('sp_width must be an int')
 
     # check datatype of input
-    if isinstance(patches_list,(list,pd.core.series.Series,np.ndarray)):
+    if isinstance(patches_list, (list, pd.core.series.Series, np.ndarray)):
         pass
     else:
-        raise TypeError('patches_list must be a list, pandas series, or np array')
-    
+        raise TypeError('patches_list must be a list, pandas series, \
+                        or np array')
+
     num_patches = len(patches_list)
     sp_height_calc = math.ceil(num_patches/sp_width)
     sp_width_calc = int(num_patches/sp_height_calc)
@@ -1161,11 +1214,11 @@ def superpatcher(patches_list, sp_width=3):
         pass
     else:
         raise TypeError('patches_list must contain np array of patch')
-    
+
     patch_index = 2
 
     for j in range(0, sp_height_calc):
-        
+
         # build the row (build the row)
         for i in range(1, sp_width_calc):
 
@@ -1177,15 +1230,17 @@ def superpatcher(patches_list, sp_width=3):
                 pass
             else:
                 raise ValueError('patches_list must contain np array of patch')
-            
+
             patch_index += 1
-            
+
             # update the overall patch to be these patched together
             try:
-                patch_array_0 = np.concatenate((patch_array_0, patch_array_i), axis=1)
-            except:
-                raise TypeError('patches list does not contain correct datatypes')
-            
+                patch_array_0 = np.concatenate((patch_array_0, patch_array_i),
+                                               axis=1)
+            except:  # noqa: E722
+                raise TypeError('patches list does not \
+                                contain correct datatypes')
+
             # save the finished row
             if i == (sp_width_calc-1):
                 patch_row_0 = patch_array_0
@@ -1198,17 +1253,25 @@ def superpatcher(patches_list, sp_width=3):
         # else add the row to the other rows
         else:
             patch_row_1 = np.concatenate((patch_row_0, patch_row_1), axis=0)
-        
+
     return patch_row_1
 
 
-def preprocess(path, patches=6, training=True, save_im=True, max_tile_x=4000, max_tile_y=3000):
+def preprocess(path, patches=6, training=True, save_im=True,
+               max_tile_x=4000, max_tile_y=3000):
+    """
+    The preprocess function that is called when running the
+    code. Complete details are found in the README file. This
+    only calls other functions and is used as a wrapper.
+    """
     if training:
-        dataframe = main_preprocessing(path, training, save_im, max_tile_x, max_tile_y)
+        dataframe = main_preprocessing(path, training, save_im,
+                                       max_tile_x, max_tile_y)
         plist = get_superpatch_patches(dataframe, patches, path)
         spatch = superpatcher(plist)
         save_image(path, 'superpatch_training.tif', spatch)
 
     else:
         main_preprocessing(path, training, save_im, max_tile_x, max_tile_y)
+
     return spatch
