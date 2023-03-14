@@ -98,7 +98,34 @@ The numpy array of the superpatch is ultimately returned which is then fed into 
 
 ### 3. MODEL SELECTION: ###
 - - - -
+The `model_selection` module contains functions for optimizing hyperparameters, and comparing various clustering algorithms. This module can either be interacted with as a python library, or as a command line interface. To use as a command line interface, from within the conda environment run `python path/to/opt_cluster_hyperparameters.py <args>`. For using this module as a python library the main functions from this module are the opt_\<cluster algorithm\> functions. The high level functionality of this family of functions is:  
+- **Input:** The patch or superpatch, along with lists of the       hyperparameter values to test. 
+- **Output:** Dictionary of hyperparameter:value pairs of the optimized hyperparameters. 
 
+Specifically, the arguments to these functions are: 
+- **data:** A numpy array, of shape 3xP, where the columns are the RGB vaues of the image, and the rows represent the individual pixels.
+- **\<hyperparameter_lists\>:** These arguments vary from function to function, depending on the hyperparameters for a specific clustering algorithm. For example, with opt_dbscan this takes the form of `eps`, and `min_samples`, lists of values to try for the `eps` and `min_samples` parameters for DBSCAN respectively. The hyperparameters for a model are taken as groups based on the order in the list. So, if opt_dbscan is given eps=[0.01, 0.1, 1] and min_samples=[5, 10,20], the hyperparameters for the models would be {eps=0.01, min_samples=5}, {eps=0.1, min_samples=10}, and {eps=1, min_samples=20}. The generation of these lists can be helped with the `generate_hyperparameter_combinations` function.  
+- **metric:** Which scoring method to use for evaluating the clustering from each set of hyperparameters.  This is a string describing the method, could be:
+    - Silhouette Score
+    - Davies Bouldin Score
+    - Calinski Harabasz Index  
+*note: For KMeans, the [elbow](https://en.wikipedia.org/wiki/Elbow_method_(clustering)) method based on inertia plots will be used*
+- **verbose:** Whether a verbose output is desired. When True, the function will print the hyperparameters currently being tried, and a list of the clusters that are generated from them to the standard output.
+- **kwargs:** Keyword arguments which are passed to the metric class.
+
+The opt_ family of functions is the main interface to this module, but there are a variety of other methods available. These will be listed with a short description here, for details on arguments see docstrings within the module. 
+- `find_elbow`: Finds the elbow of an inertia plot.
+- `eval_km_elbow`: Finds the optimum number of clusters for knn using inertia plots and the [elbow method](https://en.wikipedia.org/wiki/Elbow_method_(clustering))
+- `eval_model_hyperparameters`: Generic function to find hyperparameters for a provided clustering algorithm given a list of dictionaries with the hyperparameters. This is the function which the opt_ family of functions wrap around.
+- `eval_models`: Compares how well different clustering algorithms cluster the provided data.
+- `eval_models_dict`: Wrapper around `eval_models`, instead of taking seperate lists of algorithms, and hyperparameters, takes a single dictionary of algorithm:hyperparameter-dictionary.
+- `eval_models_silhouette_score`: Wrapper around `eval_models`, however uses Silhouette score automatically instead of taking a metric argument.
+- `eval_models_calinski_harabasz`: Wrapper around `eval_models`, however uses Calinski Harabasz score automatically instead of taking a metric argument.
+- `eval_models_davies_bouldin`: Wrapper around `eval_models`, however uses Davies Bouldin score automatically instead of taking a metric argument.
+- `plot_inertia`: Plots the inertia for each of a given list of n_clusters.
+- `sample_path`: Takes a sample of a numpy array, useful for optimizing DBSCAN, BIRCH, and OPTICS since those algorithms have very high worst case size complexity that scales with number of observations. This can also be used to speed up the process of hyperparameter optimization.
+- `generate_hyperparameter_combinations`: Used to create a dictionary of hyperparameter:list-of-hyperparameter-values with all combinations of the provided hyperparameter levels.
+- `read_json_hyperparameters`: Read a json file containing hyperparameters. 
 
 ### 4. SEGMENTATION (SEG): ###
 - - - -

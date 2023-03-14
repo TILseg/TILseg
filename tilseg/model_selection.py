@@ -160,7 +160,7 @@ def eval_models(data: np.array,
                 full_return: bool = False,
                 **kwargs):
     """
-    Function to evaluate how well different models
+    Function to compare how well different models cluster data
     Parameters
     ----------
     data: np.array containing data for clustering
@@ -367,7 +367,7 @@ def plot_inertia(data: np.array,
                  **kwargs
                  ):
     """
-    Plots the inertia for each of the n_clusters in n_clusters
+    Plots the inertia for each of the n_clusters in n_clusters argument
     Parameters
     ----------
     data: np.array containing data to cluster
@@ -410,7 +410,7 @@ def opt_kmeans(data: np.array, n_clusters: list, **kwargs):
     ----------
     data: np array containing pixel data to be clustered
     n_clusters_lsit: list of n_clusters to try
-    **kwargs: Keyword args passed to KMeans clustering algorithm
+    **kwargs: Keyword args passed to metric
     Returns
     -------
     n_cluster: optimized n_clusters
@@ -440,7 +440,7 @@ def opt_dbscan(data: np.array,
     eps_list: list of eps values to try
     metric: string with name of metric to use
     verbose: whether a verbose output is desired
-    **kwargs: keyword args passed to DBSCAN clustering algorithm
+    **kwargs: keyword args passed to metric
     Returns
     -------
     hyperparameters: dict of "eps":optimized eps value
@@ -472,7 +472,8 @@ def opt_dbscan(data: np.array,
         metric=metric_class,
         metric_direction=metric_direction,
         full_return=False,
-        verbose=verbose)
+        verbose=verbose,
+        **kwargs)
     return result
 
 
@@ -490,7 +491,7 @@ def opt_birch(data: np.array,
     data: np array containing pixel data to be clustered
     eps_list: list of eps values to try
     metric: string with name of metric to use
-    **kwargs: keyword args passed to DBSCAN clustering algorithm
+    **kwargs: keyword args passed to metric
     Returns
     -------
     hyperparameters: dict containing the optimized hyperparameters
@@ -538,7 +539,8 @@ def opt_birch(data: np.array,
         metric=metric_class,
         metric_direction=metric_direction,
         full_return=False,
-        verbose=verbose)
+        verbose=verbose,
+        **kwargs)
 
 
 def opt_optics(data: np.array,
@@ -556,7 +558,7 @@ def opt_optics(data: np.array,
     max_eps: list of max_eps values to try
     metric: string with name of metric to use
     verbose: whether a verbose output is desired
-    **kwargs: keyword args passed to DBSCAN clustering algorithm
+    **kwargs: keyword args passed to metric 
     Returns
     -------
     eps: optimized eps value
@@ -597,7 +599,8 @@ def opt_optics(data: np.array,
         model=model, hyperparameters=hyperparameters_list,
         metric=metric_class,
         metric_direction=metric_direction,
-        verbose=verbose)
+        verbose=verbose,
+        **kwargs)
 
 
 def sample_patch(data: np.array, sample: int) -> np.array:
