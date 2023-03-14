@@ -64,3 +64,25 @@ Please reference the `tilseg_example.ipynb` file for an example of how this soft
 ### 7. REFERENCES: ###
 - - - -
 if needed
+
+### REPO STRUCTURE ###
+- - - -
+'
+TILseg
+-----
+Digital_segmentation_BRCA_547_Capstone/
+|-tilseg
+|-docs/
+| |-example/paper/
+| | |-_init_.py
+| |-Use_cases_and_design_components.docx
+| |-Use_cases_and_design_components.pdf
+| |-ChemE_547_Final_Poster.pdf
+| |-Pitch.docx
+|-tests/
+| |-_init_.py  
+|-environment.yml
+|-test_cluster.py
+|LICENSE
+|tilseg_example.ipynb
+'
