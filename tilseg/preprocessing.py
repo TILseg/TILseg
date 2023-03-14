@@ -10,6 +10,7 @@ a consequtive module.
 import skimage
 from skimage import io
 
+import collections
 import math
 import openslide
 import os
