@@ -32,6 +32,8 @@ Installation Instructions
 Original H&E Patch
 :-------------------------:
 ![Original](https://user-images.githubusercontent.com/121774063/224920422-fb696076-d907-45af-89ab-3f053dd89747.jpg)
+
+
 Cluster Mask               |  Cluster Overlay
 :-------------------------:|:-------------------------:
 ![Image3](https://user-images.githubusercontent.com/121774063/224920501-9a2b0f81-847a-4e08-8a60-e726f5e4d405.jpg)  |  ![Image3](https://user-images.githubusercontent.com/121774063/224920528-ef4b2c34-5695-46a7-b020-09dc4e068375.jpg)
