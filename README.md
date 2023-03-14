@@ -19,6 +19,24 @@ This software provides a straightforward method for analyzing H&E stained micros
 
 This software is broken into three different modules that users can call: `preprocessing.py`, `model_selection.py`, and `seg.py`. The modules are intended to be used sequentially and their main functions/use cases are outlined in sections below.
 
+### METHODOLOGY: ###
+- - - -
+Ryan's flowchart
+
+### INSTALLATION: ###
+- - - -
+Installation Instructions
+
+### EXAMPLE: ###
+- - - -
+The other capstone group
+![Original](https://user-images.githubusercontent.com/121774063/224920422-fb696076-d907-45af-89ab-3f053dd89747.jpg)
+![AllClusters](https://user-images.githubusercontent.com/121774063/224920465-6b5c79f6-6431-46cf-a16e-59fe66fdbc28.jpg)
+![Image3](https://user-images.githubusercontent.com/121774063/224920501-9a2b0f81-847a-4e08-8a60-e726f5e4d405.jpg)
+![Image3](https://user-images.githubusercontent.com/121774063/224920528-ef4b2c34-5695-46a7-b020-09dc4e068375.jpg)
+![ContourOverlay](https://user-images.githubusercontent.com/121774063/224920555-414d718b-6ce0-4920-9af0-01b1c6cc2b96.jpg)
+
+
 ### 2. PREPROCESSING: ###
 - - - -
 The preprocessing module is called using one function: `preprocess()`. The function has six arguments, only one of which is required. The high level functionality is as follows:
@@ -63,7 +81,7 @@ Please reference the `tilseg_example.ipynb` file for an example of how this soft
 
 ### 7. REFERENCES: ###
 - - - -
-if needed
+The other capstone group
 
 ### REPO STRUCTURE ###
 - - - -
