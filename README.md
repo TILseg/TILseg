@@ -67,7 +67,7 @@ if needed
 
 ### REPO STRUCTURE ###
 - - - -
-'
+`
 TILseg
 -----
 Digital_segmentation_BRCA_547_Capstone/
@@ -85,4 +85,4 @@ Digital_segmentation_BRCA_547_Capstone/
 |-test_cluster.py
 |LICENSE
 |tilseg_example.ipynb
-'
+`
