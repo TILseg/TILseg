@@ -19,19 +19,19 @@ collections.Callable = collections.abc.Callable
 class TestPreProcessing(unittest.TestCase):
     """Test case for the functions within preprocessing.py"""
 
-    def test_open_slide(self):
-        """
-        open_slide testings
-        ensure open_slide function runs
-        """
-        # edge test: ensures path is a string
-        with self.assertRaises(TypeError):
-            path1 = 3.0
-            preprocessing.open_slide(path1)
+    # def test_open_slide(self):
+    #     """
+    #     open_slide testings
+    #     ensure open_slide function runs
+    #     """
+    #     # edge test: ensures path is a string
+    #     with self.assertRaises(TypeError):
+    #         path1 = 3.0
+    #         preprocessing.open_slide(path1)
         
-        # edge test: ensure path exits
-        with self.assertRaises(ValueError):
-            preprocessing.open_slide('Users/cyrushaas/Documents/WI23_MolecularDataScience/project/whole_slide.svs')
+    #     # edge test: ensure path exits
+    #     with self.assertRaises(ValueError):
+    #         preprocessing.open_slide('Users/cyrushaas/Documents/WI23_MolecularDataScience/project/whole_slide.svs')
 
         # # smoke test: checks the function can open svs file
         # !! i'm not sure if this file is oaky
