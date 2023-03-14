@@ -132,8 +132,7 @@ class TestPreProcessing(unittest.TestCase):
 
         # edge test: path sure the path exists
         with self.assertRaises(ValueError):
-            preprocessing.save_image('Users/cyrushaas/Documents/WI23_Mole\
-                                     cularDataScience/project/whole_slide.svs',
+            preprocessing.save_image('./whole_slide.svs',
                                      'image1', dummy_img)
 
         # edge test: ensure name has file extenstion
@@ -250,20 +249,20 @@ class TestPreProcessing(unittest.TestCase):
 
         with self.assertRaises(TypeError):
             # error when file does not have extension
-            preprocessing.save_all_images(pd.DataFrame(), '/Users/',
+            preprocessing.save_all_images(pd.DataFrame(), '.',
                                           'test_filesvs')
             # error when dataframe not given
-            preprocessing.save_all_images(pd.Series(), '/Users/',
+            preprocessing.save_all_images(pd.Series(), '.',
                                           'test_file.svs')
             # error when patch_xy has no tuples
-            preprocessing.save_all_images(pd.DataFrame(data=d), '/Users/',
+            preprocessing.save_all_images(pd.DataFrame(data=d), '.',
                                           'test_file.svs')
 
         with self.assertRaises(ValueError):
             # error when patch_xy is not a column in the dataframe
             preprocessing.save_all_images(pd.DataFrame(
                                           columns=['A', 'B', 'C']),
-                                          '/Users/', 'f.svs')
+                                          '.', 'f.svs')
 
         return
 
