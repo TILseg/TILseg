@@ -58,7 +58,7 @@ All of these lines were used in addition to routine conda/pip installation.
 1. `pip install openslide-python --no-cache-dir`
 2. `sudo atp-get install gcc`
 3. `RUN apt-get update && apt-get install ffmpeg libsm6 libtext6 -y`
-4. `suco apt install libgl1-mesa-glx'
+4. `sudo apt install libgl1-mesa-glx`
 
 
 ### EXAMPLE: ###
