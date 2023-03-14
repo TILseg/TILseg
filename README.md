@@ -52,6 +52,14 @@ These dependencies can be most easily handled using the provided environment.yml
 3. From the TILseg directory run `conda env create -f environment.yml`
     - The environment can then be activated using `conda activate tilseg`
 
+Note: Installing OpenSlide can be difficult for some users. The following command prompts were found helpful by these authors during installation. The
+utility of these prompts is extremely case dependent. The authors heavily encourage users to exercise discretion when considering what may be helpful for them.
+All of these lines were used in addition to routine conda/pip installation.
+1. `pip install openslide-python --no-cache-dir`
+2. `sudo atp-get install gcc`
+3. `RUN apt-get update && apt-get install ffmpeg libsm6 libtext6 -y`
+4. `suco apt install libgl1-mesa-glx'
+
 
 ### EXAMPLE: ###
 - - - -
