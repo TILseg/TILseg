@@ -30,8 +30,7 @@ Installation Instructions
 ### EXAMPLE: ###
 - - - -
 ![Original](https://user-images.githubusercontent.com/121774063/224920422-fb696076-d907-45af-89ab-3f053dd89747.jpg)
-
-
+Solarized dark             |  Solarized Ocean
 :-------------------------:|:-------------------------:
 ![Image3](https://user-images.githubusercontent.com/121774063/224920501-9a2b0f81-847a-4e08-8a60-e726f5e4d405.jpg)  |  ![Image3](https://user-images.githubusercontent.com/121774063/224920528-ef4b2c34-5695-46a7-b020-09dc4e068375.jpg)
 ![AllClusters](https://user-images.githubusercontent.com/121774063/224920465-6b5c79f6-6431-46cf-a16e-59fe66fdbc28.jpg)  |  ![ContourOverlay](https://user-images.githubusercontent.com/121774063/224920555-414d718b-6ce0-4920-9af0-01b1c6cc2b96.jpg)
