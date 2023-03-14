@@ -1,1 +1,1 @@
-{"threshold": 0.1, "branching_factor": 10, "n_clusters": 5}
+{"threshold": 0.1, "branching_factor": 10, "n_clusters": 50}

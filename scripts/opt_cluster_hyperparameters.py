@@ -22,7 +22,7 @@ def parse_args():
     Parameters
     ----------
     None
-    Resturns
+    Returns
     --------
     argparse.Namespace object containing the parsed arguments
     """
