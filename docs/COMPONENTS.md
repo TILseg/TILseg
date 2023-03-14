@@ -19,15 +19,27 @@
     - Output directory of superpatches
 <br/>
 
-4. Cluster Model Fitter  
+4. KMeans Model Fitter to Superpatch
     - Access saved superpatches
-    - Fit clustering model to superpatch
+    - Fit KMeans clustering model to superpatch
     - Output clustering model
 <br/>
 
-5. Cluster Predictor
-    - Apply generic clustering model
-    - Output labeled image with clusters assigned to pixels 
+4. Clustering Scorer
+    - Access saved model or fit a new model
+    - Access saved patch of interest
+    - Perform clustering to obtain cluster labels
+    - Score the clustering
+    - Output scores
+<br/>
+
+5. TILs Segmentor
+    - Access saved model or fit new model
+    - Acess patches of interest from input directory
+    - Perform clustering on all to obtain cluster labels
+    - Filter clustered objects to identify TILs
+    - Output TIL counts in each patch
+    - Save transformed images containing cluster and TILs information
 <br/>
 
 6. Immune Contour Generator
