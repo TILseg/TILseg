@@ -32,7 +32,25 @@ Ryan's flowchart
 
 ### INSTALLATION: ###
 - - - -
-Installation Instructions
+#### Dependencies: ####
+- [matplotlib](https://matplotlib.org) = 3.6.2
+- [numpy](https://numpy.org/) = 1.22.3
+- [opencv](https://opencv.org/) = 4.6.0
+- [openslide](https://openslide.org/) = 3.4.1
+- [openslide-python](https://openslide.org/api/python/) = 1.1.2
+- [pandas](https://pandas.pydata.org/) = 1.5.2
+- [pillow](https://pillow.readthedocs.io/en/stable/) = 9.3.0
+- [python](https://www.python.org/) = 3.10.9
+- [scikit-image](https://scikit-image.org/) = 0.19.3 
+- [scikit-learn](https://scikit-learn.org/stable/) = 1.0.2
+- [scipy](https://scipy.org/) = 1.7.3  
+These dependencies can be most easily handled using the provided environment.yml file to create a conda virtual environment. To do this:  
+1. Install [Anaconda](https://www.anaconda.com/). 
+2. Clone this repository
+    - For example by running the command `git clone git@github.com:TILseg/TILseg.git` 
+3. From the TILseg directory run `conda env create -f environment.yml`
+    - The environment can then be activated using `conda activate tilseg`
+
 
 ### EXAMPLE: ###
 - - - -
