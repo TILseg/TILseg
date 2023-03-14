@@ -29,6 +29,9 @@ Installation Instructions
 
 ### EXAMPLE: ###
 - - - -
+Solarized dark             |  Solarized Ocean
+:-------------------------:|:-------------------------:
+![Original](https://user-images.githubusercontent.com/121774063/224920422-fb696076-d907-45af-89ab-3f053dd89747.jpg)  |  ![AllClusters](https://user-images.githubusercontent.com/121774063/224920465-6b5c79f6-6431-46cf-a16e-59fe66fdbc28.jpg)
 The other capstone group
 ![Original](https://user-images.githubusercontent.com/121774063/224920422-fb696076-d907-45af-89ab-3f053dd89747.jpg)
 ![AllClusters](https://user-images.githubusercontent.com/121774063/224920465-6b5c79f6-6431-46cf-a16e-59fe66fdbc28.jpg)
