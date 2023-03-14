@@ -315,7 +315,8 @@ class TestClusterProcessing(unittest.TestCase):
         # check and store if overlaid image and directory were generated
         overlay_dir_path = os.path.join(dir_path, "OverlaidImages")
         overlay_img_path = os.path.join(overlay_dir_path, "Image1.jpg")
-        if os.path.isdir(overlay_dir_path) and os.path.isfile(overlay_img_path):
+        if (os.path.isdir(overlay_dir_path) and
+                os.path.isfile(overlay_img_path)):
             exists_list[3] = True
         # check and store if til image outputs were generated
         til_overlay_path = os.path.join(dir_path, "ContourOverlay.jpg")
@@ -383,10 +384,9 @@ class TestClusterProcessing(unittest.TestCase):
         # run through various boolean arguments and ensure the expected output
         # files are generated and unexpected files do not exist
         til_count = \
-            tilseg.cluster_processing.image_postprocessing(double_blob,
-                                                           dim_array_3,
-                                                           home,
-                                                           gen_all_clusters=True)
+            tilseg.cluster_processing. \
+            image_postprocessing(double_blob, dim_array_3,
+                                 home, gen_all_clusters=True)
         file_exists = self.file_exists_function()
         self.assertTrue(all(([True, True, True, False, False, False, False],
                         file_exists)))
@@ -438,14 +438,9 @@ class TestClusterProcessing(unittest.TestCase):
                         file_exists)))
 
         til_count = \
-            tilseg.cluster_processing.image_postprocessing(double_blob,
-                                                           dim_array_3,
-                                                           home,
-                                                           gen_all_clusters=True,
-                                                           gen_overlays=True,
-                                                           gen_tils=True,
-                                                           gen_masks=True,
-                                                           gen_csv=True)
+            tilseg.cluster_processing.image_postprocessing(
+                double_blob, dim_array_3, home, gen_all_clusters=True,
+                gen_overlays=True, gen_tils=True, gen_masks=True, gen_csv=True)
         file_exists = self.file_exists_function()
         self.assertTrue(all(([True, True, True, True, True, True, True],
                         file_exists)))

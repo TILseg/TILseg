@@ -10,7 +10,6 @@ contours.
 """
 import os
 import shutil
-import time
 
 import cv2 as cv
 import matplotlib.pyplot as plt
@@ -492,8 +491,6 @@ def image_postprocessing(clusters: np.ndarray, ori_img: np.ndarray,
     gen_csv: bool
         determines if CSV of contours will be generated
     """
-    # get time to track function run time
-    intial_time = time.time()
 
     # generate errors if cluster and image have incorrect dimensions
     if clusters.ndim != 2:
@@ -568,8 +565,5 @@ def image_postprocessing(clusters: np.ndarray, ori_img: np.ndarray,
 
     # go back to home directory
     os.chdir(home)
-
-    # print time taken to process
-    print(f"Time to process image: {time.time()-intial_time:.3f}")
 
     return til_count
