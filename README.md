@@ -4,6 +4,13 @@ Last Updated: March 12th, 2023
 
 ## CONTENTS: ##
 1. About
+2. Methodology
+3. Installation
+4. Example
+5. Example Use Case
+7. References
+8. Repo Structure
+
 2. Preprocessing
 3. Model Selection
 4. Segmentation (Seg)
