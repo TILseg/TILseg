@@ -40,7 +40,8 @@ def KMeans_superpatch_fit(patch_path: str,
     All other clustering algorithms need to be fitted on the same patch that
     needs to be clustered
     It makes sense to use this function to fit a KMeans clustering model to a
-    superpatch that can capture H&E stain variation
+    superpatch that can capture H&E stain variation across patients and
+    technologies
 
     Parameters
     -----
@@ -466,8 +467,7 @@ def segment_TILs(in_dir_path: str,
         goal to cluster all the patches
         using a model fitted on a superpatch
         If no model is inputted, the clustering algorthim will fit a model on
-
-    the same patch that it is clustering
+        the same patch that it is clustering
     save_TILs_overlay: bool
         generate image containing TILs overlayed on the original H&E patch
     save_cluster_masks: bool
