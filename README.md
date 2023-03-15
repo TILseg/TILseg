@@ -96,9 +96,9 @@ Please reference the `tilseg_use.ipynb` file for an example of how this software
 
 ### 6. REFERENCES: ###
 - - - -
-This work is picked up from [another project](https://github.com/ViditShah98/Digital_segmentation_BRCA_547_Capstone) that originated from the CHEM E 545/546 course at the University of Washington.
+This work is a revision and an extension of a [previous project](https://github.com/ViditShah98/Digital_segmentation_BRCA_547_Capstone) that originated from the CHEM E 545/546 course at the University of Washington.
 
-This work is a continuation of the research performed in [Mittal Research Lab](https://shachimittal.com/) at the University of Washington.
+Both the previous project and this work is a continuation of the research performed in [Mittal Research Lab](https://shachimittal.com/) at the University of Washington.
 
 ### 7. REPO STRUCTURE ###
 - - - -
