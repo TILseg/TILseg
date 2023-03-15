@@ -15,6 +15,7 @@ tilseg.model_selection
 # pylint: disable=protected-access
 # The purpose is to give the user choice of funtionality to suit their needs:
 # pylint: disable=too-many-arguments
+# pylint: disable=too-many-locals, too-many-branches, too-many-statements
 # noqa: C901
 
 # Core library imports
