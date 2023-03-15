@@ -67,7 +67,8 @@ Running these may be useful for Windows WSL and Linux:
 3. `RUN apt-get update && apt-get install ffmpeg libsm6 libtext6 -y`
 4. `sudo apt install libgl1-mesa-glx`   
 
-#### For macOS: ####
+
+For macOS:
 - Follow instructions at [Openslide Python](https://openslide.org/download/)
 
 If there is an issue with the libffi.so.* when trying to import openslide, this can be addressed by creating a symbolic link between libffi.so.6 and the version installed by conda in the environment. To do this, run the command `ln -s path/to/anaconda3/envs/tilseg/lib/libffi.so.7 path/to/anaconda3/envs/tilseg/lib/libffi.so.7`. This is a temporary issue until the openslide conda dependencies are updated.
@@ -91,7 +92,7 @@ All Clusters               |  Segmented TILs Overlay
 
 ### 5. EXAMPLE USE CASE: ###
 - - - -
-Please reference the `tilseg_use.ipynb` file for an example of how this software may be used. Additional information and explanations can be found in `tilseg_use.ipynb`. The four primary modules above are implemented with a sample slide image for illustrative purposes.
+Please reference the `tilseg_use.ipynb` file for an example of how this software may be used. Additional information and explanations can be found in `tilseg_example.ipynb`. The three primary modules are implemented with a sample slide image for illustrative purposes.
 
 ### 6. REFERENCES: ###
 - - - -
