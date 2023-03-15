@@ -320,7 +320,7 @@ class TestModelSelection(unittest.TestCase):
             read_json_hyperparameters(
                 os.path.join(os.path.dirname(tilseg.__file__),
                              "test",
-                             "birch_hyperparameters.json"))
+                             "test_birch_hyperparameters.json"))
         expected_results = {
             "threshold": np.inf,
             "branching_factor": 10,
