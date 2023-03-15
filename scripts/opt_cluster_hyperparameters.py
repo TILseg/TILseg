@@ -14,6 +14,7 @@ import matplotlib.pyplot as plt
 from tilseg import model_selection
 
 # pylint: disable=too-many-branches
+# noqa: C901
 
 
 def parse_args():
