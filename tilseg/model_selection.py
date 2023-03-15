@@ -558,7 +558,7 @@ def opt_optics(data: np.array,
     max_eps: list of max_eps values to try
     metric: string with name of metric to use
     verbose: whether a verbose output is desired
-    **kwargs: keyword args passed to metric 
+    **kwargs: keyword args passed to metric
     Returns
     -------
     eps: optimized eps value

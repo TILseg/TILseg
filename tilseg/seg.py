@@ -15,17 +15,22 @@ tilseg.model_selection
 # pylint: disable=protected-access
 # The purpose is to give the user choice of funtionality to suit their needs:
 # pylint: disable=too-many-arguments
+# noqa: C901
 
-import pathlib
+# Core library imports
 import os
-import numpy as np
+import pathlib
+
+# External library imports
 import matplotlib.pyplot as plt
+import numpy as np
 from PIL import UnidentifiedImageError
 from sklearn.exceptions import NotFittedError
 import sklearn.cluster
 import sklearn.metrics
 import sklearn.utils.validation
 
+# Local imports
 from tilseg.cluster_processing import image_postprocessing
 
 

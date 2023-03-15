@@ -8,16 +8,21 @@ a CSV. Immune cell groups are identified using the contour functionality from
 OpenCV. The implemented filters are based on area and roundness of the derived
 contours.
 """
+# Core library imports
 import os
 import shutil
 
-import cv2 as cv
+# External library imports
+import cv2 as cv  # pylint: disable=locally-disabled, import-error
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 
+# Note: Disabled import-error above, because it incorrectly flagged cv2
 # pylint: disable=locally-disabled, no-member, too-many-arguments
-# pylint: disable=locally-disabled, no-else-raise
+# pylint: disable=locally-disabled, no-else-raise, too-many-locals
+# pylint: disable=locally-disabled, too-many-branches
+# noqa: C901
 
 
 def image_series_exceptions(image_array: np.ndarray, rgb_bool: bool = True):

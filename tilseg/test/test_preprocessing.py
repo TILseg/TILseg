@@ -1,19 +1,35 @@
 """Unittests for preprocessing module."""
 
+# Core library imports
 import collections
 import os
 import unittest
-import tilseg
-import openslide
-import tilseg.preprocessing as preprocessing
 
+# External libraries
 import numpy as np
+import openslide
 import pandas as pd
-pd.options.mode.chained_assignment = None
+import pytest
 
-collections.Callable = collections.abc.Callable
+# Local imports
+import tilseg
+from tilseg import preprocessing
 
 # pylint: disable=useless-return
+
+# Modify options for pandas to stop chained assignment warning
+pd.options.mode.chained_assignment = None
+collections.Callable = collections.abc.Callable
+
+# Change this if svs full slide image available
+# Since a full slide image can't be uploaded to github due to file size
+#   the tests marked with pytest.mark.skipif's can't be run as part of
+#   the github workflow. The tests were run locally with a full slide image
+#   available, and passed, but can't run on github
+#   Since svs is proprietary, and generated from instruments, it has
+#   proven challenging to create a small svs file for testing purposes.
+#   For now, the tests which require it are being skipped.
+FULL_SLIDE_AVAILABLE = False
 
 
 class TestPreProcessing(unittest.TestCase):
@@ -151,9 +167,12 @@ class TestPreProcessing(unittest.TestCase):
             pass
         else:
             raise TypeError('test failed!!!!!!')
-
+        # Delete image when test complete
+        os.remove(os.path.join(os.getcwd(), 'test_image.jpeg'))
         return
 
+    @pytest.mark.skipif(not FULL_SLIDE_AVAILABLE,
+                        reason="No fullslide image available")
     def test_create_patches(self):
         """Test create_patches function."""
         slide = openslide.OpenSlide
@@ -347,6 +366,8 @@ class TestPreProcessing(unittest.TestCase):
 
         return
 
+    @pytest.mark.skipif(not FULL_SLIDE_AVAILABLE,
+                        reason="No fullslide image available")
     def test_count_images(self):
         """Test count_images function."""
         # make svs dummy file path
@@ -366,6 +387,8 @@ class TestPreProcessing(unittest.TestCase):
 
         return
 
+    @pytest.mark.skipif(not FULL_SLIDE_AVAILABLE,
+                        reason="No fullslide image available")
     def test_patches_per_img(self):
         """Test patches_per_img function"""
         # make svs dummy file path
@@ -389,6 +412,8 @@ class TestPreProcessing(unittest.TestCase):
         with self.assertRaises(ValueError):
             preprocessing.patches_per_img(6, 'filepath')
 
+    @pytest.mark.skipif(not FULL_SLIDE_AVAILABLE,
+                        reason="No fullslide image available")
     def test_get_superpatch_patches(self):
         """Test get_superpatch_patches"""
         # make svs dummy file path
@@ -439,6 +464,8 @@ class TestPreProcessing(unittest.TestCase):
 
         return
 
+    @pytest.mark.skipif(not FULL_SLIDE_AVAILABLE,
+                        reason="No fullslide image available")
     def test_superpatcher(self):
         """Test superpatcher function"""
         # make svs dummy file path

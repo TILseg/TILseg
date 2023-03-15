@@ -6,23 +6,24 @@ only one type. This is then used for testing/using a
 machine learning model or for superpatch creation in
 a consequtive module.
 """
-
+# Core library imports
 import collections
 import math
 import os
 import uuid
-import openslide
-import scipy
-import skimage
 
-from skimage import io
-
+# External library imports
 import numpy as np
+import openslide  # pylint: disable = import-error
 import pandas as pd
+import scipy
+from skimage import io
 pd.options.mode.chained_assignment = None
 
-# pylint: disable=no-else-raise,unused-variable
-# noqa: E722,F841
+# pylint: disable=no-else-raise, too-many-lines, too-many-locals, invalid-name
+# pylint: disable=too-many-arguments, too-many-branches, useless-return
+# pylint: disable=arguments-out-of-order
+# noqa: E722,F841, C901
 
 
 def open_slide(slidepath):
@@ -52,7 +53,7 @@ def open_slide(slidepath):
                  '.scn', '.mrxs', '.tiff', '.svslide', '.bif',]
 
     # get the name and extension
-    filename, file_ext = os.path.splitext(slidepath)
+    _, file_ext = os.path.splitext(slidepath)
 
     # check the ext
     if file_ext in file_type:
@@ -135,6 +136,7 @@ def get_tile_size(maximum, size, cutoff=4):
 
             # return requested values
             return dimension, slices, remainder
+    return None, None, None
 
 
 def percent_of_pixels_lost(lost_x, patch_x, lost_y, patch_y, x_size, y_size):
@@ -244,9 +246,9 @@ def save_image(path, name, image_array):
 
     # make sure it has more than one dimension
     try:
-        indx = image_array.shape[2]  # noqa: F841
-    except:  # noqa: E722
-        raise IndexError('image array must be an NxMx3 array')
+        _ = image_array.shape[2]  # noqa: F841
+    except Exception as exc:  # noqa: E722
+        raise IndexError('image array must be an NxMx3 array') from exc
 
     # check shape of np_array
     if image_array.shape[2] == 3:
@@ -287,8 +289,8 @@ def create_patches(slide, xpatch, ypatch, xdim, ydim):
     Parameters
     -----
     slide: the OpenSlide object of the entire slide
-    ypatch (int): the number of the patch in the y direction
     xpatch (int): the number of the patch in the x direction
+    ypatch (int): the number of the patch in the y direction
     xdim (int): the size of the patch in the x direction
     ydim (int): the size of the patch in the y direction
 
@@ -407,9 +409,9 @@ def get_average_color(img):
 
     # make sure it has more than one dimension
     try:
-        indx = img.shape[2]  # noqa: F841
-    except:  # noqa: E722
-        raise IndexError('image array must be an NxMx3 array')
+        _ = img.shape[2]
+    except Exception as exc:
+        raise IndexError('image array must be an NxMx3 array') from exc
 
     # check shape of np_array
     if img.shape[2] == 3:
@@ -446,9 +448,9 @@ def get_grey(rgb):
 
     # make sure length can be accessed
     try:
-        rgb_len = len(rgb)  # noqa: F841
-    except:  # noqa: E722
-        raise TypeError('cannot get length of rgb')
+        _ = len(rgb)
+    except Exception as exc:
+        raise TypeError('cannot get length of rgb') from exc
 
     # make sure it is the correct length
     if len(rgb) == 3:
@@ -461,7 +463,7 @@ def get_grey(rgb):
     return grey
 
 
-def save_all_images(df, path, f):
+def save_all_images(df, path, f):  # pylint disable = invalid-name
     """
     A function to save all the images as background or tissue.
 
@@ -525,7 +527,7 @@ def save_all_images(df, path, f):
     os.mkdir(slide_name_path)
 
     # iterate through all rows of the dataframe
-    for index, row in df.iterrows():
+    for _, row in df.iterrows():
 
         # name the file that will be saved based on
         # its index on the whole slide image
@@ -666,7 +668,7 @@ def find_min(arr, range_min, range_max):
     for index, number in enumerate(arr):
 
         # check if the index is between the desired range
-        if index > range_min and index < range_max:
+        if range_min < index < range_max:
 
             # if it is in the correct range then check if the number
             # is less than the current minimum
@@ -749,15 +751,7 @@ def is_it_background(cutoff, actual):
     """
 
     # test if the actual value is greater than the cutoff
-    if actual > cutoff:
-
-        # if it is, then background is set to True
-        background = True
-
-    # if not, the background is set to False
-    else:
-        background = False
-
+    background = bool(actual > cutoff)
     return background
 
 
@@ -876,7 +870,7 @@ def main_preprocessing(complete_path, training=True, save_im=True,
         already generated model (sorted_df)
     """
 
-    if training:
+    if training:  # pylint: disable=no-else-return
 
         all_df = pd.DataFrame()
 
@@ -921,7 +915,7 @@ def main_preprocessing(complete_path, training=True, save_im=True,
                       {loss_percentage} %')
 
             # if the file is not a slide image then do nothing and continue
-            else:
+            else:  # pylint: disable=no-else-return
                 continue
 
         # give unique numeric ID to each slide counting from 0 upwards
@@ -1099,15 +1093,16 @@ def get_superpatch_patches(patches_df, patches=6, path=os.getcwd()):
     # remove all unnecessary columns
     try:
         df = patches_df.drop(['background', 'RGB_avg'], axis=1)
-    except:  # noqa: E722
-        raise KeyError('patches_df must contain background and RGB_avg column')
+    except Exception as exc:
+        raise KeyError(
+            'patches_df must contain background and RGB_avg column') from exc
 
     # make sure necessary columns exist
     try:
-        col1 = df['patches']  # noqa: F841
-        col2 = df['id']  # noqa: F841
-    except:  # noqa: E722
-        raise KeyError('patches_df must have patches and id columns')
+        _ = df['patches']
+        _ = df['id']
+    except Exception as exc:  # noqa: E722
+        raise KeyError('patches_df must have patches and id columns') from exc
 
     # make sure there are enough patches
     if len(df.index) >= patches:
@@ -1120,7 +1115,7 @@ def get_superpatch_patches(patches_df, patches=6, path=os.getcwd()):
     if patches % 2 == 0:
         pass
     else:
-        ValueError('Number of patches must be an even integer')
+        raise ValueError('Number of patches must be an even integer')
 
     # patches list
     patches_list = []
@@ -1130,7 +1125,7 @@ def get_superpatch_patches(patches_df, patches=6, path=os.getcwd()):
     patch_per = math.floor(patches_per_img(patches, path))
 
     # bin the average values for each patch
-    df['grey_binned'] = pd.cut(df['greys'], bins=(patches+1))
+    df['grey_binned'] = pd.cut(df['greys'], bins=patches+1)
 
     # find the bins and the img_labels
     bins = df['grey_binned'].unique()
@@ -1162,7 +1157,7 @@ def get_superpatch_patches(patches_df, patches=6, path=os.getcwd()):
             patch_count += 1
 
             # get only the number of patches per image
-            if patch_count >= patch_per:
+            if patch_count >= patch_per:  # pylint: disable=no-else-break
                 # leave the for loop if you have the number of patches
                 break
             else:
@@ -1237,9 +1232,9 @@ def superpatcher(patches_list, sp_width=3):
             try:
                 patch_array_0 = np.concatenate((patch_array_0, patch_array_i),
                                                axis=1)
-            except:  # noqa: E722
+            except Exception as exc:
                 raise TypeError('patches list does not \
-                                contain correct datatypes')
+                                contain correct datatypes') from exc
 
             # save the finished row
             if i == (sp_width_calc-1):
