@@ -1,6 +1,6 @@
 TILseg README File
 
-Last Updated: March 12th, 2023
+Last Updated: March 15th, 2023
 
 ## CONTENTS: ##
 1. About
@@ -91,7 +91,7 @@ All Clusters               |  Segmented TILs Overlay
 
 ### 5. EXAMPLE USE CASE: ###
 - - - -
-Please reference the `tilseg_example.ipynb` file for an example of how this software may be used. The four primary modules above are implemented with a sample slide image for illustrative purposes.
+Please reference the `tilseg_use.ipynb` file for an example of how this software may be used. Additional information and explanations can be found in `tilseg_use.ipynb`. The four primary modules above are implemented with a sample slide image for illustrative purposes.
 
 ### 6. REFERENCES: ###
 - - - -
