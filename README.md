@@ -53,19 +53,24 @@ These dependencies can be most easily handled using the provided environment.yml
     - For macOS:
         - From the TILseg directory run `conda env create -f environment_mac.yml`
         - The environment can then be activated using `conda activate tilseg_mac`
+4. Add TILseg to the PYTHONPATH environment variable
+    - To update the environment variable run `export PYTHONPATH = "path/to/TILseg:$PYTHONPATH"` on the command line
+        - To update this environment variable more permanately this command can be added to the .bashrc file on linux, or the .profile file on MacOS
+    - Alternatively, in a python file or at the REPL prior to importing tilseg, run `import sys`, then `sys.path.append("path/to/TILseg")`  
 
 Note: Installing OpenSlide can be difficult for some users. The following command prompts were found helpful by these authors during installation. The
 utility of these prompts is extremely case dependent. The authors heavily encourage users to exercise discretion when considering what may be helpful for them.
 
-Running these may be useful for Windows and Linux:
+Running these may be useful for Windows WSL and Linux:
 1. `pip install openslide-python --no-cache-dir`
 2. `sudo atp-get install gcc`
 3. `RUN apt-get update && apt-get install ffmpeg libsm6 libtext6 -y`
-4. `sudo apt install libgl1-mesa-glx`
+4. `sudo apt install libgl1-mesa-glx`   
 
 #### For macOS: ####
 - Follow instructions at [Openslide Python](https://openslide.org/download/)
 
+If there is an issue with the libffi.so.* when trying to import openslide, this can be addressed by creating a symbolic link between libffi.so.6 and the version installed by conda in the environment. To do this, run the command `ln -s path/to/anaconda3/envs/tilseg/lib/libffi.so.7 path/to/anaconda3/envs/tilseg/lib/libffi.so.7`. This is a temporary issue until the openslide conda dependencies are updated.
 
 ### 4. EXAMPLE: ###
 - - - -
