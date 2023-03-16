@@ -26,7 +26,7 @@ This software is broken into three different modules that users can call: `prepr
 
 ### 2. METHODOLOGY: ###
 - - - -
-![image](https://user-images.githubusercontent.com/121836393/225160727-318364e3-7c69-4893-99b8-4939e172d845.png)
+![TILseg Workflow](https://user-images.githubusercontent.com/121736782/225461396-af97addf-fbb9-4423-830f-f8e489d03983.png)
 
 ### 3. INSTALLATION: ###
 - - - -
