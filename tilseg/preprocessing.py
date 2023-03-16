@@ -714,7 +714,7 @@ def compile_patch_data(slide, ypatch, xpatch, xdim, ydim):
     patchdf = pd.DataFrame()
 
     # unpack information from created patches
-    patch_list, index_list = create_patches(slide, ypatch, xpatch, xdim, ydim)
+    patch_list, index_list = create_patches(slide, xpatch, ypatch, xdim, ydim)
 
     # create a column with a numpy array patch in each row of the dataframe
     patchdf['patches'] = patch_list
