@@ -1062,12 +1062,12 @@ def get_superpatch_patches(patches_df, patches=6, path=os.getcwd()):
 
     Parameters:
     -------------
-    df (pandas df): MUST be dataframe from main_preprocessing output
+    df (pd.DataFrame): MUST be dataframe from main_preprocessing output
 
     Returns:
     -------------
-    patches_list: list of the patches to be included in superpatch
-                    individual patches are stored as np arrays
+    patches_list (lst): list of the patches to be included in superpatch
+                        individual patches are stored as np arrays
     """
 
     # check datatype of patches_df
@@ -1175,18 +1175,20 @@ def get_superpatch_patches(patches_df, patches=6, path=os.getcwd()):
 
 def superpatcher(patches_list, sp_width=3):
     """
+    TODO: Update the naming convection for the returned variable!!!
+     
     Superpatcher uses the selected patches and
     converts the individual patches into one patch
 
     Parameters:
     ------------
-    patches_list: MUST be output from get_superpatch_patches
-                  list of patches
-    sp_width: the width of a superpatch (how many images, default 3)
+    patches_list (lst): MUST be output from get_superpatch_patches
+                        list of patches
+    sp_width (int): the width of a superpatch (how many images, default 3)
 
     Returns:
     --------------
-    superpatch: np.array that contains the superpatch
+    superpatch (np.array): np.array that contains the superpatch
     """
 
     # check sp_width datattype
@@ -1260,9 +1262,31 @@ def superpatcher(patches_list, sp_width=3):
 def preprocess(path, patches=6, training=True, save_im=True,
                max_tile_x=4000, max_tile_y=3000):
     """
+    #TODO: Continue to edit what the output and input variables definintions are
+    
     The preprocess function that is called when running the
     code. Complete details are found in the README file. This
     only calls other functions and is used as a wrapper.
+    
+    Parameters:
+    ------------
+    path (str): path to the folder containing the .svs slide files
+    patches (int): number of patches to create superpatch with
+    training (boolean): a boolean that indicates if this preprocessing is
+                        for training data or if it to only be used for the
+                        existing model
+    save_im (boolean): a boolean that indicates if tissue images should be saved
+                    (beware this is a lot of data, at least 10GB per slide)
+    max_tile_x (int): the maximum x dimension size, in pixels,
+                    of a slide patch (default is 4000)
+    max_tile_y (int): the maximum y dimension size, in pixels,
+                    of a slide patch (default is 3000)
+
+    Returns:
+    --------------
+    spatch (pd.DataFrame): a dataframe containing all necessary information for
+                        creating superpatches for training (all_df) or for inputting into an
+                        already generated model (sorted_df)
     """
     if training:
         dataframe = main_preprocessing(path, training, save_im,
@@ -1272,6 +1296,7 @@ def preprocess(path, patches=6, training=True, save_im=True,
         save_image(path, 'superpatch_training.tif', spatch)
 
     else:
+        #TODO: this is never going to return anything? meant to equal to patch?
         main_preprocessing(path, training, save_im, max_tile_x, max_tile_y)
 
     return spatch
