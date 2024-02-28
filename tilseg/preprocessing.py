@@ -703,15 +703,15 @@ def compile_patch_data(slide, ypatch, xpatch, xdim, ydim):
 
     Parameters
     -----
-    slide: the OpenSlide object of the entire slide
-    ypatch: the number of patches in the y direction
-    xpatch: the number of patches in the x direction
-    xdim: the size of the patch in the x direction
-    ydim: the size of the patch in the y direction
+    slide (openslide.OpenSlide): the OpenSlide object of the entire slide
+    ypatch (int): the number of patches in the y direction
+    xpatch (int): the number of patches in the x direction
+    xdim (int): the size of the patch in the x direction
+    ydim (int): the size of the patch in the y direction
 
     Returns
     -----
-    patchdf: a pandas dataframe containing the three following
+    patchdf (pd.DataFrame): a pandas dataframe containing the three following
     """
 
     # create a dataframe to contain all patch information from a slide
@@ -746,11 +746,11 @@ def is_it_background(cutoff, actual):
 
     Parameters
     -----
-    cutoff: the cutoff value for a background image
+    cutoff (int): the cutoff value for a background image
 
     Returns
     -----
-    background: a boolean that is True if the patch
+    background (boolean): a boolean that is True if the patch
         should be considered background
     """
 
@@ -767,18 +767,18 @@ def sort_patches(df, lin_space=100, approx_between=200):
 
     Parameters
     -----
-    df: the dataframe that is already created containing patches,
+    df (pd.DataFrame): the dataframe that is already created containing patches,
         average patch color, and the greyscale value
-    lin_space: the multiple by which the KDE axis will be split into
+    lin_space (int): the multiple by which the KDE axis will be split into
         while it is being formed for a PDF (default is 100)
-    approx_between: the approximate value at which the grey values
+    approx_between (int): the approximate value at which the grey values
         will be split into two populations in the bimodal distribution.
         This is usually around 200 for slides and is going to be
         set to that as a default.
 
     Returns
     -----
-    df: an updated dataframe with a background column that indicates
+    df (pd.DataFrame): an updated dataframe with a background column that indicates
         if a patch should be considered background or not
     """
 
@@ -854,22 +854,22 @@ def main_preprocessing(complete_path, training=True, save_im=True,
 
     Parameters
     -----
-    complete_path: the full path to the file containing all svs
+    complete_path (str): the full path to the file containing all svs
                    files that will be used for training the model or a single
                    svs file to get an output value
-    training: a boolean that indicates if this preprocessing is
+    training (boolean): a boolean that indicates if this preprocessing is
               for training data or if it to only be used for the
               existing model
-    save_im: a boolean that indicates if tissue images should be saved
+    save_im (boolean): a boolean that indicates if tissue images should be saved
              (beware this is a lot of data, at least 10GB per slide)
-    max_tile_x: the maximum x dimension size, in pixels,
+    max_tile_x (int): the maximum x dimension size, in pixels,
                 of a slide patch (default is 4000)
-    max_tile_y: the maximum y dimension size, in pixels,
+    max_tile_y (int): the maximum y dimension size, in pixels,
                 of a slide patch (default is 3000)
 
     Returns
     -----
-    all_df or sorted_df: a dataframe containing all necessary information for
+    all_df or sorted_df (pd.DataFrame): a dataframe containing all necessary information for
         creating superpatches for training (all_df) or for inputting into an
         already generated model (sorted_df)
     """
