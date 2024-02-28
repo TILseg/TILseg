@@ -33,13 +33,13 @@ def open_slide(slidepath):
 
     Parameters
     -----
-    slidepath: the complete path to the slide file (.svs)
+    slidepath (str): the complete path to the slide file (.svs)
 
     Returns
     -----
-    slide: the slide object created by OpenSlide
-    slide_x: the x dimension of the slide
-    slide_y: the y dimension of the slide
+    slide (openslide.OpenSlide): the slide object created by OpenSlide
+    slide_x (int): the x dimension of the slide
+    slide_y (int): the y dimension of the slide
     """
 
     # check datatype of filepath
@@ -91,9 +91,9 @@ def get_tile_size(maximum, size, cutoff=4):
 
     Returns
     -----
-    dimension: the desired pixel size needed
-    slices: the number of slices needed in the given direction
-    remainder: the number of pixels lost with the slicing provided
+    dimension (int): the desired pixel size needed
+    slices (int): the number of slices needed in the given direction
+    remainder (int): the number of pixels lost with the slicing provided
     """
 
     # check maximum datatype
@@ -146,16 +146,16 @@ def percent_of_pixels_lost(lost_x, patch_x, lost_y, patch_y, x_size, y_size):
 
     Parameters
     -----
-    lost_x: the number of pixels lost in the x direction
-    patch_x: the number of patches that are split in the x direction
-    lost_y: the number of pixels lost in the y direction
-    patch_y: the number of patches that are split in the y direction
-    x_size: the total number of pixels in the x direction of the slide
-    y_size: the total number of pixels in the y direction of the slide
+    lost_x (int): the number of pixels lost in the x direction
+    patch_x (int): the number of patches that are split in the x direction
+    lost_y (int): the number of pixels lost in the y direction
+    patch_y (int): the number of patches that are split in the y direction
+    x_size (int): the total number of pixels in the x direction of the slide
+    y_size (int): the total number of pixels in the y direction of the slide
 
     Returns
     -----
-    percent: the percent of pixels deleted, rounded to two places
+    percent (float): the percent of pixels deleted, rounded to two places
     """
 
     # check xpatch datatype
@@ -221,9 +221,13 @@ def save_image(path, name, image_array):
 
     Parameters
     -----
-    path: the complete path to a directory to which the image should be saved
-    name: the name of the file, with extension, to save
-    image_array: a numpy array that stores image information
+    path (str): the complete path to a directory to which the image should be saved
+    name (str): the name of the file, with extension, to save
+    image_array (np.array): a numpy array that stores image information
+    
+    Returns
+    -----
+    None
     """
 
     # check datatype of path
@@ -288,7 +292,7 @@ def create_patches(slide, xpatch, ypatch, xdim, ydim):
 
     Parameters
     -----
-    slide: the OpenSlide object of the entire slide
+    slide (openslide.OpenSlide): the OpenSlide object of the entire slide
     xpatch (int): the number of the patch in the x direction
     ypatch (int): the number of the patch in the y direction
     xdim (int): the size of the patch in the x direction
@@ -296,8 +300,8 @@ def create_patches(slide, xpatch, ypatch, xdim, ydim):
 
     Returns
     -----
-    np_patches: a list of all patches, each as a number array
-    patch_position: a list of tuples containing indices
+    np_patches (lst(np.arrays)): a list of all patches, each as a number array
+    patch_position (lst(np.arrays)): a list of tuples containing indices
     """
 
     # check is it an openslide object
@@ -392,12 +396,12 @@ def get_average_color(img):
 
     Parameters
     -----
-    img: a numpy array containing all information about the
+    img (np.array): a numpy array containing all information about the
         RGB colors in a patch
 
     Returns
     -----
-    average: a numpy array containing the RGB code for the average color
+    average (np.array): a numpy array containing the RGB code for the average color
         of the entire patch
     """
 
@@ -432,11 +436,11 @@ def get_grey(rgb):
 
     Parameters
     -----
-    rgb: a numpy array containing three values, one each for R, G, and B
+    rgb (np.array): a numpy array containing three values, one each for R, G, and B
 
     Returns
     -----
-    grey: the greyscale value of an image/patch
+    grey (float): the greyscale value of an image/patch
     """
 
     # check datatype of input
@@ -469,10 +473,10 @@ def save_all_images(df, path, f):  # pylint disable = invalid-name
 
     Parameters
     -----
-    df: the dataframe that is already created containing patches,
+    df (pd.DataFrame): the dataframe that is already created containing patches,
         average patch color, and the greyscale value
-    path: the path to which the folders and subdirectories will be made
-    f: the slide .svs file that is currently being read
+    path (str): the path to which the folders and subdirectories will be made
+    f (str): the slide .svs file name that is currently being read
 
     Returns
     -----
@@ -547,14 +551,14 @@ def find_max(arr, cutoff, greater):
 
     Parameters
     -----
-    arr: the array that contains the list of data in question
-    cutoff: the value at which you want to start looking for a maximum
-    greater: a boolean that determines if you want the maximum above
+    arr (collections.abc.Sequence, np.ndarray): the array that contains the list of data in question
+    cutoff (int): the value at which you want to start looking for a maximum
+    greater (boolean): a boolean that determines if you want the maximum above
         or below the cutoff (above is when greater=False)
 
     Returns
     -----
-    loc: the index (from zero) at which the maximum value occurs
+    loca: the index (from zero) at which the maximum value occurs
     """
 
     # check that greater is a boolean
@@ -620,13 +624,13 @@ def find_min(arr, range_min, range_max):
 
     Parameters
     -----
-    arr: the array that contains the list of data in question
-    range_min: the lower bound on which to look for the minimum
-    range_max: the upper bound on which to look for the minimum
+    arr (collections.abc.Sequence, np.ndarray): the array that contains the list of data in question
+    range_min (int, float): the lower bound on which to look for the minimum
+    range_max (int, float): the upper bound on which to look for the minimum
 
     Returns
     -----
-    loc: the index (from zero) at which the minimum value occurs
+    loca (int): the index (from zero) at which the minimum value occurs
     """
 
     # check that the range_max value is an integer or float
