@@ -873,7 +873,6 @@ def main_preprocessing(complete_path, training=True, save_im=True,
     if training:  # pylint: disable=no-else-return
 
         all_df = pd.DataFrame()
-
         # iterate through all files in the directory
         for file in os.listdir(complete_path):
 
@@ -881,7 +880,9 @@ def main_preprocessing(complete_path, training=True, save_im=True,
             if file.endswith('.svs'):
 
                 # open the slide file
-                slide_file, slide_x, slide_y = open_slide(file)
+                full_file_path = os.path.join(complete_path, file)
+                print(full_file_path)
+                slide_file, slide_x, slide_y = open_slide(full_file_path)
 
                 # calculate dimensions and losses
                 ydim, ypatch, yloss = get_tile_size(max_tile_y, slide_y)
