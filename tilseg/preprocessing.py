@@ -935,6 +935,8 @@ def main_preprocessing(complete_path, training=True, save_im=True,
 
         # open the slide file
         slide_file, slide_x, slide_y = open_slide(complete_path)
+        path = os.path.dirname(complete_path)
+        file = os.path.basename(complete_path)
 
         # calculate dimensions and losses
         ydim, ypatch, yloss = get_tile_size(max_tile_y, slide_y)
@@ -955,7 +957,7 @@ def main_preprocessing(complete_path, training=True, save_im=True,
 
         # save all images to correct directory if desired
         if save_im:
-            save_all_images(sorted_df, complete_path, file)
+            save_all_images(sorted_df, path, file)
 
         # print out the percent of pixels lost
         print(f'Percent of Pixels Lost in Pre-Processing: {loss_percentage} %')
