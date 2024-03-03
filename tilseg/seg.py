@@ -869,9 +869,9 @@ def kmean_dbscan_wrapper(superpatch_path: str,
     #Run Segmentation on Kmeans Model
     TIL_count_dict, kmean_labels_dict = segment_TILs(in_dir_path,
                  out_dir_path,
-                 None,
+                 hyperparameter_dict, #None,
                  'KMeans',
-                 kmeans_fit,
+                 None,#kmeans_fit,
                  save_TILs_overlay, 
                  save_cluster_masks,
                  save_cluster_overlays,
@@ -879,10 +879,4 @@ def kmean_dbscan_wrapper(superpatch_path: str,
                  save_csv)
     
     #Feed into DBSCAN
-    return kmean_labels_dict
-
-
-
-
-
-
+    return TIL_count_dict, kmean_labels_dict
