@@ -451,7 +451,7 @@ def get_grey(rgb):
     else:
         raise IndexError('input not correct size; must have three entries')
 
-    grey = (rgb[0] + rgb[1] + rgb[2]) / 3
+    grey = (0.2125 * rgb[0] + 0.7254 * rgb[1] + 0.0721 * rgb[2])
 
     return grey
 
