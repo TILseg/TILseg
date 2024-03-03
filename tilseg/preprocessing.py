@@ -78,7 +78,7 @@ def open_slide(slidepath):
     return slide, slide_x, slide_y
 
 
-def get_tile_size(maximum, size):
+def get_tile_size(maximum, size, cutoff=4):
     """
     A function that takes in a slide dimension and returns
     the optimal breakdown of each slide into x patches.
