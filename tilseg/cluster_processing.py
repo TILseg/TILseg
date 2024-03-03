@@ -455,13 +455,22 @@ def draw_til_images(img: np.ndarray, contours: list, filepath: str):
     filepath (str):
         directory where the images will be saved
     """
-    # get image shape and use to make an empty array
+    # Get image shape and make a copy to ensure writability
     dims = img.shape
     tils_mask = np.zeros((dims[0], dims[1], 3), np.uint8)
-    # draw contours on original image in green and the blank image in white
-    cv.drawContours(tils_mask, contours, -1, (255, 255, 255), 3)
-    cv.drawContours(img, contours, -1, (0, 255, 0), 3)
-    # generate relevant file paths and save overlaid image and mask
+    
+    # Convert contours to NumPy arrays
+    contours = [np.array(contour) for contour in contours]
+
+    # Convert img and tils_mask to the same data type
+    img = img.astype(np.uint8)
+    tils_mask = tils_mask.astype(np.uint8)
+
+    # Draw contours on the copied image in green and the blank image in white
+    cv.drawContours(np.copy(tils_mask), contours, -1, (255, 255, 255), 3)
+    cv.drawContours(np.copy(img), contours, -1, (0, 255, 0), 3)
+    
+    # Generate relevant file paths and save overlaid image and mask
     contour_img_filepath = os.path.join(filepath, "ContourOverlay.jpg")
     contour_mask_filepath = os.path.join(filepath, "ContourMask.jpg")
     plt.imsave(contour_img_filepath, img)
