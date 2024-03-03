@@ -30,9 +30,11 @@ from sklearn.exceptions import NotFittedError
 import sklearn.cluster
 import sklearn.metrics
 import sklearn.utils.validation
+from PIL import Image
 
 # Local imports
 from tilseg.cluster_processing import image_postprocessing
+from tilseg.model_selection import opt_kmeans
 
 
 def KMeans_superpatch_fit(patch_path: str,
@@ -728,10 +730,13 @@ def segment_TILs(in_dir_path: str,
     # Initializing dicitonary with the count of the TILs in each patch in the
     # input directory
     TIL_count_dict = {}
+    kmean_labels_dict = {}
 
     # Iterating over every patch in the directory
     for file in os.listdir(in_dir_path):
 
+        if not file.lower().endswith(".tif"):
+            continue
         # Creating a directory with the same file name (without extenstion)
         # Passing if such a directory already exists
         if out_dir_path is not None:
@@ -836,7 +841,48 @@ def segment_TILs(in_dir_path: str,
         # appends the TILs count from the current patch to the dictionary as a
         # value to a key that is the patch's file name without the extension
         TIL_count_dict[file[:-4]] = TIL_count
+        kmean_labels_dict[file[:-4]] = labels
 
     # returns the dictionary containing patch filenames without the extension
     # as the key and TIL counts as the values
-    return TIL_count_dict
+    return TIL_count_dict, kmean_labels_dict
+
+def kmean_dbscan_wrapper(superpatch_path: str,
+                n_clusters: list,
+                in_dir_path: str,
+                 out_dir_path: str = None,
+                 save_TILs_overlay: bool = False,
+                 save_cluster_masks: bool = False,
+                 save_cluster_overlays: bool = False,
+                 save_all_clusters_img: bool = False,
+                 save_csv: bool = False):
+    
+    #Find Kmeans Parameters (num clusters)
+    img = Image.open(superpatch_path)
+    numpy_img = np.array(img)
+    numpy_img_reshape = np.float32(numpy_img.reshape((-1, 3))/255.)
+    opt_cluster = opt_kmeans(numpy_img_reshape,n_clusters)
+    hyperparameter_dict = {'n_clusters': opt_cluster}
+    kmeans_fit = KMeans_superpatch_fit(superpatch_path,hyperparameter_dict)
+    print("Completed Kmeans fitting.")
+    
+    #Run Segmentation on Kmeans Model
+    TIL_count_dict, kmean_labels_dict = segment_TILs(in_dir_path,
+                 out_dir_path,
+                 None,
+                 'KMeans',
+                 kmeans_fit,
+                 save_TILs_overlay, 
+                 save_cluster_masks,
+                 save_cluster_overlays,
+                 save_all_clusters_img,
+                 save_csv)
+    
+    #Feed into DBSCAN
+    return kmean_labels_dict
+
+
+
+
+
+
