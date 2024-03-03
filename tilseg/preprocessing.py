@@ -78,7 +78,7 @@ def open_slide(slidepath):
     return slide, slide_x, slide_y
 
 
-def get_tile_size(maximum, size, cutoff=4):
+def get_tile_size(maximum, size):
     """
     A function that takes in a slide dimension and returns
     the optimal breakdown of each slide into x patches.
@@ -120,23 +120,12 @@ def get_tile_size(maximum, size, cutoff=4):
     else:
         pass
 
-    # iterate through possible sizes of tiles starting
-    # with the largest possible tile size
-    for dimension in reversed(range(0, (maximum+1))):
+    remainder = size % maximum
+            
+    slices = math.trunc(size / maximum)
 
-        # calculate the remainder (number of pixels missing)
-        remainder = size % dimension
-
-        # check if the remainder is less than cutoff
-
-        if remainder <= cutoff:
-
-            # calculate the number of patches made
-            slices = math.trunc(size / dimension)
-
-            # return requested values
-            return dimension, slices, remainder
-    return None, None, None
+    # return requested values
+    return dimension, slices, remainder
 
 
 def percent_of_pixels_lost(lost_x, patch_x, lost_y, patch_y, x_size, y_size):
@@ -846,7 +835,7 @@ def sort_patches(df, lin_space=100, approx_between=200):
 
 
 def main_preprocessing(complete_path, training=True, save_im=True,
-                       max_tile_x=4000, max_tile_y=3000):
+                       max_tile_x=3000, max_tile_y=2000):
     """
     The primary function to perform all preprocessing
     of the data, creating patches and returning a final
@@ -1054,7 +1043,7 @@ def patches_per_img(num_patches, path=os.getcwd()):
     return patch_img
 
 
-def get_superpatch_patches(patches_df, patches=6, path=os.getcwd()):
+def get_superpatch_patches(patches_df, patches=8, path=os.getcwd()):
     """
     This function finds the patches to comprise the superpatch.
     The patches are selected based off of distribution of
@@ -1117,12 +1106,6 @@ def get_superpatch_patches(patches_df, patches=6, path=os.getcwd()):
     else:
         raise IndexError('Fewer patches available in dataframe than \
                         requested for superpatch')
-
-    # force number of patches to be even
-    if patches % 2 == 0:
-        pass
-    else:
-        raise ValueError('Number of patches must be an even integer')
 
     # patches list
     patches_list = []
@@ -1261,7 +1244,7 @@ def superpatcher(patches_list, sp_width=3):
     return patch_row_1
 
 
-def preprocess(path, patches=6, training=True, save_im=True,
+def preprocess(path, patches=6, sp_width=3, training=True, save_im=True,
                max_tile_x=4000, max_tile_y=3000):
     """
     #TODO: Continue to edit what the output and input variables definintions are
@@ -1291,10 +1274,10 @@ def preprocess(path, patches=6, training=True, save_im=True,
                         already generated model (sorted_df)
     """
     if training:
-        dataframe = main_preprocessing(path, training, save_im,
+        dataframe = main_preprocessing(path, patches, training, save_im,
                                        max_tile_x, max_tile_y)
         plist = get_superpatch_patches(dataframe, patches, path)
-        spatch = superpatcher(plist)
+        spatch = superpatcher(plist, sp_width)
         save_image(path, 'superpatch_training.tif', spatch)
 
     else:
