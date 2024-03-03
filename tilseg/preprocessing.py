@@ -122,21 +122,21 @@ def get_tile_size(maximum, size, cutoff=4):
 
     # iterate through possible sizes of tiles starting
     # with the largest possible tile size
-    for dimension in reversed(range(0, (maximum+1))):
+    #for dimension in reversed(range(0, (maximum+1))):
 
         # calculate the remainder (number of pixels missing)
-        remainder = size % dimension
+    remainder = size % maximum
 
         # check if the remainder is less than cutoff
 
-        if remainder <= cutoff:
+    #    if remainder <= cutoff:
 
             # calculate the number of patches made
-            slices = math.trunc(size / dimension)
+    slices = math.trunc(size / maximum)
 
             # return requested values
-            return dimension, slices, remainder
-    return None, None, None
+    return maximum, slices, remainder
+    #return None, None, None
 
 
 def percent_of_pixels_lost(lost_x, patch_x, lost_y, patch_y, x_size, y_size):
@@ -462,7 +462,7 @@ def get_grey(rgb):
     else:
         raise IndexError('input not correct size; must have three entries')
 
-    grey = (rgb[0] + rgb[1] + rgb[2]) / 3
+    grey = (0.2125 * rgb[0] + 0.7254 * rgb[1] + 0.0721 * rgb[2])
 
     return grey
 
