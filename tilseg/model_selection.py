@@ -431,7 +431,7 @@ def opt_kmeans(data: np.array, n_clusters: list, **kwargs):
     opt_cluster = eval_km_elbow(data, n_clusters, **kwargs)
     hyperparameter_dict = {'n_clusters': opt_clusters, 'metric': 'cosine'}
 
-    return eval_km_elbow(data, n_clusters, **kwargs)
+    return hyperparameter_dict
 
 
 def opt_dbscan(data: np.array,
