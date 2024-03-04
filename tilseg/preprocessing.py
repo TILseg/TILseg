@@ -125,7 +125,7 @@ def get_tile_size(maximum, size, cutoff=4):
     slices = math.trunc(size / maximum)
 
     # return requested values
-    return dimension, slices, remainder
+    return maximum, slices, remainder
 
 
 def percent_of_pixels_lost(lost_x, patch_x, lost_y, patch_y, x_size, y_size):
@@ -835,7 +835,7 @@ def sort_patches(df, lin_space=100, approx_between=200):
 
 
 def main_preprocessing(complete_path, training=True, save_im=True,
-                       max_tile_x=3000, max_tile_y=2000):
+                       max_tile_x=4000, max_tile_y=3000):
     """
     The primary function to perform all preprocessing
     of the data, creating patches and returning a final
@@ -1043,7 +1043,7 @@ def patches_per_img(num_patches, path=os.getcwd()):
     return patch_img
 
 
-def get_superpatch_patches(patches_df, patches=8, path=os.getcwd()):
+def get_superpatch_patches(patches_df, patches=6, path=os.getcwd()):
     """
     This function finds the patches to comprise the superpatch.
     The patches are selected based off of distribution of
@@ -1274,7 +1274,7 @@ def preprocess(path, patches=6, sp_width=3, training=True, save_im=True,
                         already generated model (sorted_df)
     """
     if training:
-        dataframe = main_preprocessing(path, patches, training, save_im,
+        dataframe = main_preprocessing(path, training, save_im,
                                        max_tile_x, max_tile_y)
         plist = get_superpatch_patches(dataframe, patches, path)
         spatch = superpatcher(plist, sp_width)
