@@ -415,6 +415,10 @@ def opt_kmeans(data: np.array, n_clusters: list, **kwargs):
     -------
     n_cluster: optimized n_clusters
     """
+    img = Image.open(superpatch_path)
+        numpy_img = np.array(img)
+        numpy_img_reshape = np.float32(numpy_img.reshape((-1, 3))/255.)
+    
     for i in n_clusters:
         if i < 1:
             raise ValueError("n_clusters must be at least 1")
@@ -423,9 +427,11 @@ def opt_kmeans(data: np.array, n_clusters: list, **kwargs):
         except ValueError as exc:
             raise ValueError(
                 f"Couldn't Convert {i} to int") from exc
-    return eval_km_elbow(data, n_clusters, **kwargs)
 
-#small change
+    opt_cluster = eval_km_elbow(data, n_clusters, **kwargs)
+    hyperparameter_dict = {'n_clusters': opt_clusters, 'metric': 'cosine'}
+
+    return eval_km_elbow(data, n_clusters, **kwargs)
 
 
 def opt_dbscan(data: np.array,
