@@ -489,6 +489,9 @@ def segment_TILs(in_dir_path: str,
     save_csv: bool
         generate CSV file containing countour information of each TIL segmented
         from the patch
+    multiple_images: bool
+        True if model will be fit to superpatch and predicted on sub-patches and False if
+        model will be fit to sub-patch and predicted on sub-patch
 
     Returns
     -----
