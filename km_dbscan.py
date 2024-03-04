@@ -12,9 +12,13 @@ import numpy as np
 import pandas as pd
 from sklearn.cluster import DBSCAN, KMeans
 from sklearn.preprocessing import StandardScaler
+from skimage.measure import label, regionprops
 import matplotlib.pyplot as plt
 from PIL import UnidentifiedImageError
 import cv2
+
+# Local imports
+from tilseg.cluster_processing import mask_only_generator
 
 
 # SUPERPATCH CREATION FROM PATCHES
@@ -157,12 +161,60 @@ def kmeans_apply_patch(model, patch_path: str):
     patch_pixels_norm = np.float32(patch.reshape((-1, 3))/255.)
 
     # Predict cluster labels using the pre-fitted KMeans model
-    km_labels = model.predict(patch_pixels_norm)
+    km_cluster_labels = model.predict(patch_pixels_norm)
 
     # Reshape the cluster labels back to the original image shape
-    km_labels = km_labels.reshape(patch.shape[:2])
+    km_cluster_labels = km_cluster_labels.reshape(patch.shape[:2])
 
-    return km_labels
+    return km_cluster_labels
+
+def kmeans_til_label(model, patch_path: str):
+    
+    # Cluster the image based on the pre-fitted model from the superpatch
+    km_labels = kmeans_apply_patch(model, patch_path)
+
+    # Initialize a binary mask for TILs
+    til_mask = np.zeros_like(km_labels, dtype=np.uint8)
+
+    # Iterate over each unique cluster label
+    unique_labels = np.unique(km_labels)
+    for label_value in unique_labels:
+        if label_value == -1:  # Skip the background label if present
+            continue
+
+        # Create a binary mask for the current cluster
+        cluster_mask = np.uint8(km_labels == label_value)
+
+        # Use skimage's regionprops to get properties of connected regions
+        labeled_regions = label(cluster_mask)
+        regions = regionprops(labeled_regions)
+
+        # Filter regions based on circularity and area
+        for region in regions:
+            area = region.area
+            perimeter = region.perimeter
+            # Ensure that the denominator is not zero before calculating circularity
+            if area != 0 and perimeter != 0:
+                circularity = 4 * np.pi * area / (perimeter ** 2)
+                if 200 < region.area < 2000 and circularity > 0.3:
+                    # Add the pixels of the qualified region to the TIL mask
+                    til_mask += (labeled_regions == region.label)
+
+    # Ensure the shapes of the til_mask and km_labels match
+    if til_mask.shape != km_labels.shape:
+        raise ValueError("Shape mismatch between til_mask and km_cluster_labels.")
+
+    # Find unique cluster labels within the TILs mask
+    unique_labels, counts = np.unique(km_labels[til_mask > 0], return_counts=True)
+
+    # Find the label with the highest count (most prevalent within TILs)
+    til_cluster_label = unique_labels[np.argmax(counts)]
+
+    # Create a binary mask for the specified cluster
+    tils_mask_raw = np.uint8(km_labels == til_cluster_label)
+
+    return tils_mask_raw
+    
 
 # DBSCAN
 
