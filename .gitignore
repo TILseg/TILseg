@@ -3,6 +3,11 @@ __pycache__/
 *.py[cod]
 *$py.class
 
+Example/Images/*
+Example/Images_short/*
+Example/Test
+.DS_Store
+
 # C extensions
 *.so
 
