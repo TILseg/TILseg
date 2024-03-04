@@ -84,7 +84,7 @@ def KMeans_superpatch_fit(patch_path: str,
     # Creates a variable which references the preferred parameters for KMeans
     # clustering
     key_list = list(hyperparameter_dict.keys())
-    expected_key_list = ['n_clusters']
+    expected_key_list = ['n_clusters','metric']
     # Checks that the expected keys are present in hyperparameters_dict
     if set(key_list) != set(expected_key_list):
         raise KeyError(
