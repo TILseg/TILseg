@@ -438,7 +438,8 @@ def segment_TILs(in_dir_path: str,
                  save_cluster_masks: bool = False,
                  save_cluster_overlays: bool = False,
                  save_all_clusters_img: bool = False,
-                 save_csv: bool = False):
+                 save_csv: bool = False,
+                 multiple_images: bool = True):
 
     """
     Applies a clustering model to patches and generates multiple files: TILs
@@ -495,6 +496,12 @@ def segment_TILs(in_dir_path: str,
         contains patch filenames without the extension as the key and TIL
         counts in respective patches as the values
     """
+    
+    if multiple_images:
+        files = [file for file in os.listdir(in_dir_path)]
+    else:
+        files = [in_dir_path]
+        in_dir_path = os.path.dirname(in_dir_path)
 
     # Checks that the path to the input directory is a string
     if not isinstance(in_dir_path, str):
@@ -731,10 +738,8 @@ def segment_TILs(in_dir_path: str,
     # input directory
     TIL_count_dict = {}
     kmean_labels_dict = {}
-
-    # Iterating over every patch in the directory
+    
     for file in os.listdir(in_dir_path):
-
         if not file.lower().endswith(".tif"):
             continue
         # Creating a directory with the same file name (without extenstion)
@@ -847,7 +852,7 @@ def segment_TILs(in_dir_path: str,
     # as the key and TIL counts as the values
     return TIL_count_dict, kmean_labels_dict
 
-def kmean_dbscan_wrapper(superpatch_path: str,
+def kmean_dbscan_superpatch_wrapper(superpatch_path: str,
                 n_clusters: list,
                 in_dir_path: str,
                  out_dir_path: str = None,
@@ -869,14 +874,48 @@ def kmean_dbscan_wrapper(superpatch_path: str,
     #Run Segmentation on Kmeans Model
     TIL_count_dict, kmean_labels_dict = segment_TILs(in_dir_path,
                  out_dir_path,
-                 hyperparameter_dict, #None,
+                 None,
                  'KMeans',
-                 None,#kmeans_fit,
+                 kmeans_fit,
                  save_TILs_overlay, 
                  save_cluster_masks,
                  save_cluster_overlays,
                  save_all_clusters_img,
                  save_csv)
+    
+    #Feed into DBSCAN
+    return TIL_count_dict, kmean_labels_dict
+
+def kmean_dbscan_patch_wrapper(patch_path: str,
+                n_clusters: list,
+                 out_dir_path: str = None,
+                 save_TILs_overlay: bool = False,
+                 save_cluster_masks: bool = False,
+                 save_cluster_overlays: bool = False,
+                 save_all_clusters_img: bool = False,
+                 save_csv: bool = False):
+    
+    #Find Kmeans Parameters (num clusters)
+    img = Image.open(patch_path)
+    numpy_img = np.array(img)
+    numpy_img_reshape = np.float32(numpy_img.reshape((-1, 3))/255.)
+    opt_cluster = opt_kmeans(numpy_img_reshape,n_clusters)
+    hyperparameter_dict = {'n_clusters': opt_cluster}
+    kmeans_fit = KMeans_superpatch_fit(patch_path,hyperparameter_dict)
+    print("Completed Kmeans fitting.")
+    
+    #Run Segmentation on Kmeans Model
+    TIL_count_dict, kmean_labels_dict = segment_TILs(patch_path,
+                 out_dir_path,
+                 None,
+                 'KMeans',
+                 kmeans_fit,
+                 save_TILs_overlay, 
+                 save_cluster_masks,
+                 save_cluster_overlays,
+                 save_all_clusters_img,
+                 save_csv,
+                 False)
     
     #Feed into DBSCAN
     return TIL_count_dict, kmean_labels_dict
