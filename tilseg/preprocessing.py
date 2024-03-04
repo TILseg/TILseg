@@ -125,7 +125,7 @@ def get_tile_size(maximum, size, cutoff=4):
     slices = math.trunc(size / maximum)
 
     # return requested values
-    return dimension, slices, remainder
+    return maximum, slices, remainder
 
 
 def percent_of_pixels_lost(lost_x, patch_x, lost_y, patch_y, x_size, y_size):
