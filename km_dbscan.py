@@ -176,7 +176,7 @@ def kmeans_til_label(model, patch_path: str):
     # Initialize a binary mask for TILs
     til_mask = np.zeros_like(km_labels, dtype=np.uint8)
 
-    # Iterate over each unique cluster label
+    # Iterate over each unique K-Means cluster label
     unique_labels = np.unique(km_labels)
     for label_value in unique_labels:
         if label_value == -1:  # Skip the background label if present
@@ -189,7 +189,7 @@ def kmeans_til_label(model, patch_path: str):
         labeled_regions = label(cluster_mask)
         regions = regionprops(labeled_regions)
 
-        # Filter regions based on circularity and area
+        # Filter regions based on circularity and area of a single TIL
         for region in regions:
             area = region.area
             perimeter = region.perimeter
@@ -207,13 +207,14 @@ def kmeans_til_label(model, patch_path: str):
     # Find unique cluster labels within the TILs mask
     unique_labels, counts = np.unique(km_labels[til_mask > 0], return_counts=True)
 
-    # Find the label with the highest count (most prevalent within TILs)
+    # Find the label with the highest count which is most likely 
+    # the cluster that contains TILs
     til_cluster_label = unique_labels[np.argmax(counts)]
 
     # Create a binary mask for the specified cluster
     tils_mask_raw = np.uint8(km_labels == til_cluster_label)
 
-    return tils_mask_raw
+    return tils_mask_raw, km_labels, til_cluster_label
     
 
 # DBSCAN
