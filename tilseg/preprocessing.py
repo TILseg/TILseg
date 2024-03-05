@@ -451,7 +451,7 @@ def get_grey(rgb):
     else:
         raise IndexError('input not correct size; must have three entries')
 
-    grey = (0.2125 * rgb[0] + 0.7254 * rgb[1] + 0.0721 * rgb[2])
+    grey = (rgb[0]+rgb[1]+rgb[2])/3
 
     return grey
 
@@ -1244,7 +1244,7 @@ def superpatcher(patches_list, sp_width=3):
     return patch_row_1
 
 
-def preprocess(path, patches=6, sp_width=3, training=True, save_im=False,
+def preprocess(path, patches=6, sp_width=3, training=True, save_im=True,
                max_tile_x=4000, max_tile_y=3000):
     """
     #TODO: Continue to edit what the output and input variables definintions are

@@ -16,8 +16,8 @@ def image_similarity(img1_path, img2_path):
     img2_path (str): path to second image.
 
     Returns:
-    float: SSIM similarity score between two images.
-    ndarray: image difference as a NumPy array.
+    ssim score (float): SSIM similarity score between two images.
+    diff (np.ndarray): image difference as numpy array.
     """
 
     # load images
