@@ -211,7 +211,7 @@ def kmeans_til_label(model, patch_path: str):
     # the cluster that contains TILs
     til_cluster_label = unique_labels[np.argmax(counts)]
 
-    # Create a binary mask for the specified cluster
+    # Create a binary mask for the TILs cluster from the initial kmeans clustering
     tils_mask_raw = np.uint8(km_labels == til_cluster_label)
 
     return tils_mask_raw, km_labels, til_cluster_label
