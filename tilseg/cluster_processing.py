@@ -412,7 +412,9 @@ def immune_cluster_analyzer(masks: list):
         list of arrays that correspond to the contours of the filtered TILs
     max_contour_count (int):
         maximum number of contours found
-
+    cluster_mask (np.ndarray):
+        2D array slice of 3D binary mask (num clusters by image x-dim by image y-dim)
+        corresponding to cluster with most contours
     """
     # intialize lists to store contours and number of contours
     contour_list = []
@@ -430,13 +432,18 @@ def immune_cluster_analyzer(masks: list):
         # check if the amount of contours is the largest seen and if so
         # redefine max index and value
         if contour_count >= count_list[count_index]:
-            count_index = ele[0]
+            count_index = ele[0] #cluster index that has most contours
             max_contour_count = contour_count
         else:
             pass
-    # only get contours from the cluster with the most contours and return
+    # get 2D array of x and y values from image mask that correspond to cluster with the most contours
     til_contour = contour_list[count_index]
-    return til_contour, max_contour_count
+    
+    #Get 2D Array of Mask that Correpsonds to cluster with most contours
+    cluster_mask = masks[count_index]
+    cluster_mask = cluster_mask.reshape(-1,1) #makes a single column of 0's (dont use pixel) and 1's (use pixel)
+    
+    return til_contour, max_contour_count, cluster_mask
 
 
 def draw_til_images(img: np.ndarray, contours: list, filepath: str):
@@ -554,7 +561,7 @@ def image_postprocessing(clusters: np.ndarray, ori_img: np.ndarray,
         masks = mask_only_generator(clusters)
 
     # generate contours if images or CSV of TILs is required
-    til_list, til_count = immune_cluster_analyzer(masks)
+    til_list, til_count, cluster_mask = immune_cluster_analyzer(masks)
 
     # save image with all clusters if specified
     if gen_all_clusters:
@@ -583,4 +590,4 @@ def image_postprocessing(clusters: np.ndarray, ori_img: np.ndarray,
     # go back to home directory
     os.chdir(home)
 
-    return til_count
+    return til_count, cluster_mask

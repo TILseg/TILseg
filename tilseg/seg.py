@@ -35,6 +35,7 @@ from PIL import Image
 # Local imports
 from tilseg.cluster_processing import image_postprocessing
 from tilseg.model_selection import opt_kmeans
+from tilseg.kmeans_input_seg import mean_shift_patch_fit
 
 
 def KMeans_superpatch_fit(patch_path: str,
@@ -740,9 +741,10 @@ def segment_TILs(in_dir_path: str,
     # Initializing dicitonary with the count of the TILs in each patch in the
     # input directory
     TIL_count_dict = {}
+    cluster_mask_dict = {}
     kmean_labels_dict = {}
     
-    for file in os.listdir(in_dir_path):
+    for file in files:
         if not file.lower().endswith(".tif"):
             continue
         # Creating a directory with the same file name (without extenstion)
@@ -836,7 +838,7 @@ def segment_TILs(in_dir_path: str,
 
         # function imported from tilseg.cluster_processing module which
         # produces the images and CSV files and counts the TILs
-        TIL_count = image_postprocessing(
+        TIL_count,cluster_mask = image_postprocessing(
             clusters=labels.reshape(pred_patch.shape[0], pred_patch.shape[1]),
             ori_img=pred_patch,
             filepath=os.path.join(out_dir_path, file[:-4]),
@@ -850,12 +852,13 @@ def segment_TILs(in_dir_path: str,
         # value to a key that is the patch's file name without the extension
         TIL_count_dict[file[:-4]] = TIL_count
         kmean_labels_dict[file[:-4]] = labels
+        cluster_mask_dict[file[:-4]] = cluster_mask
 
     # returns the dictionary containing patch filenames without the extension
     # as the key and TIL counts as the values
-    return TIL_count_dict, kmean_labels_dict
+    return TIL_count_dict, kmean_labels_dict, cluster_mask_dict
 
-def kmean_dbscan_superpatch_wrapper(superpatch_path: str,
+def kmean_to_feed_model_superpatch_wrapper(superpatch_path: str,
                 n_clusters: list,
                 in_dir_path: str,
                  out_dir_path: str = None,
@@ -863,19 +866,19 @@ def kmean_dbscan_superpatch_wrapper(superpatch_path: str,
                  save_cluster_masks: bool = False,
                  save_cluster_overlays: bool = False,
                  save_all_clusters_img: bool = False,
-                 save_csv: bool = False):
+                 save_csv: bool = False,
+                 feed_model_func):
     
     #Find Kmeans Parameters (num clusters)
     img = Image.open(superpatch_path)
     numpy_img = np.array(img)
     numpy_img_reshape = np.float32(numpy_img.reshape((-1, 3))/255.)
-    opt_cluster = opt_kmeans(numpy_img_reshape,n_clusters)
-    hyperparameter_dict = {'n_clusters': opt_cluster}
+    hyperparameter_dict = opt_kmeans(numpy_img_reshape,n_clusters)
     kmeans_fit = KMeans_superpatch_fit(superpatch_path,hyperparameter_dict)
     print("Completed Kmeans fitting.")
     
     #Run Segmentation on Kmeans Model
-    TIL_count_dict, kmean_labels_dict = segment_TILs(in_dir_path,
+    TIL_count_dict, kmean_labels_dict,cluster_mask_dict = segment_TILs(in_dir_path,
                  out_dir_path,
                  None,
                  'KMeans',
@@ -886,9 +889,22 @@ def kmean_dbscan_superpatch_wrapper(superpatch_path: str,
                  save_all_clusters_img,
                  save_csv)
     
-    #Feed into DBSCAN
-    return TIL_count_dict, kmean_labels_dict
-
+    #Feed into Model
+    for file in os.listdir(in_dir_path):
+        if not file.lower().endswith(".tif"):
+            continue
+        cluster_mask = cluster_mask_dict[file[:-4]]
+        dbscan_img = numpy_img_reshape[cluster_mask]
+        all_labels = [-1]*len(numpy_img_reshape)
+        indices = [i for i, val in enumerate(cluster_mask) if val == 1]
+        
+        model, cluster_labels, cluster_centers = mean_shift_patch_fit(dbscan_img) #change to feed_model_func after showing this
+        
+        for index, new_label in zip(indices, cluster_labels):
+            all_labels[index] = new_label
+            
+    return all_labels
+    
 def kmean_dbscan_patch_wrapper(patch_path: str,
                 n_clusters: list,
                  out_dir_path: str = None,
@@ -902,8 +918,7 @@ def kmean_dbscan_patch_wrapper(patch_path: str,
     img = Image.open(patch_path)
     numpy_img = np.array(img)
     numpy_img_reshape = np.float32(numpy_img.reshape((-1, 3))/255.)
-    opt_cluster = opt_kmeans(numpy_img_reshape,n_clusters)
-    hyperparameter_dict = {'n_clusters': opt_cluster}
+    hyperparameter_dict = opt_kmeans(numpy_img_reshape,n_clusters)
     kmeans_fit = KMeans_superpatch_fit(patch_path,hyperparameter_dict)
     print("Completed Kmeans fitting.")
     
