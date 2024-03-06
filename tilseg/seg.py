@@ -35,7 +35,7 @@ from PIL import Image
 # Local imports
 from tilseg.cluster_processing import image_postprocessing
 from tilseg.model_selection import opt_kmeans
-from tilseg.refine_kmeans import KMeans_superpatch_fit
+from tilseg.refine_kmeans import KMeans_superpatch_fit, mask_to_features, km_dbscan_wrapper
 
 
 def clustering_score(patch_path: str,
@@ -787,7 +787,6 @@ def segment_TILs(in_dir_path: str,
 
 def kmean_to_spatial_model_superpatch_wrapper(superpatch_path: str,
                                             in_dir_path: str,
-                                            spatial_func,
                                             n_clusters: list = [1,2,4,5,6,7,8,9],
                                             out_dir_path: str = None,
                                             save_TILs_overlay: bool = False,
@@ -812,7 +811,7 @@ def kmean_to_spatial_model_superpatch_wrapper(superpatch_path: str,
         containing significant amount of tissue using the tilseg.preprocessing module.
     spatial_func:
         the spatial algorithm fitting function that takes in a formated version of the 
-        cluster mask array. It should return a fitted model.
+        cluster mask array. It should return a fitted model. #TODO: make code compatabile with other spatial functions
     n_clusters: list
         a list of the number clusters to test in KMeans optimization
     out_dir: str
@@ -873,21 +872,15 @@ def kmean_to_spatial_model_superpatch_wrapper(superpatch_path: str,
         if not file.lower().endswith(".tif"):
             continue
         cluster_mask = cluster_mask_dict[file[:-4]]
-        dbscan_img = numpy_img_reshape[cluster_mask]
-        all_labels = [-1]*len(numpy_img_reshape)
-        indices = [i for i, val in enumerate(cluster_mask) if val == 1]
+        hyperparameter_dict = {'eps': 0.5, 'min_samples': 1}
+        print(cluster_mask.shape)
+        im_labels = km_dbscan_wrapper(mask = cluster_mask, hyperparameter_dict= hyperparameter_dict)
         
         #TODO: create funciton that converts mask to data to put into fitting function (inputs: mask, output: data)
         #TODO: fitting dbscan (inputs: data, hyperparameters (optional), outputs: fitted dbscan model)  
         #TODO: plotting for dbscan image
-        
-        # #Lauren's Method for Fitting Dbscan
-        #TODO: model, cluster_labels, cluster_centers = mean_shift_patch_fit(dbscan_img) #change to feed_model_func after showing this
-        
-        # for index, new_label in zip(indices, cluster_labels):
-        #     all_labels[index] = new_label
             
-    return all_labels, kmeans_fit
+    return im_labels
     
 def kmean_dbscan_patch_wrapper(patch_path: str,
                         spatial_func,
@@ -971,7 +964,6 @@ def kmean_dbscan_patch_wrapper(patch_path: str,
                  False)
     
     #Feed into DBSCAN
-    #TODO: add the function that converts mask to data &&& fitting function
-    #TODO: plotting of dbscan model
+
     
     return TIL_count_dict, kmean_labels_dict

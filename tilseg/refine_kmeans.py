@@ -17,10 +17,6 @@ import matplotlib.pyplot as plt
 from PIL import UnidentifiedImageError, Image
 import cv2
 
-# Local imports
-from tilseg.cluster_processing import mask_only_generator, image_postprocessing
-from tilseg.seg import segment_TILs
-from tilseg.model_selection import opt_kmeans
 
 # KMeans_superpatch_fit function is cpoied here for ease
 def KMeans_superpatch_fit(patch_path: str,
@@ -142,27 +138,24 @@ def mask_to_features(binary_mask:np.ndarray):
     return features
 
 
-def km_dbscan_wrapper(mask: np.ndarray, eps: float, min_samples: int, patch_path:str):
-
+def km_dbscan_wrapper(mask: np.ndarray, hyperparameter_dict):
+    #hyper dict keys
+    #eps: float, min_samples: int,
+   
     #Generate Spatial Coordiantes
     features = mask_to_features(mask)
 
     # DBSCAN Model Fitting
-    dbscan = sklearn.cluster.DBSCAN(eps=eps, min_samples=min_samples) 
+    dbscan = sklearn.cluster.DBSCAN(**hyperparameter_dict)
     dbscan_labels = dbscan.fit_predict(features)
 
-    # Read in Original Image
-    img = Image.open(patch_path)
-    numpy_img = np.array(img)
-    numpy_img_reshape = np.float32(numpy_img.reshape((-1, 3))/255.)
-
     #Generate Labels for Plot
-    all_labels = [-1]*len(numpy_img_reshape)
     mask_reshape = mask.reshape(-1,1)
+    all_labels = np.full(len(mask_reshape), -1)
     indices = [i for i, val in enumerate(mask_reshape) if val == 1] #indices of labels being inserted
     for index, new_label in zip(indices, dbscan_labels): #Loops through dbscan labels and adds to all_labels array in corresponding index position
         all_labels[index] = new_label
-    all_labels = all_labels.reshape(numpy_img.shape)
+    all_labels = all_labels.reshape(mask.shape)
     
     #Plotting
     plt.figure(figsize=(8, 6))
