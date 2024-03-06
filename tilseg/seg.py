@@ -35,7 +35,19 @@ from PIL import Image
 # Local imports
 from tilseg.cluster_processing import image_postprocessing
 from tilseg.model_selection import opt_kmeans
+from tilseg.kmeans_input_seg import mean_shift_patch_fit
 
+# def mean_shift_patch_fit(data):
+#     data = np.array(data)
+#     hyperparameter_dict = opt_mean_shift(data = data,
+#                    bandwidth = [0.1,0.2,0.3,0.5,0.6,0.7,0.8,0.9],
+#                    seeds=[0.1,0.2,0.4,0.5])
+#     model = sklearn.cluster.MeanShift(**hyperparameter_dict, max_iter=20,
+#                                    n_init=3, tol=1e-3)
+#     model.fit_predict(data)
+#     cluster_labels = model.labels_
+#     cluster_centers = model.cluster_centers_
+#     return model, cluster_labels, cluster_centers
 
 def KMeans_superpatch_fit(patch_path: str,
                           hyperparameter_dict: dict = {'n_clusters: 4'}):
@@ -84,7 +96,7 @@ def KMeans_superpatch_fit(patch_path: str,
     # Creates a variable which references the preferred parameters for KMeans
     # clustering
     key_list = list(hyperparameter_dict.keys())
-    expected_key_list = ['n_clusters','metric']
+    expected_key_list = ['n_clusters']
     # Checks that the expected keys are present in hyperparameters_dict
     if set(key_list) != set(expected_key_list):
         raise KeyError(
@@ -451,11 +463,11 @@ def segment_TILs(in_dir_path: str,
     Parameters
     -----
     in_dir_path: str
-        the directory path to the patches that will clustered and have TILs
-        segmented
-        This directory could be one that contains all the extracted patches
-        containing significant amount of tissue using the tilseg.preprocessing
-        module
+        multiple_images (True): the directory path to the patches that will be clustered and have TILs
+        segmented from superpatch model. This directory could be one that contains all the extracted patches
+        containing significant amount of tissue using the tilseg.preprocessing module.
+        multiple_images (False): the path to a single patch that will be clustered and have TILS
+        segemented form its own model. This is used to generate a ground truth image after clustering.
     out_dir: str
         the directory path where output images and CSV files will be saved
     hyperparameter_dict: dict
@@ -490,14 +502,23 @@ def segment_TILs(in_dir_path: str,
         generate CSV file containing countour information of each TIL segmented
         from the patch
     multiple_images: bool
-        True if model will be fit to superpatch and predicted on sub-patches and False if
-        model will be fit to sub-patch and predicted on sub-patch
+        True if the model will be fit to superpatch and predicted on sub-patches and False if
+        model will be fit to a single patch and be predicted on this patch
 
     Returns
     -----
     TIL_count_dict: dict
         contains patch filenames without the extension as the key and TIL
         counts in respective patches as the values
+    kmean_labels_dict: dict
+        contains patch filenames names without the extension as the key
+        (e.g. 'position_7_8tissue') and the kmean cluster label array as the values 
+    cluster_mask_dict: dict
+        contains patch filenames without the extension as the key and 
+        the binary cluster mask for the cluster that had the highest
+        contour count. This mask is a 2D array where dimensions correspond to the X and
+        Y pixel dimensions in the original image. The mask will contain 1s in pixels 
+        associated with the cluster and 0s everywhere else.
     """
     
     if multiple_images:
@@ -740,9 +761,10 @@ def segment_TILs(in_dir_path: str,
     # Initializing dicitonary with the count of the TILs in each patch in the
     # input directory
     TIL_count_dict = {}
+    cluster_mask_dict = {}
     kmean_labels_dict = {}
     
-    for file in os.listdir(in_dir_path):
+    for file in files:
         if not file.lower().endswith(".tif"):
             continue
         # Creating a directory with the same file name (without extenstion)
@@ -836,7 +858,7 @@ def segment_TILs(in_dir_path: str,
 
         # function imported from tilseg.cluster_processing module which
         # produces the images and CSV files and counts the TILs
-        TIL_count = image_postprocessing(
+        TIL_count,cluster_mask = image_postprocessing(
             clusters=labels.reshape(pred_patch.shape[0], pred_patch.shape[1]),
             ori_img=pred_patch,
             filepath=os.path.join(out_dir_path, file[:-4]),
@@ -850,32 +872,85 @@ def segment_TILs(in_dir_path: str,
         # value to a key that is the patch's file name without the extension
         TIL_count_dict[file[:-4]] = TIL_count
         kmean_labels_dict[file[:-4]] = labels
+        cluster_mask_dict[file[:-4]] = cluster_mask
 
     # returns the dictionary containing patch filenames without the extension
     # as the key and TIL counts as the values
-    return TIL_count_dict, kmean_labels_dict
+    return TIL_count_dict, kmean_labels_dict, cluster_mask_dict
 
-def kmean_dbscan_superpatch_wrapper(superpatch_path: str,
-                n_clusters: list,
-                in_dir_path: str,
-                 out_dir_path: str = None,
-                 save_TILs_overlay: bool = False,
-                 save_cluster_masks: bool = False,
-                 save_cluster_overlays: bool = False,
-                 save_all_clusters_img: bool = False,
-                 save_csv: bool = False):
+def kmean_to_spatial_model_superpatch_wrapper(superpatch_path: str,
+                                            in_dir_path: str,
+                                            spatial_func,
+                                            n_clusters: list = [1,2,4,5,6,7,8,9],
+                                            out_dir_path: str = None,
+                                            save_TILs_overlay: bool = False,
+                                            save_cluster_masks: bool = False,
+                                            save_cluster_overlays: bool = False,
+                                            save_all_clusters_img: bool = False,
+                                            save_csv: bool = False):
+    """
+    A wrapper used to optimize a KMeans model on a superpatch to generate binary
+    cluster masks for each sub-patch of the slide. These masks are 
+    converted to dataframes (X pixel, Y pixel, binary mask value) and fed into a
+    spatial algorithm (e.g Dbscan) to perform further segmentation on the highest 
+    contour count cluster returned by segment_TILS for each path.
+
+    Parameters
+    -----
+    superpatch_path: str
+        filepath to superpatch image from preprocessing step (.tif)
+    in_dir_path: str
+        the directory path to the patches that will be clustered and have TILs
+        segmented from superpatch model. This directory could be one that contains all the extracted patches
+        containing significant amount of tissue using the tilseg.preprocessing module.
+    spatial_func:
+        the spatial algorithm fitting function that takes in a formated version of the 
+        cluster mask array. It should return a fitted model.
+    n_clusters: list
+        a list of the number clusters to test in KMeans optimization
+    out_dir: str
+        the directory path where output images and CSV files will be saved
+    save_TILs_overlay: bool
+        generate image containing TILs overlayed on the original H&E patch
+    save_cluster_masks: bool
+        generate image showing binary segmentation masks of each cluster
+    save_cluster_overlays: bool
+        generate image containing individual clusters overlayed on the original
+        patch
+    save_all_clusters_img: bool
+        generate image of all the clusters
+    save_csv: bool
+        generate CSV file containing countour information of each TIL segmented
+        from the patch
+
+    Returns
+    -----
+    TIL_count_dict: dict
+        contains patch filenames without the extension as the key and TIL
+        counts in respective patches as the values
+    kmean_labels_dict: dict
+        contains patch filenames names without the extension as the key
+        (e.g. 'position_7_8tissue') and the kmean cluster label array as the values 
+    cluster_mask_dict: dict
+        contains patch filenames without the extension as the key and 
+        the binary cluster mask for the cluster that had the highest
+        contour count. This mask is a 2D array where dimensions correspond to the X and
+        Y pixel dimensions in the original image. The mask will contain 1s in pixels 
+        associated with the cluster and 0s everywhere else.
+    """
     
-    #Find Kmeans Parameters (num clusters)
+    #Opens Superpatch Image / Retrieves Pixel Data
     img = Image.open(superpatch_path)
     numpy_img = np.array(img)
     numpy_img_reshape = np.float32(numpy_img.reshape((-1, 3))/255.)
-    opt_cluster = opt_kmeans(numpy_img_reshape,n_clusters)
-    hyperparameter_dict = {'n_clusters': opt_cluster}
+    
+    #Kmeans Fitting
+    hyperparameter_dict = opt_kmeans(numpy_img_reshape,n_clusters)
     kmeans_fit = KMeans_superpatch_fit(superpatch_path,hyperparameter_dict)
     print("Completed Kmeans fitting.")
     
     #Run Segmentation on Kmeans Model
-    TIL_count_dict, kmean_labels_dict = segment_TILs(in_dir_path,
+    TIL_count_dict, kmean_labels_dict,cluster_mask_dict = segment_TILs(in_dir_path,
                  out_dir_path,
                  None,
                  'KMeans',
@@ -886,29 +961,97 @@ def kmean_dbscan_superpatch_wrapper(superpatch_path: str,
                  save_all_clusters_img,
                  save_csv)
     
-    #Feed into DBSCAN
-    return TIL_count_dict, kmean_labels_dict
-
-def kmean_dbscan_patch_wrapper(patch_path: str,
-                n_clusters: list,
-                 out_dir_path: str = None,
-                 save_TILs_overlay: bool = False,
-                 save_cluster_masks: bool = False,
-                 save_cluster_overlays: bool = False,
-                 save_all_clusters_img: bool = False,
-                 save_csv: bool = False):
+    #Feed Resulting Cluster Mask in Spatial Model
+    for file in os.listdir(in_dir_path):
+        if not file.lower().endswith(".tif"):
+            continue
+        cluster_mask = cluster_mask_dict[file[:-4]]
+        dbscan_img = numpy_img_reshape[cluster_mask]
+        all_labels = [-1]*len(numpy_img_reshape)
+        indices = [i for i, val in enumerate(cluster_mask) if val == 1]
+        
+        #TODO: create funciton that converts mask to data to put into fitting function (inputs: mask, output: data)
+        #TODO: fitting dbscan (inputs: data, hyperparameters (optional), outputs: fitted dbscan model)  
+        #TODO: plotting for dbscan image
+        
+        # #Lauren's Method for Fitting Dbscan
+        #TODO: model, cluster_labels, cluster_centers = mean_shift_patch_fit(dbscan_img) #change to feed_model_func after showing this
+        
+        # for index, new_label in zip(indices, cluster_labels):
+        #     all_labels[index] = new_label
+            
+    return all_labels, kmeans_fit
     
-    #Find Kmeans Parameters (num clusters)
+def kmean_dbscan_patch_wrapper(patch_path: str,
+                        spatial_func,
+                        n_clusters: list = [1,2,3,4,5,6,7,8,9],
+                        out_dir_path: str = None,
+                        save_TILs_overlay: bool = False,
+                        save_cluster_masks: bool = False,
+                        save_cluster_overlays: bool = False,
+                        save_all_clusters_img: bool = False,
+                        save_csv: bool = False):
+    
+    """
+    A wrapper used to optimize a KMeans model on a patch to generate binary
+    cluster mask. This masks is converted to a dataframe (X pixel, Y pixel, binary mask value)
+    and fed into a spatial algorithm (e.g Dbscan) to perform further segmentation
+    on the highest contour count cluster returned by segment_TILS. This function is used to
+    generate a ground truth image for scoring (fit KMeans model to patch and predict on same patch)
+
+    Parameters
+    -----
+    patch_path: str
+        filepath to a single patch image from the preprocessing step (.tif)
+    spatial_func:
+        the spatial algorithm fitting function that takes in a formated version of the 
+        cluster mask array. It should return a fitted model.
+    n_clusters: list
+        a list of the number clusters to test in KMeans optimization
+    out_dir: str
+        the directory path where output images and CSV files will be saved
+    save_TILs_overlay: bool
+        generate image containing TILs overlayed on the original H&E patch
+    save_cluster_masks: bool
+        generate image showing binary segmentation masks of each cluster
+    save_cluster_overlays: bool
+        generate image containing individual clusters overlayed on the original
+        patch
+    save_all_clusters_img: bool
+        generate image of all the clusters
+    save_csv: bool
+        generate CSV file containing countour information of each TIL segmented
+        from the patch
+
+    Returns
+    -----
+    TIL_count_dict: dict
+        contains patch filenames without the extension as the key and TIL
+        counts in respective patches as the values
+    kmean_labels_dict: dict
+        contains patch filenames names without the extension as the key
+        (e.g. 'position_7_8tissue') and the kmean cluster label array as the values 
+    cluster_mask_dict: dict
+        contains patch filenames without the extension as the key and 
+        the binary cluster mask for the cluster that had the highest
+        contour count. This mask is a 2D array where dimensions correspond to the X and
+        Y pixel dimensions in the original image. The mask will contain 1s in pixels 
+        associated with the cluster and 0s everywhere else.
+    """
+    
+    
+    #Opens Superpatch Image / Retrieves Pixel Data
     img = Image.open(patch_path)
     numpy_img = np.array(img)
     numpy_img_reshape = np.float32(numpy_img.reshape((-1, 3))/255.)
-    opt_cluster = opt_kmeans(numpy_img_reshape,n_clusters)
-    hyperparameter_dict = {'n_clusters': opt_cluster}
+    
+    #Kmeans Fitting
+    hyperparameter_dict = opt_kmeans(numpy_img_reshape,n_clusters)
     kmeans_fit = KMeans_superpatch_fit(patch_path,hyperparameter_dict)
     print("Completed Kmeans fitting.")
     
     #Run Segmentation on Kmeans Model
-    TIL_count_dict, kmean_labels_dict = segment_TILs(patch_path,
+    TIL_count_dict, kmean_labels_dict,cluster_mask_dict = segment_TILs(patch_path,
                  out_dir_path,
                  None,
                  'KMeans',
@@ -921,4 +1064,7 @@ def kmean_dbscan_patch_wrapper(patch_path: str,
                  False)
     
     #Feed into DBSCAN
+    #TODO: add the function that converts mask to data &&& fitting function
+    #TODO: plotting of dbscan model
+    
     return TIL_count_dict, kmean_labels_dict
