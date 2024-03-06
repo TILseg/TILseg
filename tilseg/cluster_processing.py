@@ -441,7 +441,7 @@ def immune_cluster_analyzer(masks: list):
     
     #Get 2D Array of Mask that Correpsonds to cluster with most contours
     cluster_mask = masks[count_index]
-    cluster_mask = cluster_mask.reshape(-1,1) #makes a single column of 0's (dont use pixel) and 1's (use pixel)
+    cluster_mask_col = cluster_mask.reshape(-1,1) #makes a single column of 0's (dont use pixel) and 1's (use pixel)
     
     return til_contour, max_contour_count, cluster_mask
 
@@ -514,6 +514,10 @@ def image_postprocessing(clusters: np.ndarray, ori_img: np.ndarray,
     Returns
     -----
     til_count (int): maximum number of contours found
+    cluster_mask (np.ndarray): a binary cluster mask for the cluster that
+        had the highest contour count. It is a 2D array where dimensions correspond to the X and
+        Y pixel dimensions in the original image. The mask will contain 1s in pixels associated with the
+        cluster and 0s everywhere else.
     """
 
     # generate errors if cluster and image have incorrect dimensions
