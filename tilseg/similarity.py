@@ -8,7 +8,8 @@ from PIL import Image
 
 def image_similarity(img1_path, img2_path):
     """
-    calculate the similarity score between two images using SSIM metric and generate the image difference.
+    calculates mean squared error and strcutural similarity index between two images 
+    and generates the image difference.
 
     Parameters
     ----
@@ -16,21 +17,26 @@ def image_similarity(img1_path, img2_path):
     img2_path (str): path to second image.
 
     Returns:
+    mse (float): mean squared error
     ssim score (float): SSIM similarity score between two images.
     diff (np.ndarray): image difference as numpy array.
     """
 
-    # load images
+    # load images, convert to greyscale, then to  floating-point arrays
     img1 = img_as_float(np.array(Image.open(img1_path).convert('L')))
     img2 = img_as_float(np.array(Image.open(img2_path).convert('L')))
+
+   # mse
+    mse = np.sum((img1_path.astype("float") - img2_path.astype("float")) ** 2 )
+    mse /= float(img1_path.shape[0] * img1_path.shape[1])
 
     # calculate SSIM
     ssim_score, diff = ssim(img1, img2, full=True)
 
-    # convert difference image to uint8 for visualization
+    # scales pixel values to [0,255] from [0,1] and converts to integers
     diff = (diff * 255).astype(np.uint8)
 
-    return ssim_score, diff
+    return ssim_score, diff, mse
 
 # usage:
 if __name__ == "__main__":
