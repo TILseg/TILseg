@@ -22,24 +22,24 @@ class TestImageSimilarity(unittest.TestCase):
         os.remove(self.img1_path)
         os.remove(self.img2_path)
 
-    def test_image_similarity(self):
-        # test on two images
+    def test_image_similarity_different(self):
+        # test on two completely different mages
         ssim_score, diff, mse = image_similarity(self.img1_path, self.img2_path)
 
         # SSIM score for two different images should be 0
         self.assertAlmostEqual(ssim_score, 0.0, places=2)  
-        # MSE (Mean Squared Error)should be the same
+        # MSE (Mean Squared Error) should be the same
         expected_mse = np.mean((self.img1.astype("float") - self.img2.astype("float")) ** 2)
         self.assertAlmostEqual(mse, expected_mse, places=2)
-        # Assert difference image shape
+        # difference image should have same dimensions
         self.assertEqual(diff.shape, self.img1.shape)
 
-
-        # test on same image
+    def test_image_similarity_same(self):
+        # test on two identical images
         ssim_score, diff, mse = image_similarity(self.img1_path, self.img2_path)
-        # SSIM score for two identical images should be 1
+        # SSIM score should be 1
         self.assertAlmostEqual(ssim_score, 1.0, places=2)  
-        # MSE for two identical images should be 0
+        # MSE should be 0
         self.assertAlmostEqual(mse, 0.0, places=2)
         # difference image should be all 0s
         self.assertTrue(np.array_equal(diff, np.zeros_like(diff)))  
