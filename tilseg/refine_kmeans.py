@@ -112,8 +112,6 @@ def KMeans_superpatch_fit(patch_path: str,
 #     cluster_centers = model.cluster_centers_
 #     return model, cluster_labels, cluster_centers
 
-
-# Takes a KMeans binary TILs mask and converts it into an array to feed into DBSCAN
 def mask_to_features(binary_mask:np.ndarray):
     """
     Generates the spatial coordinates from a binary mask as features to cluster with DBSCAN
