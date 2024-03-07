@@ -136,9 +136,21 @@ def mask_to_features(binary_mask:np.ndarray):
     return features
 
 
-def km_dbscan_wrapper(mask: np.ndarray, hyperparameter_dict):
-    #hyper dict keys
-    #eps: float, min_samples: int,
+def km_dbscan_wrapper(mask: np.ndarray, hyperparameter_dict, save_filepath: str):
+    """
+    Generates a fitted dbscan model and labels when provided a binary mask 
+    2D array for the KMeans cluster with the highest contour count.
+    
+    Parameters
+    -----
+    binary_mask (np.ndarray): a binary mask with 1's corresponding to the pixels 
+    involved in the cluser with the most contours and 0's for pixels not
+
+    Returns
+    -----
+    features (np.array) is a an array where each row corresponds to a set of 
+    coordinates (x,y) of the pixels where the binary_mask had a value of 1
+    """    
    
     #Generate Spatial Coordiantes
     features = mask_to_features(mask)
@@ -160,12 +172,16 @@ def km_dbscan_wrapper(mask: np.ndarray, hyperparameter_dict):
     plt.imshow(all_labels, cmap='viridis')  # Change the colormap as needed
     plt.colorbar()
     plt.title('DBSCAN Clustering Result')
+    plt.savefig(save_filepath + '/ClusteringResults/dbscan_result_colorbar.jpg')
     plt.show()
-
-    # # Save the plotted image
-    # plt.savefig('dbscan_result.png')
-        
-    return all_labels
+    
+    plt.figure(figsize=(8, 6))
+    plt.axis('off')
+    plt.imshow(all_labels, cmap='viridis');  # Change the colormap as needed
+    plt.imsave(save_filepath + '/ClusteringResults/dbscan_result.jpg',all_labels)
+    plt.close()
+    
+    return all_labels, dbscan
 
 
 ## MISC FUNCTIONS

@@ -31,11 +31,13 @@ import sklearn.cluster
 import sklearn.metrics
 import sklearn.utils.validation
 from PIL import Image
+import time
+from tqdm import tqdm
 
 # Local imports
 from tilseg.cluster_processing import image_postprocessing
 from tilseg.model_selection import opt_kmeans
-from tilseg.refine_kmeans import KMeans_superpatch_fit, mask_to_features, km_dbscan_wrapper
+from tilseg.refine_kmeans import KMeans_superpatch_fit, km_dbscan_wrapper
 
 
 def clustering_score(patch_path: str,
@@ -787,6 +789,7 @@ def segment_TILs(in_dir_path: str,
 
 def kmean_to_spatial_model_superpatch_wrapper(superpatch_path: str,
                                             in_dir_path: str,
+                                            spatial_hyperparameters: dict,
                                             n_clusters: list = [1,2,4,5,6,7,8,9],
                                             out_dir_path: str = None,
                                             save_TILs_overlay: bool = False,
@@ -809,9 +812,8 @@ def kmean_to_spatial_model_superpatch_wrapper(superpatch_path: str,
         the directory path to the patches that will be clustered and have TILs
         segmented from superpatch model. This directory could be one that contains all the extracted patches
         containing significant amount of tissue using the tilseg.preprocessing module.
-    spatial_func:
-        the spatial algorithm fitting function that takes in a formated version of the 
-        cluster mask array. It should return a fitted model. #TODO: make code compatabile with other spatial functions
+    spatial_hyperparameters: dict
+        the spatial algorithm's optimized hyperparameters
     n_clusters: list
         a list of the number clusters to test in KMeans optimization
     out_dir: str
@@ -831,18 +833,9 @@ def kmean_to_spatial_model_superpatch_wrapper(superpatch_path: str,
 
     Returns
     -----
-    TIL_count_dict: dict
-        contains patch filenames without the extension as the key and TIL
-        counts in respective patches as the values
-    kmean_labels_dict: dict
-        contains patch filenames names without the extension as the key
-        (e.g. 'position_7_8tissue') and the kmean cluster label array as the values 
-    cluster_mask_dict: dict
-        contains patch filenames without the extension as the key and 
-        the binary cluster mask for the cluster that had the highest
-        contour count. This mask is a 2D array where dimensions correspond to the X and
-        Y pixel dimensions in the original image. The mask will contain 1s in pixels 
-        associated with the cluster and 0s everywhere else.
+    IM_labels (np.ndarray): labels from fitted sptail model
+    dbscan_fit (sklearn.cluster.DBSCAN): fitted spatial model object
+    
     """
     
     #Opens Superpatch Image / Retrieves Pixel Data
@@ -851,9 +844,13 @@ def kmean_to_spatial_model_superpatch_wrapper(superpatch_path: str,
     numpy_img_reshape = np.float32(numpy_img.reshape((-1, 3))/255.)
     
     #Kmeans Fitting
+    t0 = time.time()
     hyperparameter_dict = opt_kmeans(numpy_img_reshape,n_clusters)
+    tf = time.time()
+    print(f"Found hyperparameters. Time took: {(tf-t0)/60} minutes.")
     kmeans_fit = KMeans_superpatch_fit(superpatch_path,hyperparameter_dict)
-    print("Completed Kmeans fitting.")
+    tf2 = time.time()
+    print(f"Completed Kmeans fitting. Time took: {(tf2-tf)/60} minutes.")
     
     #Run Segmentation on Kmeans Model
     TIL_count_dict, kmean_labels_dict,cluster_mask_dict = segment_TILs(in_dir_path,
@@ -871,16 +868,16 @@ def kmean_to_spatial_model_superpatch_wrapper(superpatch_path: str,
     for file in os.listdir(in_dir_path):
         if not file.lower().endswith(".tif"):
             continue
+
+        #Dbcan Model Fitting
+        tf3 = time.time()
         cluster_mask = cluster_mask_dict[file[:-4]]
-        hyperparameter_dict = {'eps': 0.5, 'min_samples': 1}
-        print(cluster_mask.shape)
-        im_labels = km_dbscan_wrapper(mask = cluster_mask, hyperparameter_dict= hyperparameter_dict)
-        
-        #TODO: create funciton that converts mask to data to put into fitting function (inputs: mask, output: data)
-        #TODO: fitting dbscan (inputs: data, hyperparameters (optional), outputs: fitted dbscan model)  
-        #TODO: plotting for dbscan image
-            
-    return im_labels
+        save_path = out_dir_path + f"/{file[:-4]}/"
+        im_labels, dbscan_fit = km_dbscan_wrapper(mask = cluster_mask, hyperparameter_dict= spatial_hyperparameters,save_filepath=save_path)
+        tf4 = time.time()
+        print(f"Script completed. Dbscan fitting time: {tf4 - tf3} seconds.")
+
+    return im_labels, dbscan_fit, cluster_mask_dict
     
 def kmean_dbscan_patch_wrapper(patch_path: str,
                         spatial_func,
@@ -962,8 +959,13 @@ def kmean_dbscan_patch_wrapper(patch_path: str,
                  save_all_clusters_img,
                  save_csv,
                  False)
-    
-    #Feed into DBSCAN
+        
+    #Dbcan Model Fitting
+    file = os.path.dirname(patch_path)
+    cluster_mask = cluster_mask_dict[file[:-4]]
+    save_path = out_dir_path + f"/{file[:-4]}/"
+    hyperparameter_dict = {'eps': 0.5,'min_samples': 5}
+    im_labels, dbscan_fit = km_dbscan_wrapper(mask = cluster_mask, hyperparameter_dict= hyperparameter_dict,plot_filepath=save_path)
+    print(f"Script completed.")
 
-    
-    return TIL_count_dict, kmean_labels_dict
+    return im_labels, dbscan_fit, cluster_mask_dict
