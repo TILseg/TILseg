@@ -1,39 +1,29 @@
 import numpy as np
-from skimage.metrics import structural_similarity as ssim
-from skimage import img_as_float
 from PIL import Image
+from sklearn.metrics import mean_squared_error
 
-def image_similarity(img1_path, img2_path):
+def image_similarity(array1, array2):
     """
-    calculates mean squared error and strcutural similarity index between two images 
+    calculates mean squared error and between two arrays 
     and generates the image difference.
 
     Parameters
     ----
-    img1_path (str): path to first image.
-    img2_path (str): path to second image.
+    array1 (np.ndarray): array of first image.
+    array2 (np.ndarray): array of second image.
 
     Returns:
     mse (float): mean squared error
-    ssim score (float): SSIM similarity score between two images.
     diff (np.ndarray): image difference as numpy array.
     """
 
-    # load images, convert to greyscale, then to  floating-point arrays
-    img1 = img_as_float(np.array(Image.open(img1_path).convert('L')))
-    img2 = img_as_float(np.array(Image.open(img2_path).convert('L')))
-
    # calculate mse
-    mse = np.sum((img1_path.astype("float") - img2_path.astype("float")) ** 2 )
-    mse /= float(img1_path.shape[0] * img1_path.shape[1])
+    mse = mean_squared_error(array1, array2)
 
-    # calculate SSIM and difference array
-    ssim_score, diff = ssim(img1, img2, full=True)
+    # Compute mean squared error
+    mse = np.mean(squared_diff)    
 
-    # scales pixel values to [0,255] from [0,1] and converts to integers
-    diff = (diff * 255).astype(np.uint8)
-
-    return mse, ssim_score, diff
+    return mse, diff
 
 # usage:
 if __name__ == "__main__":
