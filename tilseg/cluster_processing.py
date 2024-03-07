@@ -412,7 +412,9 @@ def immune_cluster_analyzer(masks: list):
         list of arrays that correspond to the contours of the filtered TILs
     max_contour_count (int):
         maximum number of contours found
-
+    cluster_mask (np.ndarray):
+        2D array slice of 3D binary mask (num clusters by image x-dim by image y-dim)
+        corresponding to cluster with most contours
     """
     # intialize lists to store contours and number of contours
     contour_list = []
@@ -430,13 +432,18 @@ def immune_cluster_analyzer(masks: list):
         # check if the amount of contours is the largest seen and if so
         # redefine max index and value
         if contour_count >= count_list[count_index]:
-            count_index = ele[0]
+            count_index = ele[0] #cluster index that has most contours
             max_contour_count = contour_count
         else:
             pass
-    # only get contours from the cluster with the most contours and return
+    # get 2D array of x and y values from image mask that correspond to cluster with the most contours
     til_contour = contour_list[count_index]
-    return til_contour, max_contour_count
+    
+    #Get 2D Array of Mask that Correpsonds to cluster with most contours
+    cluster_mask = masks[count_index]
+    cluster_mask_col = cluster_mask.reshape(-1,1) #makes a single column of 0's (dont use pixel) and 1's (use pixel)
+    
+    return til_contour, max_contour_count, cluster_mask
 
 
 def draw_til_images(img: np.ndarray, contours: list, filepath: str):
@@ -459,21 +466,18 @@ def draw_til_images(img: np.ndarray, contours: list, filepath: str):
     dims = img.shape
     tils_mask = np.zeros((dims[0], dims[1], 3), np.uint8)
     
-    # Convert contours to NumPy arrays
-    contours = [np.array(contour) for contour in contours]
-
-    # Convert img and tils_mask to the same data type
-    img = img.astype(np.uint8)
-    tils_mask = tils_mask.astype(np.uint8)
-
-    # Draw contours on the copied image in green and the blank image in white
-    cv.drawContours(np.copy(tils_mask), contours, -1, (255, 255, 255), 3)
-    cv.drawContours(np.copy(img), contours, -1, (0, 255, 0), 3)
+    # draw contours on original image in green and the blank image in white
+    img = cv.UMat(img) #converts NumPy array to a cv::UMat for .drawContours
+    cv.drawContours(tils_mask, contours, -1, (255, 255, 255), 3)
+    cv.drawContours(img, contours, -1, (0, 255, 0), 3)
     
-    # Generate relevant file paths and save overlaid image and mask
+    # generate relevant file paths and save overlaid image and mask
     contour_img_filepath = os.path.join(filepath, "ContourOverlay.jpg")
     contour_mask_filepath = os.path.join(filepath, "ContourMask.jpg")
-    plt.imsave(contour_img_filepath, img)
+    
+    #Saving
+    img_np = img.get() #need to convert result back to numpy array in order to save
+    plt.imsave(contour_img_filepath, img_np)
     plt.imsave(contour_mask_filepath, tils_mask)
 
 
@@ -510,6 +514,10 @@ def image_postprocessing(clusters: np.ndarray, ori_img: np.ndarray,
     Returns
     -----
     til_count (int): maximum number of contours found
+    cluster_mask (np.ndarray): a binary cluster mask for the cluster that
+        had the highest contour count. It is a 2D array where dimensions correspond to the X and
+        Y pixel dimensions in the original image. The mask will contain 1s in pixels associated with the
+        cluster and 0s everywhere else.
     """
 
     # generate errors if cluster and image have incorrect dimensions
@@ -557,7 +565,7 @@ def image_postprocessing(clusters: np.ndarray, ori_img: np.ndarray,
         masks = mask_only_generator(clusters)
 
     # generate contours if images or CSV of TILs is required
-    til_list, til_count = immune_cluster_analyzer(masks)
+    til_list, til_count, cluster_mask = immune_cluster_analyzer(masks)
 
     # save image with all clusters if specified
     if gen_all_clusters:
@@ -586,4 +594,4 @@ def image_postprocessing(clusters: np.ndarray, ori_img: np.ndarray,
     # go back to home directory
     os.chdir(home)
 
-    return til_count
+    return til_count, cluster_mask

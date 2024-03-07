@@ -35,7 +35,100 @@ from PIL import Image
 # Local imports
 from tilseg.cluster_processing import image_postprocessing
 from tilseg.model_selection import opt_kmeans
-from tilseg.refine_kmeans import KMeans_superpatch_fit, mask_to_features, km_dbscan_wrapper
+from tilseg.kmeans_input_seg import mean_shift_patch_fit
+
+# def mean_shift_patch_fit(data):
+#     data = np.array(data)
+#     hyperparameter_dict = opt_mean_shift(data = data,
+#                    bandwidth = [0.1,0.2,0.3,0.5,0.6,0.7,0.8,0.9],
+#                    seeds=[0.1,0.2,0.4,0.5])
+#     model = sklearn.cluster.MeanShift(**hyperparameter_dict, max_iter=20,
+#                                    n_init=3, tol=1e-3)
+#     model.fit_predict(data)
+#     cluster_labels = model.labels_
+#     cluster_centers = model.cluster_centers_
+#     return model, cluster_labels, cluster_centers
+
+def KMeans_superpatch_fit(patch_path: str,
+                          hyperparameter_dict: dict = {'n_clusters: 4'}):
+
+    """
+    Fits a KMeans clustering model to a patch that will be used to cluster
+    other patches
+    KMeans is the only clustering algorithms that allows fitting a model to
+    one patch clustering on another
+    All other clustering algorithms need to be fitted on the same patch that
+    needs to be clustered
+    It makes sense to use this function to fit a KMeans clustering model to a
+    superpatch that can capture H&E stain variation across patients and
+    technologies
+
+    Parameters
+    -----
+    patch_path: str
+        the directory path to the patch that the model will be fitted to
+        obtain cluster decision boundaries
+    hyperparameter_dict: dict
+        dicitonary of hyperparameters for KMeans containing 'n_clusters' as
+        the only key
+        this dictionary can be obtained by reading the JSON file outputted by
+        tilseg.module_selection
+
+    Returns
+    -----
+    model: sklearn.base.ClusterMixin
+        the fitted model
+    """
+
+    # Checks that the path to the patch is a string
+    if not isinstance(patch_path, str):
+        raise TypeError('patch_path must be a string')
+
+    # Checks that the patch_path actually exists
+    path = pathlib.Path(patch_path)
+    if not path.is_file():
+        raise FileNotFoundError('Please input a path to a file that exists')
+
+    # Checking that hyperparameter_dict is a dictionary
+    if not isinstance(hyperparameter_dict, dict):
+        raise TypeError('hyperparameter_dict must be a dictionary')
+
+    # Creates a variable which references the preferred parameters for KMeans
+    # clustering
+    key_list = list(hyperparameter_dict.keys())
+    expected_key_list = ['n_clusters']
+    # Checks that the expected keys are present in hyperparameters_dict
+    if set(key_list) != set(expected_key_list):
+        raise KeyError(
+            'Please enter the appropriate keys in hyperparameter_dict')
+
+    # Checks that n_clusters is an integer and less than 9
+    if (not isinstance(hyperparameter_dict['n_clusters'], int) or
+            hyperparameter_dict['n_clusters'] > 8):
+        raise ValueError('Please enter an integer less than 9 for n_clusters')
+
+    # Fits the KMeans clustering model using the optimized value for n_clusters
+    model = sklearn.cluster.KMeans(**hyperparameter_dict, max_iter=20,
+                                   n_init=3, tol=1e-3)
+
+    try:
+        # Reads the patch into a numpy uint8 array
+        fit_patch = plt.imread(patch_path)
+    # Makes sure that the fie is readable by matplotlib, which uses PIL
+    except UnidentifiedImageError:
+        print('Please use an image that can be opened by PIL.Image.open')
+        raise
+
+    # Linearizes the array for R, G, and B separately and normalizes
+    # The result is an N X 3 array where N=height*width of the patch in pixels
+    fit_patch_n = np.float32(fit_patch.reshape((-1, 3))/255.)
+
+    # Fits the model to the linearized and normalized patch data
+    model.fit(fit_patch_n)
+
+    # Outputs KMeans model fitted to the superpatch and will be used as input
+    # to clustering_score and segment_TILs functions
+    return model
 
 
 def clustering_score(patch_path: str,
@@ -787,6 +880,7 @@ def segment_TILs(in_dir_path: str,
 
 def kmean_to_spatial_model_superpatch_wrapper(superpatch_path: str,
                                             in_dir_path: str,
+                                            spatial_func,
                                             n_clusters: list = [1,2,4,5,6,7,8,9],
                                             out_dir_path: str = None,
                                             save_TILs_overlay: bool = False,
@@ -811,7 +905,7 @@ def kmean_to_spatial_model_superpatch_wrapper(superpatch_path: str,
         containing significant amount of tissue using the tilseg.preprocessing module.
     spatial_func:
         the spatial algorithm fitting function that takes in a formated version of the 
-        cluster mask array. It should return a fitted model. #TODO: make code compatabile with other spatial functions
+        cluster mask array. It should return a fitted model.
     n_clusters: list
         a list of the number clusters to test in KMeans optimization
     out_dir: str
@@ -872,15 +966,21 @@ def kmean_to_spatial_model_superpatch_wrapper(superpatch_path: str,
         if not file.lower().endswith(".tif"):
             continue
         cluster_mask = cluster_mask_dict[file[:-4]]
-        hyperparameter_dict = {'eps': 0.5, 'min_samples': 1}
-        print(cluster_mask.shape)
-        im_labels = km_dbscan_wrapper(mask = cluster_mask, hyperparameter_dict= hyperparameter_dict)
+        dbscan_img = numpy_img_reshape[cluster_mask]
+        all_labels = [-1]*len(numpy_img_reshape)
+        indices = [i for i, val in enumerate(cluster_mask) if val == 1]
         
         #TODO: create funciton that converts mask to data to put into fitting function (inputs: mask, output: data)
         #TODO: fitting dbscan (inputs: data, hyperparameters (optional), outputs: fitted dbscan model)  
         #TODO: plotting for dbscan image
+        
+        # #Lauren's Method for Fitting Dbscan
+        #TODO: model, cluster_labels, cluster_centers = mean_shift_patch_fit(dbscan_img) #change to feed_model_func after showing this
+        
+        # for index, new_label in zip(indices, cluster_labels):
+        #     all_labels[index] = new_label
             
-    return im_labels
+    return all_labels, kmeans_fit
     
 def kmean_dbscan_patch_wrapper(patch_path: str,
                         spatial_func,
@@ -964,6 +1064,7 @@ def kmean_dbscan_patch_wrapper(patch_path: str,
                  False)
     
     #Feed into DBSCAN
-
+    #TODO: add the function that converts mask to data &&& fitting function
+    #TODO: plotting of dbscan model
     
     return TIL_count_dict, kmean_labels_dict
