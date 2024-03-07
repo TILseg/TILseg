@@ -35,7 +35,7 @@ from PIL import Image
 # Local imports
 from tilseg.cluster_processing import image_postprocessing
 from tilseg.model_selection import opt_kmeans
-from tilseg.kmeans_input_seg import mean_shift_patch_fit
+#from tilseg.kmeans_input_seg import mean_shift_patch_fit
 
 # def mean_shift_patch_fit(data):
 #     data = np.array(data)
