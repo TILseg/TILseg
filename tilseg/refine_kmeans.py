@@ -139,7 +139,10 @@ def mask_to_features(binary_mask:np.ndarray):
 def km_dbscan_wrapper(mask: np.ndarray, hyperparameter_dict, save_filepath: str):
     """
     Generates a fitted dbscan model and labels when provided a binary mask 
-    2D array for the KMeans cluster with the highest contour count.
+    2D array for the KMeans cluster with the highest contour count. A plot of 
+    the dbscan clustering results is printed to the window, with a colorbar and 
+    non-color bar version saved to the "ClusteringResults" directory as 
+    "dbscan_result.jpg"
     
     Parameters
     -----
@@ -148,8 +151,8 @@ def km_dbscan_wrapper(mask: np.ndarray, hyperparameter_dict, save_filepath: str)
 
     Returns
     -----
-    features (np.array) is a an array where each row corresponds to a set of 
-    coordinates (x,y) of the pixels where the binary_mask had a value of 1
+    all_labels (np.ndarray): labels of image after dbscan clustering for plotting
+    dbscan (sklearn.cluster.DBSCAN): fitted dbscan model
     """    
    
     #Generate Spatial Coordiantes

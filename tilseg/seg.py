@@ -835,7 +835,9 @@ def kmean_to_spatial_model_superpatch_wrapper(superpatch_path: str,
     -----
     IM_labels (np.ndarray): labels from fitted sptail model
     dbscan_fit (sklearn.cluster.DBSCAN): fitted spatial model object
-    
+    cluster_mask_dict (dict): dictionary containg the filenames of the patches
+    without the extensions as the keys and the binary cluster masks from 
+    segment_TILS as the values
     """
     
     #Opens Superpatch Image / Retrieves Pixel Data
@@ -880,7 +882,7 @@ def kmean_to_spatial_model_superpatch_wrapper(superpatch_path: str,
     return im_labels, dbscan_fit, cluster_mask_dict
     
 def kmean_dbscan_patch_wrapper(patch_path: str,
-                        spatial_func,
+                        spatial_hyperparameters: dict,
                         n_clusters: list = [1,2,3,4,5,6,7,8,9],
                         out_dir_path: str = None,
                         save_TILs_overlay: bool = False,
@@ -891,7 +893,7 @@ def kmean_dbscan_patch_wrapper(patch_path: str,
     
     """
     A wrapper used to optimize a KMeans model on a patch to generate binary
-    cluster mask. This masks is converted to a dataframe (X pixel, Y pixel, binary mask value)
+    cluster mask. This mask is converted to a 3D array (X pixel, Y pixel, binary mask value)
     and fed into a spatial algorithm (e.g Dbscan) to perform further segmentation
     on the highest contour count cluster returned by segment_TILS. This function is used to
     generate a ground truth image for scoring (fit KMeans model to patch and predict on same patch)
@@ -900,9 +902,8 @@ def kmean_dbscan_patch_wrapper(patch_path: str,
     -----
     patch_path: str
         filepath to a single patch image from the preprocessing step (.tif)
-    spatial_func:
-        the spatial algorithm fitting function that takes in a formated version of the 
-        cluster mask array. It should return a fitted model.
+    spatial_hyperparameters: dict
+        the spatial algorithm's optimized hyperparameters
     n_clusters: list
         a list of the number clusters to test in KMeans optimization
     out_dir: str
@@ -922,20 +923,12 @@ def kmean_dbscan_patch_wrapper(patch_path: str,
 
     Returns
     -----
-    TIL_count_dict: dict
-        contains patch filenames without the extension as the key and TIL
-        counts in respective patches as the values
-    kmean_labels_dict: dict
-        contains patch filenames names without the extension as the key
-        (e.g. 'position_7_8tissue') and the kmean cluster label array as the values 
-    cluster_mask_dict: dict
-        contains patch filenames without the extension as the key and 
-        the binary cluster mask for the cluster that had the highest
-        contour count. This mask is a 2D array where dimensions correspond to the X and
-        Y pixel dimensions in the original image. The mask will contain 1s in pixels 
-        associated with the cluster and 0s everywhere else.
+    IM_labels (np.ndarray): labels from fitted sptail model
+    dbscan_fit (sklearn.cluster.DBSCAN): fitted spatial model object
+    cluster_mask_dict (dict): dictionary containg the filenames of the patches
+    without the extensions as the keys and the binary cluster masks from 
+    segment_TILS as the values
     """
-    
     
     #Opens Superpatch Image / Retrieves Pixel Data
     img = Image.open(patch_path)
@@ -962,10 +955,11 @@ def kmean_dbscan_patch_wrapper(patch_path: str,
         
     #Dbcan Model Fitting
     file = os.path.dirname(patch_path)
+    tf3 = time.time()
     cluster_mask = cluster_mask_dict[file[:-4]]
     save_path = out_dir_path + f"/{file[:-4]}/"
-    hyperparameter_dict = {'eps': 0.5,'min_samples': 5}
-    im_labels, dbscan_fit = km_dbscan_wrapper(mask = cluster_mask, hyperparameter_dict= hyperparameter_dict,plot_filepath=save_path)
-    print(f"Script completed.")
+    im_labels, dbscan_fit = km_dbscan_wrapper(mask = cluster_mask, hyperparameter_dict= spatial_hyperparameters,save_filepath=save_path)
+    tf4 = time.time()
+    print(f"Script completed. Dbscan fitting time: {tf4 - tf3} seconds.")
 
     return im_labels, dbscan_fit, cluster_mask_dict
