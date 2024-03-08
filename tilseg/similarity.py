@@ -58,7 +58,7 @@ def superpatch_similarity(superpatch_folder, reference_patch, output_path, refer
         # construct the full path of the current file
         
         # necessary in order to ignore ds store files on mac
-            if filename.endswith('.tif'):
+        if filename.endswith('.tif'):
 
             superpatch_file = os.path.join(superpatch_folder, filename)
             
