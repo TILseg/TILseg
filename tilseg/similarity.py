@@ -55,11 +55,11 @@ def superpatch_similarity(superpatch_folder, reference_patch, output_path, refer
 
     # iterate over files in folder
     for filename in os.listdir(superpatch_folder):
-        # construct the full path of the current file
         
         # necessary in order to ignore ds store files on mac
         if filename.endswith('.tif'):
-
+            
+            # construct the full path of the current file
             superpatch_file = os.path.join(superpatch_folder, filename)
             
             # fit KMeans model to superpatch
