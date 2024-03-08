@@ -26,7 +26,23 @@ def image_similarity(mask1, mask2):
     mse (float): mean squared error
     diff (np.ndarray): image difference as numpy array
     """
-
+    # check if the inputs types are valid
+    if(isinstance(mask1,np.ndarray)):
+        pass
+    else:
+        raise TypeError('mask1 must be an np.ndarray')
+    
+    if(isinstance(mask2,np.ndarray)):
+        pass
+    else:
+        raise TypeError('mask2 must be an np.ndarray')
+    
+    # check if the input arrays are in the same shape
+    if(mask1.shape == mask2.shape):
+        pass
+    else:
+        raise ValueError('mask1 and mask2 have different shapes.')
+    
     # calculate mse
     mse = mean_squared_error(mask1.flatten(), mask2.flatten())
 
