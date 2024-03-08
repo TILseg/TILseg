@@ -68,7 +68,50 @@ def superpatch_similarity(superpatch_folder, reference_patch, output_path, refer
     Returns:
     None
     """
+    # check if the inputs types are valid
+    if(isinstance(superpatch_folder,str)):
+        pass
+    else:
+        raise TypeError('superpatch_folder must be a string')
+    
+    if(isinstance(reference_patch,str)):
+        pass
+    else:
+        raise TypeError('reference_patch must be a string')
+    
+    if(isinstance(output_path,str)):
+        pass
+    else:
+        raise TypeError('output_path must be a string')
+    if(isinstance(reference_array,np.ndarray)):
+        pass
+    else:
+        raise TypeError('reference_array must be an np.ndarray')
+        
+    # check if the paths exist
+    if os.path.exists(superpatch_folder):
+        pass
+    else:
+        raise ValueError('System cannot find the superpatch_folder path. \
+                         Please ensure os.stat() can run on your path.')
+    if os.path.exists(reference_patch):
+        pass
+    else:
+        raise ValueError('System cannot find the reference_patch. \
+                         Please ensure os.stat() can run on your path.')
+    if os.path.exists(output_path):
+        pass
+    else:
+        raise ValueError('System cannot find the output_path path. \
+                         Please ensure os.stat() can run on your path.')
+    
+    # check if the input folder is empty
+    if(len(os.listdir(superpatch_folder))>0):
+        pass;
+    else:
+        raise ValueError('No superpatch found in superpatch_folder.')
 
+    
     # iterate over files in folder
     for filename in os.listdir(superpatch_folder):
         # construct the full path of the current file
