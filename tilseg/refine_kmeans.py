@@ -10,17 +10,13 @@ import pathlib
 # External library imports
 import numpy as np
 import pandas as pd
-from sklearn.cluster import DBSCAN, KMeans
+import sklearn.cluster
 from sklearn.preprocessing import StandardScaler
 from skimage.measure import label, regionprops
 import matplotlib.pyplot as plt
 from PIL import UnidentifiedImageError, Image
 import cv2
 
-# Local imports
-from tilseg.cluster_processing import mask_only_generator, image_postprocessing
-from tilseg.seg import segment_TILs
-from tilseg.model_selection import opt_kmeans
 
 # KMeans_superpatch_fit function is cpoied here for ease
 def KMeans_superpatch_fit(patch_path: str,
@@ -70,7 +66,7 @@ def KMeans_superpatch_fit(patch_path: str,
     # Creates a variable which references the preferred parameters for KMeans
     # clustering
     key_list = list(hyperparameter_dict.keys())
-    expected_key_list = ['n_clusters','metric']
+    expected_key_list = ['n_clusters']
     # Checks that the expected keys are present in hyperparameters_dict
     if set(key_list) != set(expected_key_list):
         raise KeyError(
@@ -104,83 +100,91 @@ def KMeans_superpatch_fit(patch_path: str,
     # to clustering_score and segment_TILs functions
     return model
 
-### Unsure where to put this function but pasted here for now for workflow
-# 
-def kmean_dbscan_patch_wrapper(patch_path: str,
-                n_clusters: list,
-                 out_dir_path: str = None,
-                 save_TILs_overlay: bool = False,
-                 save_cluster_masks: bool = False,
-                 save_cluster_overlays: bool = False,
-                 save_all_clusters_img: bool = False,
-                 save_csv: bool = False):
-    
-    # Find Kmeans Parameters (num clusters)
-    img = Image.open(patch_path)
-    numpy_img = np.array(img)
-    numpy_img_reshape = np.float32(numpy_img.reshape((-1, 3)) / 255.)
-    opt_cluster = opt_kmeans(numpy_img_reshape, n_clusters)
-    hyperparameter_dict = {'n_clusters': opt_cluster}
-    kmeans_fit = KMeans_superpatch_fit(patch_path, hyperparameter_dict)
-    print("Completed Kmeans fitting.")
-    
-    # Run Segmentation on Kmeans Model
-    TIL_count_dict, kmean_labels_dict = segment_TILs(patch_path,
-                 out_dir_path,
-                 None,
-                 'KMeans',
-                 kmeans_fit,
-                 save_TILs_overlay, 
-                 save_cluster_masks,
-                 save_cluster_overlays,
-                 save_all_clusters_img,
-                 save_csv,
-                 False)
-    
-    #Feed into DBSCAN
-    return TIL_count_dict, kmeans_fit
-    ## changed the output to include the KMeans cluster labels
+# def mean_shift_patch_fit(data):
+#     data = np.array(data)
+#     hyperparameter_dict = opt_mean_shift(data = data,
+#                    bandwidth = [0.1,0.2,0.3,0.5,0.6,0.7,0.8,0.9],
+#                    seeds=[0.1,0.2,0.4,0.5])
+#     model = sklearn.cluster.MeanShift(**hyperparameter_dict, max_iter=20,
+#                                    n_init=3, tol=1e-3)
+#     model.fit_predict(data)
+#     cluster_labels = model.labels_
+#     cluster_centers = model.cluster_centers_
+#     return model, cluster_labels, cluster_centers
 
-# Takes a KMeans binary TILs mask and converts it into an array to feed into DBSCAN
-def km_labels_to_features(patch_path: str, n_clusters: list):
+def mask_to_features(binary_mask:np.ndarray):
+    """
+    Generates the spatial coordinates from a binary mask as features to cluster with DBSCAN
     
-    # Extracting the original patch as a 3D array with dimensions X, Y, 
-    # and color with three color channels as RGB.
-    original_image = cv2.imread(patch_path)
+    Parameters
+    -----
+    binary_mask (np.ndarray): a binary mask with 1's corresponding to the pixels 
+    involved in the cluser with the most contours and 0's for pixels not
+
+    Returns
+    -----
+    features (np.array) is a an array where each row corresponds to a set of 
+    coordinates (x,y) of the pixels where the binary_mask had a value of 1
+    """
     
-    # obtain the KMeans labels on the patch (2D array with dimensions X, and Y 
-    # and values as the cluster identified via the model)
-    _, kmean_labels = kmean_dbscan_patch_wrapper(patch_path, n_clusters)
-
-    # implement image_postprocessing function to get binary mask
-    _, binary_mask = image_postprocessing(kmean_labels, original_image)
-
     # Use np.argwhere to find the coordinates of non-zero (1) elements in the binary mask
     tils_coords = np.argwhere(binary_mask == 1)
 
     # Prepare coordinates as your feature matrix
     features = tils_coords
 
-    return features, kmean_labels
-    # features (np.array) is a an array where each row corresponds to a set of 
-    # coordinates (x,y) of the pixels where the binary_mask had a value of 1
+    return features
 
-# Takes the spatial coordinates from a binary mask as features to cluster with DBSCAN
-# note: previous group found n=4 to be optimal, so the number of clusters used to fit 
-#       KMeans is set to a default value of 4
-def km_dbscan_wrapper(patch_path: str, eps: float, min_samples: int, km_clusters: int = 4):
 
-    # Extract K-means labels and the features that be fed into DBSCAN
-    # note: kmean_dbscan_patch_wrapper is from the seg.py script right now
-    features, km_labels = km_labels_to_features(patch_path, km_clusters)
+def km_dbscan_wrapper(mask: np.ndarray, hyperparameter_dict, save_filepath: str):
+    """
+    Generates a fitted dbscan model and labels when provided a binary mask 
+    2D array for the KMeans cluster with the highest contour count. A plot of 
+    the dbscan clustering results is printed to the window, with a colorbar and 
+    non-color bar version saved to the "ClusteringResults" directory as 
+    "dbscan_result.jpg"
+    
+    Parameters
+    -----
+    binary_mask (np.ndarray): a binary mask with 1's corresponding to the pixels 
+    involved in the cluser with the most contours and 0's for pixels not
 
-    # Create DBSCAN model and fit it onto the features
-    dbscan = DBSCAN(eps=eps, min_samples=min_samples) 
+    Returns
+    -----
+    all_labels (np.ndarray): labels of image after dbscan clustering for plotting
+    dbscan (sklearn.cluster.DBSCAN): fitted dbscan model
+    """    
+   
+    #Generate Spatial Coordiantes
+    features = mask_to_features(mask)
+
+    # DBSCAN Model Fitting
+    dbscan = sklearn.cluster.DBSCAN(**hyperparameter_dict)
     dbscan_labels = dbscan.fit_predict(features)
 
-    # Visualize the DBSCAN labels
-
-    return dbscan_labels
+    #Generate Labels for Plot
+    mask_reshape = mask.reshape(-1,1)
+    all_labels = np.full(len(mask_reshape), -1)
+    indices = [i for i, val in enumerate(mask_reshape) if val == 1] #indices of labels being inserted
+    for index, new_label in zip(indices, dbscan_labels): #Loops through dbscan labels and adds to all_labels array in corresponding index position
+        all_labels[index] = new_label
+    all_labels = all_labels.reshape(mask.shape)
+    
+    #Plotting
+    plt.figure(figsize=(8, 6))
+    plt.imshow(all_labels, cmap='viridis')  # Change the colormap as needed
+    plt.colorbar()
+    plt.title('DBSCAN Clustering Result')
+    plt.savefig(save_filepath + '/ClusteringResults/dbscan_result_colorbar.jpg')
+    plt.show()
+    
+    plt.figure(figsize=(8, 6))
+    plt.axis('off')
+    plt.imshow(all_labels, cmap='viridis');  # Change the colormap as needed
+    plt.imsave(save_filepath + '/ClusteringResults/dbscan_result.jpg',all_labels)
+    plt.close()
+    
+    return all_labels, dbscan
 
 
 ## MISC FUNCTIONS
@@ -286,31 +290,31 @@ def km_dbscan_wrapper(patch_path: str, eps: float, min_samples: int, km_clusters
 
 #     return black_percentage
 
-# def calculate_black_folder(folder_path, threshold=50):
-    """
-    A function that takes the complete path to the image and calculates the 
-    percentage of the image that is black (i.e. background)
+# # def calculate_black_folder(folder_path, threshold=50):
+#     """
+#     A function that takes the complete path to the image and calculates the 
+#     percentage of the image that is black (i.e. background)
 
-    Parameters
-    -----
-    slidepath: the complete path to the slide file (.svs)
+#     Parameters
+#     -----
+#     slidepath: the complete path to the slide file (.svs)
 
-    Returns
-    -----
-    black_percentages (list): S list of tuples where the first element is a string 
-    (file name) and the second element is a float (percentage).
-    """
+#     Returns
+#     -----
+#     black_percentages (list): S list of tuples where the first element is a string 
+#     (file name) and the second element is a float (percentage).
+#     """
     
-    # Get a list of all files in the folder
-    files = [f for f in os.listdir(folder_path) if os.path.isfile(os.path.join(folder_path, f))]
+#     # Get a list of all files in the folder
+#     files = [f for f in os.listdir(folder_path) if os.path.isfile(os.path.join(folder_path, f))]
 
-    black_percentages = []
+#     black_percentages = []
 
-    for file in files:
-        image_path = os.path.join(folder_path, file)
-        if file.lower().endswith(('.tif')):
-            black_percentage = calculate_black(image_path, threshold)
-            black_percentages.append((file, black_percentage))
+#     for file in files:
+#         image_path = os.path.join(folder_path, file)
+#         if file.lower().endswith(('.tif')):
+#             black_percentage = calculate_black(image_path, threshold)
+#             black_percentages.append((file, black_percentage))
 
-    return black_percentages
+#     return black_percentages
     
