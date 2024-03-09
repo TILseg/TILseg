@@ -107,7 +107,7 @@ def superpatch_similarity(superpatch_folder, reference_patch, output_path, refer
     
     # check if the input folder is empty
     if(len(os.listdir(superpatch_folder))>0):
-        pass;
+        pass
     else:
         raise ValueError('No superpatch found in superpatch_folder.')
 
