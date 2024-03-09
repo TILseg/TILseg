@@ -3,10 +3,12 @@ import numpy as np
 from numpy.random import rand
 from sklearn.metrics import mean_squared_error
 from tilseg.similarity import image_similarity
+from tilseg.similarity import superpatch_similarity
 
 class TestImageSimilarity(unittest.TestCase):
     """
-    Test case for the image_similiarity function within similarity.py"""
+    Test case for the image_similiarity function within similarity.py
+    """
 
     def test_input_type(self):
         """
@@ -63,6 +65,35 @@ class TestImageSimilarity(unittest.TestCase):
         np.testing.assert_array_equal(diff_array, expected_diff_array)
 
         # Add more test cases as needed
+
+class TestSuperpatchSimilarity(unittest.TestCase):
+    """
+    Test case for the superpatch_similiarity function within similarity.py"""
+    def test_input_type(self):
+        """
+        test the inputs of the function is indeed np.array
+        """
+        real_path = "/Users/user/Downloads/"
+        with self.assertRaises(TypeError):
+            superpatch_similarity(3,real_path,real_path,rand(3))
+
+        with self.assertRaises(TypeError):
+            superpatch_similarity(real_path,3,real_path,rand(3))
+
+        with self.assertRaises(TypeError):
+            superpatch_similarity(real_path,real_path,float(334.3),rand(3))
+
+        with self.assertRaises(TypeError):
+            superpatch_similarity(real_path,real_path,real_path,'not an array')
+
+    def test_superpatchpath_contains_file(self):
+        """
+        test if the input superpatch path has any files in it
+        """
+        with self.assertRaises(ValueError):
+            real_path = "/Users/user/Downloads/"
+            directory_path = '/path/to/your/directory'
+            superpatch_similarity(directory_path,real_path,real_path,rand(50))
 
 if __name__ == '__main__':
     unittest.main()
