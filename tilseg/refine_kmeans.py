@@ -160,7 +160,18 @@ def km_dbscan_wrapper(mask: np.ndarray, hyperparameter_dict, save_filepath: str,
     all_labels (np.ndarray): labels of image after dbscan clustering for plotting
     dbscan (sklearn.cluster.DBSCAN): fitted dbscan model
     """    
-   
+    # Checking if the save directory exists
+    if not os.path.exists(save_filepath) or not os.path.isdir(save_filepath):
+        raise FileNotFoundError("Directory '{}' does not exist.".format(save_filepath))
+    
+    # Checking if the save directory is writable
+    if not os.access(save_filepath, os.W_OK):
+        raise PermissionError("Directory '{}' is not writable.".format(save_filepath))
+
+    # Ensuring the mask is a 2D array
+    if not isinstance(mask, np.ndarray) or mask.ndim != 2:
+        raise ValueError("Input 'mask' must be a 2D NumPy array.")
+
     #Generate Spatial Coordiantes
     features = mask_to_features(mask)
 
@@ -258,7 +269,18 @@ def kmean_to_spatial_model_superpatch_wrapper(superpatch_path: str,
         cluster labels from kemans that had the highest contour count in each image. 
         The keys are the filenames and the values are the cluster numbers.
     """
+    # Checking if the in directory exists
+    if not os.path.exists(in_dir_path) or not os.path.isdir(in_dir_path):
+        raise FileNotFoundError("Directory '{}' does not exist.".format(in_dir_path))
     
+    # Checking if the out directory exists
+    if not os.path.exists(out_dir_path) or not os.path.isdir(out_dir_path):
+        raise FileNotFoundError("Directory '{}' does not exist.".format(out_dir_path))
+    
+    # Checking if the out directory is writable
+    if not os.access(out_dir_path, os.W_OK):
+        raise PermissionError("Directory '{}' is not writable.".format(out_dir_path))    
+
     #Opens Superpatch Image / Retrieves Pixel Data
     img = Image.open(superpatch_path)
     numpy_img = np.array(img)
