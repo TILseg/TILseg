@@ -1,4 +1,4 @@
-#### PREPROCESSING
+## PREPROCESSING
 ##### What it does: 
 Takes the image file of the whole slide image (WSI) and separates it into smaller patches which are then sampled and used for creating the superpatch.
 Inputs: WSIs, usually .svs or .ndpi
@@ -14,7 +14,7 @@ Divides the whole slide image(s) (WSI) into smaller sections called â€œpatchesâ€
 
 
 
-#### MODEL SELECTION
+## MODEL SELECTION
 ##### What it does:
 Utilizes various functions to score and select clustering algorithms and their hyperparameters based on three metrics: Silhouette scores, Calinski Harabasz scores, and Davies Bouldin scores. Also contains optimization functions for kmeans, dbscan, birch, and optics models.
 
@@ -93,22 +93,183 @@ Utilizes various functions to score and select clustering algorithms and their h
         - Outputs:
 
 
-#### REFINED KMEANS
+## IMAGE SEGMENTATION
 ##### What it does:
-**Subcomponents**
-
-
-
-#### IMAGE SEGMENTATION
-##### What it does:
-Includes functions that fit and score clustering models as well as segment TILs in H&E stained patches within an image, or images. This should be done after using the tilseg.model_selection module to select and optimize hyperparameters of a model.
+This section include functions that either train a kmeans model on a superpatch or test a ground-truth prediction on a single patch. For the first case, segmentation will be run on a folder of patches, where a kmeans model is fit to a superpatch and then predicted on this folder of patches. For the second case, a kmeans model is fit and predicted on a single patch. This provides our self-defined "validation test". With information from both cases, we can compare the results of the segmentated images to see how "well" our kmeans model is behaving. This should be done after using the tilseg.model_selection module to select and optimize hyperparameters of a model.
 
 **Subcomponents**
+1. Superpatch Fit and Scoring
+	- kmeans_superpatch_fit: Fits a KMeans clustering model to a patch that will be used to cluster
+    other patches
+		- Inputs:
+			- patch_path (str) : the directory path to the patch that the model will be fitted to obtain cluster decision boundaries
+     		  	- hyperparameter_dict (dict): dicitonary of hyperparameters for KMeans containing 'n_clusters' as the only key
+		- Outputs:
+			- model (sklearn.base.ClusterMixin): the fitted model
+	 - clustering_score: Scores clustering models after they have been fit and predicted to an individual patch. The goal of this function is NOT to get high throughput scores from multiple patches in a whole slide image
+		- Inputs:
+			- patch_path (str) : the directory path to the patch that will be fitted and/or clustered on to produce cluster labels that will be used for the scoring
+     			- Hyperparameter_dict (dict) : Optimized hyperparameters for algorithm. This dictionary can be read by the JSON file outputted by tilseg.model_selection module for KMeans: dictionary should have 'n_clusters' key for DBSCAN: dictionary should have 'eps' and 'min_samples' keys for OPTICS: dictionary should have 'min_samples' and 'max_eps' keys for BIRCH: dictionary should have 'threshold', 'branching_factor', and 'n_clusters' keys
+          		- Algorithm (str): Chosen clustering algorithm: 'KMeans', 'DBSCAN', 'OPTICS', or 'BIRCH'
+			- model: (sklearn.cluster._kmeans.KMeans) sklearn model fitted on a superpatch. Note: Only input a model if the algorithm is KMeans and the user wants to score a model that has been fit on a superpatch.
+     			- gen_s_score (bool): generate Silhouette score
+          		- Gen_ch_score (bool): generate Calinksi score
+              		- Gen_db_score (bool): generate Davies-Bouldin score
+		- Outputs:
+			- S_score (float): Silhouette score; ranges from -1 to 1 with 0 meaning in different clusters, -1 meaning clustered assigned in a wrong fashion and 1 meaning far apart and well separated clusters
+     		  	- Ch_score (float): Calinksi index; higher value of ch_score means the clusters are dense and well separated- there is no absolute cut-off value
+			- Db_score (float): Davies-Bouldin score; lower values mean better clustering with zero being the minimum value
 
+3. Apply Clustering Model
+   	- segment_TILS:
+   	  	- Inputs:
+   	  	  	- in_dir_path (str): ground truth test (path to an individual patch) or predicting from superpatch fit (path to a directory of patches)
+   	  	  	- out_dir_path (str): the directory path where output images and CSV files will be saved
+   	  	  	- Hyperparameter_dict (dict): None if using kmeans_fit as the model, or input a dictionary of hyperparameters (one would also need to set the model input equal to the model you would like to use, instead of passing None)
+   	  	  	- Algorithm(str): clustering algorithm to be used: 'KMeans', 'DBSCAN', 'OPTICS', or 'BIRCH'
+   	  	  	- model (sklearn.cluster._kmeans.KMeans): Any input here will assume goal is to cluster all patches and the algorithm chosen is KMeans. If no model is inputted, the clustering algorithm will fit a model on the same patch that it is clustering
+   	  	  	- save_TILs_overlay(bool):  generate image containing TILs overlayed on the original H&E patch
+   	  	  	- save_cluster_masks(bool): generate image showing binary segmentation masks of each cluster
+   	  	  	- save_cluster_overlays(bool): generate image containing individual clusters overlayed on the original patch
+   	  	  	- Save_all_clusters_img (bool): generate image of all the clusters
+   	  	  	- Save_csv (bool): generate CSV file containing contour information of each TIL segmented from the patch
+   	  	  	- multiple_images(bool): True if the model will be fit to superpatch and predicted on sub-patches and False if model will be fit to a single patch and be predicted on this patch ("validation test")
+   	  	- Outputs:
+   	  	  	- TIL_count_dict(dict): contains patch filenames without the extension as the key and TIL counts in respective patches as the values
+   	  	  	- kmeans_labels_dict(dict): contains patch filenames names without the extension as the key (e.g. 'position_7_8tissue') and the kmean cluster label array as the values
+   	  	  	- cluster_mask_dict(dict): contains patch filenames without the extension as the key and the binary cluster mask for the cluster that had the highest contour count. This mask is a 2D array where dimensions correspond to the X and Y pixel dimensions in the original image. The mask will contain 1s in pixels associated with the cluster and 0s everywhere else.
 
+5. Wrapper Functions
+   	- Kmean_to_spatial_model_superpatch_wrapper: A wrapper used to optimize a KMeans model on a superpatch to generate binary cluster masks for each sub-patch of the slide. These masks are converted to dataframes (X pixel, Y pixel, binary mask value) and fed into a spatial algorithm (e.g Dbscan) to perform further segmentation on the highest contour count cluster returned by segment_TILS for each path.
+   	  	- Inputs:
+   	  	  	- superpatch_path(str): filepath to superpatch image from preprocessing step (.tif)
+   	  	  	- in_dir_path(str): the directory path to the patches that will be clustered and have TILs segmented from superpatch model. This directory could be one that contains all the extracted patches containing significant amount of tissue using the tilseg.preprocessing module.
+   	  	  	- spatial_hyperparameters: the spatial algorithm's optimized hyperparameters (use 'eps' = 15, 'min_samples' = 100)
+   	  	  	- n_clust(list): a list of the number clusters to test in KMeans optimization
+   	  	  	- out_dir(str): the directory path where output images and CSV files will be saved\
+   	  	  	- save_TILS_overlay(bool): generate image containing TILs overlayed on the original H&E patch
+   	  	  	- save_cluster_masks(bool): generate image showing binary segmentation masks of each cluster
+   	  	  	- save_cluster_overlays(bool): generate image containing individual clusters overlayed on the original patch
+   	  	  	- save_all_clusters_img(bool): generate image of all the clusters
+   	  	  	- save_csv(bool): generate CSV file containing contour information of each TIL segmented from the patch
 
-#### CLUSTER PROCESSING
+   	  	- Outputs:
+   	  	  	- IM_labels (np.ndarray): labels from fitted sptail model
+   	  	  	- dbscan_fit (sklearn.cluster.DBSCAN): fitted spatial model object
+   	  	  	- cluster_mask_dict (dict): dictionary containg the filenames of the patches
+    without the extensions as the keys and the binary cluster masks from 
+    segment_TILS as the values
+   	  	  	  
+   	- Kmean_dbscan_patch_wrapper: A wrapper used to optimize a KMeans model on a patch to generate a binary cluster mask. This mask is converted to a dataframe (X pixel, Y pixel, binary mask value) and fed into a spatial algorithm (e.g Dbscan) to perform further segmentation on the highest contour count cluster returned by segment_TILS. This function is used to generate a ground truth image for scoring (fit KMeans model to patch and predict on same patch)
+   	  	- Inputs:
+   	  	  	- patch_path(str): file path to a single patch image from the preprocessing step (.tif)
+   	  	  	- spatial_hyperparameters: the spatial algorithm's optimized hyperparameters (use 'eps' = 15, 'min_samples' = 100)
+   	  	  	- n_clust(list): a list of the number clusters to test in KMeans optimization
+   	  	  	- out_dir(str): the directory path where output images and CSV files will be saved
+   	  	  	- save_TILS_overlay(bool): generate image containing TILs overlayed on the original H&E patch
+   	  	  	- save_cluster_masks(bool): generate image showing binary segmentation masks of each cluster
+   	  	  	- save_cluster_overlays(bool): generate image containing individual clusters overlayed on the original patch
+   	  	  	- save_all_clusters_img(bool): generate image of all the clusters
+   	  	  	- save_csv(bool): generate CSV file containing contour information of each TIL segmented from the patch
+   	  	- Outputs:
+   	  	  	- IM_labels (np.ndarray): labels from fitted sptail model
+   	  	  	- dbscan_fit (sklearn.cluster.DBSCAN): fitted spatial model object
+   	  	  	- cluster_mask_dict (dict): dictionary containg the filenames of the patches without the extensions as the keys and the binary cluster masks from segment_TILS as the values
+
+### REFINED KMEANS
 ##### What it does:
-Uses a clustering model developed in modules above to generate a variety of information from the clusters generated which can be used for subsequent analysis. The output is a series of images which represent the original image and relevant overlays of the determined clusters. Additionally, based on the clusters, data from filtered cell clusters will be compiled into a CSV. Immune cell groups are identified using the contour functionality from OpenCV. The implemented filters are based on area and roundness of the derived contours.
+This folder creates a superpatch from 3 class classified images, optimizes DBSCAN hyperparameters on these images, and then fits this model on a superpatch.
 
 **Subcomponents**
+1. Improved KMeans Integration
+	- KMeans_superpatch_fit: documentation can be found above in Segmentation
+
+2. Integration with DBSCAN
+	- mask_to_features: Generates the spatial coordinates from a binary mask as features to cluster with DBSCAN
+		- Inputs: binary_mask(np.narray): a binary mask with 1's corresponding to the pixels involved in the cluster with the most contours and 0's for pixels not
+		- Outputs: features(np.array): an array where each row corresponds to a set of 
+    	coordinates (x,y) of the pixels where the binary_mask had a value of 1
+    
+	- km_dbscan_wrapper: Generates a fitted dbscan model and labels when provided a binary mask 
+    2D array for the KMeans cluster with the highest contour count. A plot of 
+    the dbscan clustering results is printed to the window, with a colorbar and 
+    non-color bar version saved to the "ClusteringResults" directory as 
+    "dbscan_result.jpg"
+		- Inputs:
+			- binary_mask (np.ndarray): a binary mask with 1's corresponding to the pixels 
+    involved in the cluser with the most contours and 0's for pixels not
+     			- hyperparameter_dict(dict): Contains hyperparameters as keys, corresponding to optimized values	
+		- Outputs:
+			- all_labels (np.ndarray): labels of image after dbscan clustering for plotting
+     			- dbscan (sklearn.cluster.DBSCAN): fitted dbscan model
+
+
+## CLUSTER PROCESSING
+##### What it does:
+This python file is meant to generate human and computer readable data for
+analysis based on the clusters generated via the clustering model previously
+developed. The output is a series of images which represent the
+original image and relevant overlays of the determined clusters. Additionally,
+based on the clusters, data from filtered cell clusters will be compiled into
+a CSV. Immune cell groups are identified using the contour functionality from
+OpenCV. The implemented filters are based on area and roundness of the derived
+contours.
+
+##### Side Effects:
+Incorrect identification of clusters
+
+**Subcomponents**
+1. Image Preparation & Generation
+   	- image_series_exceptions:
+   	- generate_image_series:
+   	- gen_base_arrays: Basis of cluster assignment [function:()]
+2. Binary Mask Implementation
+   	- result_image_generator: Generates 3 arrays from clusters. The first is the each cluster individually overlaid on the original image. The second is a binary mask from each cluster. The third is an array with each pixel colored based on the associated cluster.
+   	- mask_only_generator: Generates 1 array from cluster. It is a binary mask from each cluster.
+   	- filter_boolean: Determines if a given contour meets the filters that have been defined for TILs
+   	- contour_generator:
+3. Image Generation:
+   	- csv_results_compiler:
+   	- Immune_cluster_analyzer:
+   	- draw_til_images:
+   	- image_postprocessing:
+
+
+
+## SIMILARITY
+##### What it does:
+Takes the image file of the whole slide image (WSI) and separates it into smaller patches which are then sampled and used for creating the superpatch.
+##### Inputs:
+WSIs, usually .svs or .ndpi
+##### Outputs:
+Patches + superpatch (.tif) of the original image(s) that will be used to create the clustering model.
+##### Side Effects:
+Loss of data (when dividing WSI into patches)
+
+**Subcomponents**
+1. Mean Squared Error & Model Fitting
+	- image_similarity: This function calculates the mean squared error and image difference between two arrays
+		- Inputs:
+			- mask1 (np.ndarray): array of first image
+     			- mask2 (np.ndarray): array of second image
+		- Outputs:
+			- mse (float): mean squared error
+     			- diff (np.ndarray): image difference as numpy array
+
+	- superpatch_similarity: This iterates through a folder of superpatches and calculates the mean squared error and plots an image of the difference between the superpatch mask and reference mask.
+		- Inputs:
+			- superpatch_folder (str): path to folder containing superpatch files
+     			- reference_patch (str): file of reference patch that model will be applied
+ 			- output_path (str): path to folder where images are saved
+     			- reference_array (np.ndarray): reference patch array after running 
+segment_TILs in similarity_use.ipynb
+		- Outputs: None, but prints mean squared error and plots difference image
+			
+
+
+
+
+
+
+
+
