@@ -672,6 +672,7 @@ def segment_TILs(in_dir_path: str,
     TIL_count_dict = {}
     cluster_mask_dict = {}
     kmean_labels_dict = {}
+    cluster_index_dict= {}
     
     for file in files:
         if not file.lower().endswith(".tif"):
@@ -782,9 +783,10 @@ def segment_TILs(in_dir_path: str,
         TIL_count_dict[file[:-4]] = TIL_count
         kmean_labels_dict[file[:-4]] = labels
         cluster_mask_dict[file[:-4]] = cluster_mask
+        cluster_index_dict[file[:-4]] = cluster_index
 
     # returns the dictionary containing patch filenames without the extension
     # as the key and TIL counts as the values
-    return TIL_count_dict, kmean_labels_dict, cluster_mask_dict, cluster_index
+    return TIL_count_dict, kmean_labels_dict, cluster_mask_dict, cluster_index_dict
 
 
