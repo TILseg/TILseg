@@ -415,6 +415,8 @@ def immune_cluster_analyzer(masks: list):
     cluster_mask (np.ndarray):
         2D array slice of 3D binary mask (num clusters by image x-dim by image y-dim)
         corresponding to cluster with most contours
+    count_index (int): 
+        cluster index with highest contour count
     """
     # intialize lists to store contours and number of contours
     contour_list = []
@@ -443,7 +445,7 @@ def immune_cluster_analyzer(masks: list):
     cluster_mask = masks[count_index]
     cluster_mask_col = cluster_mask.reshape(-1,1) #makes a single column of 0's (dont use pixel) and 1's (use pixel)
     
-    return til_contour, max_contour_count, cluster_mask
+    return til_contour, max_contour_count, cluster_mask, count_index
 
 
 def draw_til_images(img: np.ndarray, contours: list, filepath: str):
@@ -518,6 +520,7 @@ def image_postprocessing(clusters: np.ndarray, ori_img: np.ndarray,
         had the highest contour count. It is a 2D array where dimensions correspond to the X and
         Y pixel dimensions in the original image. The mask will contain 1s in pixels associated with the
         cluster and 0s everywhere else.
+    cluster_index (int): cluster label that has the highest contour count
     """
 
     # generate errors if cluster and image have incorrect dimensions
@@ -565,7 +568,7 @@ def image_postprocessing(clusters: np.ndarray, ori_img: np.ndarray,
         masks = mask_only_generator(clusters)
 
     # generate contours if images or CSV of TILs is required
-    til_list, til_count, cluster_mask = immune_cluster_analyzer(masks)
+    til_list, til_count, cluster_mask, cluster_index = immune_cluster_analyzer(masks)
 
     # save image with all clusters if specified
     if gen_all_clusters:
@@ -594,4 +597,4 @@ def image_postprocessing(clusters: np.ndarray, ori_img: np.ndarray,
     # go back to home directory
     os.chdir(home)
 
-    return til_count, cluster_mask
+    return til_count, cluster_mask, cluster_index
