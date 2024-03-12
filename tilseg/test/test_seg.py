@@ -16,10 +16,12 @@ import sklearn.cluster
 import sklearn.utils.validation
 from sklearn.exceptions import NotFittedError
 from PIL import UnidentifiedImageError
+from PIL import Image
 
 import tilseg.seg
 import tilseg.cluster_processing
 import tilseg
+from seg import kmean_to_spatial_model_superpatch_wrapper 
 
 TEST_PATCH_PATH = os.path.join(os.path.dirname(tilseg.__file__), 'test',
                                'test_patches', 'patches',
@@ -621,3 +623,4 @@ class TestSeg(unittest.TestCase):
                                     hyperparameter_dict={'min_samples': 22,
                                                          'max_eps': np.inf},
                                     algorithm='OPTICS')
+    

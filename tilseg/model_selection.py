@@ -417,7 +417,6 @@ def opt_kmeans(data: np.array, n_clusters: list, **kwargs):
     hyperparameter_dict (dict): dictionary with a "n_cluster" and
     optimized cluster number as the value
     """
-        
     for i in n_clusters:
         if i < 1:
             raise ValueError("n_clusters must be at least 1")
@@ -429,7 +428,7 @@ def opt_kmeans(data: np.array, n_clusters: list, **kwargs):
 
     opt_cluster = eval_km_elbow(data, n_clusters, **kwargs)
     hyperparameter_dict = {'n_clusters': opt_cluster}
-
+    
     return hyperparameter_dict
 
 
