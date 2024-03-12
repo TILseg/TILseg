@@ -17,7 +17,8 @@ from tilseg.model_selection import opt_kmeans
 
 # KMeans_superpatch_fit function is cpoied here for ease
 def KMeans_superpatch_fit(patch_path: str,
-                          hyperparameter_dict: dict = {'n_clusters: 4'}):
+                          hyperparameter_dict: dict = {'n_clusters: 4'},
+                          random_state = None):
 
     """
     Fits a KMeans clustering model to a patch that will be used to cluster
@@ -40,6 +41,8 @@ def KMeans_superpatch_fit(patch_path: str,
         the only key
         this dictionary can be obtained by reading the JSON file outputted by
         tilseg.module_selection
+    random_state: int
+        the state to get reproducible model outputs
 
     Returns
     -----
@@ -75,8 +78,12 @@ def KMeans_superpatch_fit(patch_path: str,
         raise ValueError('Please enter an integer less than 9 for n_clusters')
 
     # Fits the KMeans clustering model using the optimized value for n_clusters
-    model = sklearn.cluster.KMeans(**hyperparameter_dict, max_iter=20,
+    if random_state == None:
+        model = sklearn.cluster.KMeans(**hyperparameter_dict, max_iter=20,
                                    n_init=3, tol=1e-3)
+    else:
+        model = sklearn.cluster.KMeans(**hyperparameter_dict, max_iter=20,
+                                   n_init=3, tol=1e-3, random_state = random_state)
 
     try:
         # Reads the patch into a numpy uint8 array

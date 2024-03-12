@@ -433,7 +433,7 @@ def segment_TILs(in_dir_path: str,
     if multiple_images:
         files = [file for file in os.listdir(in_dir_path)]
     else:
-        files = [in_dir_path]
+        files = [os.path.basename(in_dir_path)]
         in_dir_path = os.path.dirname(in_dir_path)
 
     # Checks that the path to the input directory is a string
