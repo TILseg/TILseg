@@ -99,18 +99,18 @@ This section include functions that either train a kmeans model on a superpatch 
 
 **Subcomponents**
 1. Superpatch Fit and Scoring
-	- kmeans_superpatch_fit: Fits a KMeans clustering model to a patch that will be used to cluster
-    other patches
+	- kmeans_superpatch_fit: Fits a KMeans clustering model to a patch that will be used to cluster other patches
 		- Inputs:
 			- patch_path (str) : the directory path to the patch that the model will be fitted to obtain cluster decision boundaries
-     		  	- hyperparameter_dict (dict): dicitonary of hyperparameters for KMeans containing 'n_clusters' as the only key
+			- hyperparameter_dict (dict): dicitonary of hyperparameters for KMeans containing 'n_clusters' as the only key
 		- Outputs:
 			- model (sklearn.base.ClusterMixin): the fitted model
-	 - clustering_score: Scores clustering models after they have been fit and predicted to an individual patch. The goal of this function is NOT to get high throughput scores from multiple patches in a whole slide image
+
+	- clustering_score: Scores clustering models after they have been fit and predicted to an individual patch. The goal of this function is NOT to get high throughput scores from multiple patches in a whole slide image
 		- Inputs:
 			- patch_path (str) : the directory path to the patch that will be fitted and/or clustered on to produce cluster labels that will be used for the scoring
-     			- Hyperparameter_dict (dict) : Optimized hyperparameters for algorithm. This dictionary can be read by the JSON file outputted by tilseg.model_selection module for KMeans: dictionary should have 'n_clusters' key for DBSCAN: dictionary should have 'eps' and 'min_samples' keys for OPTICS: dictionary should have 'min_samples' and 'max_eps' keys for BIRCH: dictionary should have 'threshold', 'branching_factor', and 'n_clusters' keys
-          		- Algorithm (str): Chosen clustering algorithm: 'KMeans', 'DBSCAN', 'OPTICS', or 'BIRCH'
+			- Hyperparameter_dict (dict) : Optimized hyperparameters for algorithm. This dictionary can be read by the JSON file outputted by tilseg.model_selection module for KMeans: dictionary should have 'n_clusters' key for DBSCAN: dictionary should have 'eps' and 'min_samples' keys for OPTICS: dictionary should have 'min_samples' and 'max_eps' keys for BIRCH: dictionary should have 'threshold', 'branching_factor', and 'n_clusters' keys
+			- Algorithm (str): Chosen clustering algorithm: 'KMeans', 'DBSCAN', 'OPTICS', or 'BIRCH'
 			- model: (sklearn.cluster._kmeans.KMeans) sklearn model fitted on a superpatch. Note: Only input a model if the algorithm is KMeans and the user wants to score a model that has been fit on a superpatch.
      			- gen_s_score (bool): generate Silhouette score
           		- Gen_ch_score (bool): generate Calinksi score
@@ -176,6 +176,7 @@ This section include functions that either train a kmeans model on a superpatch 
    	  	  	- dbscan_fit (sklearn.cluster.DBSCAN): fitted spatial model object
    	  	  	- cluster_mask_dict (dict): dictionary containg the filenames of the patches without the extensions as the keys and the binary cluster masks from segment_TILS as the values
 
+
 ### REFINED KMEANS
 ##### What it does:
 This folder creates a superpatch from 3 class classified images, optimizes DBSCAN hyperparameters on these images, and then fits this model on a superpatch.
@@ -220,20 +221,87 @@ Incorrect identification of clusters
 
 **Subcomponents**
 1. Image Preparation & Generation
-   	- image_series_exceptions:
-   	- generate_image_series:
-   	- gen_base_arrays: Basis of cluster assignment [function:()]
+   	- image_series_exceptions: This function is used by generate_image_series in order to throw exceptions from receiving incorrect array types.
+   	  	- Inputs:
+   	  	  	- Image_array (np.ndarray): a 4 dimensional array where the dimensions are image number, X, Y, color from which RGB images are generated
+   	  	  	- rgb_bool (boolean): is the image being passed in color or grayscale
+   	  	- Outputs: Either a pass or a ValueError
+   	  	  
+   	- generate_image_series: This takes in an array of image values and generates a directory of .jpg images in the specified file location
+   	  	- Inputs:
+   	  	  	- image_array (np.ndarray): a 4 dimensional array where the dimensions are image number, X, Y, color from which RGB images are generated
+   	  	  	- filepath (str): the filepath (relative or absolute) in which the directory of images is generated
+   	  	  	- prefix (str): the name of the directory created to store the generated images
+   	  	  	- rgb_bool (bool): is the image being passed in color or grayscale
+   	  	- Outputs:  Directory of .jpg images in the file location specified
+   	  	  
+   	- gen_base_arrays: Generates three arrays as the basis of cluster assignment. The first array contains the original image and will be used to make overlaid images. The second is all zeros and will be used to generate boolean masks. The third also contains 0 but with different dimensions for use to generate an all cluster image.
+   	  	- Inputs:
+   	  	  	- ori_image (np.ndarray): the original image as a 3 dimensional array with dimensions of X, Y, Color
+   	  	  	- num_clusts (int): number of clusters which defines length of added dimension in overlaid and masks arrays
+   	  	- Outputs:
+   	  	  	- final_array (np.ndarray): 4 dimensional array best thought of as a series of 3D arrays where each 3D array is the original image and the 4th dimension will correspond to cluster after value assignment
+   	  	  	- binary_array (np.ndarray): 3 dimensional array where the dimensions correspond to cluster, X and Y. This will be used for generation of binary masks for each cluster.
+   	  	  	- all_mask_array (np.ndarray): 3 dimensional array where the dimensions correspond to X, Y, color. This will be used to generate an image with all clusters shown.
+
+
 2. Binary Mask Implementation
    	- result_image_generator: Generates 3 arrays from clusters. The first is the each cluster individually overlaid on the original image. The second is a binary mask from each cluster. The third is an array with each pixel colored based on the associated cluster.
+   	  	- Inputs:
+   	  	  	- img_clust (np.ndarray): a 2D array where the dimensions correspond to X and Y, and the values correspond to the cluster assigned to that pixel
+   	  	  	- original_image (np.ndarray): the original image as a 3 dimensional array where dimensions correspond to X, Y, and color
+   	  	- Outputs:
+   	  	  	- final_arrays (np.ndarray): a 4 dimensional array where dimensions correspond to cluster, X, Y, and color. This can be thought of as a list of images with one for each cluster. The images are the original image with cluster pixels labeled black
+   	  	  	- binary_arrays (np.ndarray): a 3 dimensional array where dimensions correspond to cluster, X, and Y. This can be thought of as a list of images with one for each cluster. The images will contain 1s in pixels associated with the cluster and 0s everywhere else.
+   	  	  	- all_masks (np.ndarray): a 3 dimensional array where dimensions correspond to X, Y and color. The pixels in the array have various colors associated for each cluster.
+   	  	  
    	- mask_only_generator: Generates 1 array from cluster. It is a binary mask from each cluster.
+   	  	- Input: img_clust (np.ndarray): a 2D array where the dimensions correspond to X and Y, and the values correspond to the cluster assigned to that pixel
+   	  	- Output: binary_arrays: np.ndarray a 3 dimensional array where dimensions correspond to cluster, X, and Y. This can be thought of as a list of images with one for each cluster. The images will contain 1s in pixels associated with the cluster and 0s everywhere else.
+   	  
    	- filter_boolean: Determines if a given contour meets the filters that have been defined for TILs
-   	- contour_generator:
-3. Image Generation:
-   	- csv_results_compiler:
-   	- Immune_cluster_analyzer:
-   	- draw_til_images:
-   	- image_postprocessing:
+   	  	- Input: contour (np.ndarray): an array of points corresponding to an individual contour
+   	  	- Output: meets_crit (bool): boolean that is true if the contour meets the filter and false otherwise
+   	  
+   	- contour_generator: Creates contours based on an inputted mask and parameters defined here and in the filter_boolean function. These parameters define what will be classified as likely an immune cell cluster and can be varied within filter_bool.
+   	  	- Input: img_mask (np.ndarray): binary 2D array where the dimensions represent X, and Y and values are either 0 or 1 based on if the point is contained in the cluster
+   	  	- Outputs:
+   	  	  	- contours_mod (list): list of arrays of points which defines all filtered contours
+   	  	  	- contours_count (int): number of contours that met the determined filters
 
+3. Image Generation:
+   	- csv_results_compiler: Generates CSV file with relevant areas, perimeters, and circularities of filtered contours thought to contain TILs
+   	  	- Inputs:
+   	  	  	- cont_list (list): list of arrays of points corresponding to contours
+   	  	  	- filepath (str): the filepath where the CSV file will be saved
+   	  	- Outputs: a csv file and the associated path
+   	  	  
+   	- Immune_cluster_analyzer: This function will generate the contours, identify the relevant cluster
+    that contains the immune cells and export the data as a CSV. It will also
+    generate an image of the contours overlaid on the image.
+   	  	- Input: masks (list): list of masks which are arrays of 0s and 1s corresponding to cluster location
+   	  	- Outputs:
+   	  	  	- TIL_contour (list): list of arrays that correspond to the contours of the filtered TILs
+   	  	  	- max_contour_count (int): maximum number of contours found
+   	  	  	- cluster_mask (np.ndarray): 2D array slice of 3D binary mask (num): (clusters by image x-dim by image y-dim) corresponding to cluster with most contours
+
+   	- draw_til_images: This function will generate relevant file paths and save overlaid image and mask from the contours.
+   	  	- Inputs:
+   	  	  	- img (nd.ndarray): 3 dimensional array containing X, Y, and color data of the image that will be overlaid
+   	  	  	- contours (list): list of arrays of points defining the contours that will be overlaid on the images
+   	  	  	- filepath (str): directory where the images will be saved
+   	  	- Outputs: None
+
+   	- image_postprocessing: This is a wrapper function that will be used to group all postprocessing together. In general postprocessing will generate series of images as well as a CSV with general data derived from contour determination using OpenCV. Also prints the time taken for post-processing.
+   	  	- Inputs:
+   	  	  	- clusters (np.ndarray): 2D array with dimensions X, and Y and values as the cluster identified via the model
+   	  	  	- ori_img (np.ndarray): 3D array with dimensions X, Y, and color with three color channels as RGB. This is the original image clustering was performed on
+   	  	  	- gen_all_clusters (bool): determines if image with all clusters visualized will be generated
+   	  	  	- gen_overlays (bool): determines if overlaid images will be generated
+   	  	  	- gen_tils (bool): determines if overlaid and mask of TILs will be generated
+   	  	  	- gen_masks (bool): determines if masks will be generated
+   	  	  	- gen_csv (bool): determines if CSV of contours will be generated
+   	  	- Output: til_count (int): maximum number of contours found
 
 
 ## SIMILARITY
