@@ -760,7 +760,7 @@ def is_it_background(cutoff, actual):
     return background
 
 
-def sort_patches(df, lin_space=100, approx_between=200):
+def sort_patches(df):
     """
     A function that starts sorting patches based on a KDE,
     determines a cutoff value, and calculates the final
@@ -771,12 +771,6 @@ def sort_patches(df, lin_space=100, approx_between=200):
     -----
     df (pd.DataFrame): the dataframe that is already created containing patches,
         average patch color, and the greyscale value
-    lin_space (int): the multiple by which the KDE axis will be split into
-        while it is being formed for a PDF (default is 100)
-    approx_between (int): the approximate value at which the grey values
-        will be split into two populations in the bimodal distribution.
-        This is usually around 200 for slides and is going to be
-        set to that as a default.
 
     Returns
     -----
@@ -1294,10 +1288,10 @@ def preprocess(path, patches=6, training=True, save_im=True,
         dataframe = main_preprocessing(path, training, save_im,
                                        max_tile_x, max_tile_y)
         plist = get_superpatch_patches(dataframe, patches, path, random_state = random_state)
-        spatch = superpatcher(plist)
-        save_image(path, 'superpatch_training.tif', spatch)
+        output = superpatcher(plist)
+        save_image(path, 'superpatch_training.tif', output)
 
     else:
-        spatch = main_preprocessing(path, training, save_im, max_tile_x, max_tile_y)
+        output = main_preprocessing(path, training, save_im, max_tile_x, max_tile_y)
 
-    return spatch
+    return output

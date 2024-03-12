@@ -42,7 +42,7 @@ def KMeans_superpatch_fit(patch_path: str,
         this dictionary can be obtained by reading the JSON file outputted by
         tilseg.module_selection
     random_state: int
-        the state to get reproducible model outputs
+        the random state used in model creation to get reproducible model outputs
 
     Returns
     -----
