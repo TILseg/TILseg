@@ -15,6 +15,7 @@ import sklearn.cluster
 import sklearn.base
 import sklearn.metrics
 import scipy.stats
+from PIL import Image
 
 # pylint: disable=locally-disabled, too-many-arguments, too-many-locals
 
@@ -408,18 +409,14 @@ def opt_kmeans(data: np.array, n_clusters: list, **kwargs):
     wrapper for consistant syntax
     Parameters
     ----------
-    data: np array containing pixel data to be clustered
+    data (np.ndarray): np array containing pixel data to be clustered
     n_clusters_lsit: list of n_clusters to try
     **kwargs: Keyword args passed to metric
     Returns
     -------
-    n_cluster: optimized n_clusters
+    hyperparameter_dict (dict): dictionary with a "n_cluster" and
+    optimized cluster number as the value
     """
-    
-    img = Image.open(superpatch_path)
-        numpy_img = np.array(img)
-        numpy_img_reshape = np.float32(numpy_img.reshape((-1, 3))/255.)
-
     for i in n_clusters:
         if i < 1:
             raise ValueError("n_clusters must be at least 1")
@@ -429,8 +426,9 @@ def opt_kmeans(data: np.array, n_clusters: list, **kwargs):
             raise ValueError(
                 f"Couldn't Convert {i} to int") from exc
 
-        opt_cluster = eval_km_elbow(data, n_clusters, **kwargs)
-        hyperparameter_dict = {'n_clusters': opt_clusters, 'metric': 'cosine'}
+    opt_cluster = eval_km_elbow(data, n_clusters, **kwargs)
+    hyperparameter_dict = {'n_clusters': opt_cluster}
+    
     return hyperparameter_dict
 
 
@@ -484,7 +482,53 @@ def opt_dbscan(data: np.array,
         **kwargs)
     return result
 
-
+# def opt_mean_shift(data: np.array,
+#                 bandwidth: list,
+#                 seeds: list,
+#                 metric: str = "silhouette",
+#                 verbose: bool = False,
+#                 **kwargs):
+#     if len(bandwidth) != len(seeds):
+#         raise ValueError("Argument lists must be the same length")
+#     if metric in ["silhouette", "s", "Silhouette",
+#                   "silhouette-score", "Silhouette-Score",
+#                   "Silhouette-score", "silhouette score",
+#                   "Silhouette score", "Silhouette Score"]:
+#         metric_class = sklearn.metrics.silhouette_score
+#         metric_direction = "higher"
+#     elif metric in ["Davies Bouldin",
+#                     "Davies-Bouldin",
+#                     "davies-bouldin",
+#                     "db",
+#                     "DB"]:
+#         metric_class = sklearn.metrics.davies_bouldin_score
+#         metric_direction = "lower"
+#     elif metric in ["Calinski Harabasz",
+#                     "calinski-harabasz",
+#                     "Calinski-Harabasz",
+#                     "ch",
+#                     "CH"]:
+#         metric_class = sklearn.metrics.calinski_harabasz_score
+#         metric_direction = "higher"
+#     hyperparameters_list = []
+#     for i, bandwidth_value in enumerate(bandwidth):
+#         hyp_dict = {
+#             "bandwidth": bandwidth_value,
+#             "seeds": seeds[i],
+#         }
+#         hyp_dict.update(kwargs)
+#         hyperparameters_list += [hyp_dict]
+#     model = sklearn.cluster.MeanShift
+#     return eval_model_hyperparameters(
+#         data=data,
+#         model=model,
+#         hyperparameters=hyperparameters_list,
+#         metric=metric_class,
+#         metric_direction=metric_direction,
+#         full_return=False,
+#         verbose=verbose,
+#         **kwargs)
+    
 def opt_birch(data: np.array,
               threshold: list,
               branching_factor: list,
