@@ -18,7 +18,6 @@ import tilseg
 import tilseg.refine_kmeans
 
 
-#KMeans_superpatch_fit is tested in preprocessing?
 
 class TestRefineKMeans(unittest.TestCase)
     def test_mask_to_features(self):
@@ -43,6 +42,7 @@ class TestRefineKMeans(unittest.TestCase)
                                       [2, 2]])
         self.assertTrue(np.array_equal(features_not_empty, expected_features))
         #others?
+
 
     def test_kb_dbscan_wrapper(self):
         """
@@ -69,4 +69,54 @@ class TestRefineKMeans(unittest.TestCase)
         self.assertTrue(np.all(all_labels >= -1))  # Making sure labels are greater than -1
         self.assertTrue(all_labels.dtype == int) #Checking label types are integers
 
-        #Possibly include a unit test for filepath?
+
+
+
+class TestKMeanDBSCANImplementation(unittest.TestCase)
+    def test_kmean_to_spatial_model_superpatch_wrapper(self):
+        """
+        Unittests for kmean_to_spatial_model_superpatch_wrapper function
+        """
+        # one-shot test with correct inputs
+        IM_labels, dbscan_fit, cluster_mask_dict = tilseg.seg.kmean_to_spatial_model_superpatch_wrapper(
+            super_patch = SUPERPATCH_PATH, in_dir_path = TEST_IN_DIR_PATH, spatial_hyperparameters={'eps': 15, 'min_samples': 200}, n_clusters=[4], out_dir_path=None)
+        
+        #checks if each output type is correct
+        self.assertIsInstance(IM_labels, np.ndarray)
+        self.assertTrue(isinstance(dbscan_fit, sklearn.cluster.DBSCAN))
+        self.assertIsInstance(cluster_mask_dict, dict)
+        # checks that the model outputted above is fitted
+        self.assertTrue(sklearn.utils.validation.check_is_fitted(dbscan_fit) is None)
+        
+        #tests image processing (can we test intermediate outputs within the function?)
+        #img = Image.open(SUPERPATCH_PATH)
+        #self.assertIsNotNone(img)  # Make sure the image loads
+        
+        #numpy_img = np.array(img)
+        #self.assertIsInstance(numpy_img, np.ndarray) #Make sure a numpy array is created
+
+        #numpy_img_reshape = np.float32(numpy_img.reshape((-1, 3)) / 255.)
+        #self.assertEqual(numpy_img_reshape.shape[1], 3)
+        #self.assertTrue(np.max(numpy_img_reshape) <= 1.0)  # Make sure pixel values are normalized
+
+        #tests time to fit model
+        #self.assertLess(fitting_time, 60)
+
+    #Include error tests
+        #Use error tests to test incorrect inputs
+
+
+
+    def test_kmean_dbscan_patch_wrapper(self)
+        """
+        Unittests for kmean_dbscan_patch_wrapper function
+        """
+        # one-shot test with correct inputs
+        IM_labels, dbscan_fit, cluster_mask_dict = tilseg.seg.kmean_dbscan_patch_wrapper(TEST_PATCH_PATH, spatial_hyperparameters={'eps': 15, 'min_samples': 200}, n_clusters[4], out_dir_path=None)
+
+        #checks if each output type is correct
+        self.assertIsInstance(IM_labels, np.ndarray)
+        self.assertIsInstance(dbscan_fit, sklearn.cluster.DBSCAN)
+        self.assertIsInstance(cluster_mask_dict, dict) 
+
+        #Include error tests
