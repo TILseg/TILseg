@@ -7,6 +7,8 @@ Example/Images/*
 Example/Images_short/*
 Example/Test
 .DS_Store
+test/test_patches/test_results/empty.txt
+test/test_patches/test_results/ClusteringResults/empty.txt
 
 # C extensions
 *.so
