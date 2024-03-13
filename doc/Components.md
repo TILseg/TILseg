@@ -172,7 +172,7 @@ Utilizes various functions to score and select clustering algorithms and their h
             - Outputs: 
                  - Depends on full_return input; If full_return = True: Dictionary that maps the hyperparameters to their score based on the metric provided, If full_return = False: Dictionary with the hyperparameters
                   
-      - eval_models:
+      - eval_models: Function to compare how well different models cluster data
            - Inputs:
              	- data (np.array): Contains data used for clustering
              	- Model (list): List of models that will be evaluated against one another
@@ -203,7 +203,7 @@ Utilizes various functions to score and select clustering algorithms and their h
              	- **kwargs: Keyword arguments passed to metric function
            - Outputs:  Either the model that clusters the data best according to the Silhouette Score, or a dictionary mapping models to their Silhouette scores (using eval_model)
              
-      - eval_models_calinski_harabasz:
+      - eval_models_calinski_harabasz: Wrapper function for eval_models with Calinski Harabasz Index
            - Inputs:
              	- data (np.array): Contains data used for clustering
              	- Models (list): List of models to evaluate
@@ -222,7 +222,7 @@ Utilizes various functions to score and select clustering algorithms and their h
            - Outputs: Either the model that clusters the data best according to the Silhouette Score, or a dictionary mapping models to their Davies Bouldin scores
  (using eval_model)
        
-      - plot_inertia:
+      - plot_inertia: Plots the inertia for each of the n_clusters in n_clusters argument
            - Inputs:
              	- data (np.array): Contains data used for clustering
              	- N_clusters Ilist): List containing the number of clusters to be used to create the inertial plot
@@ -366,7 +366,7 @@ This folder creates a superpatch from 3 class classified images, optimizes DBSCA
           		- print_flag(bool) = True for printing saved plot of dbscan model
    	  	  Outputs:
 			- all_labels (np.ndarray): labels of image after dbscan clustering for plotting
-     			- dbscan (sklearn.cluster.DBSCAN): fitted dbscan model
+   	  	  	- dbscan (sklearn.cluster.DBSCAN): fitted dbscan model
    
    	- Kmean_to_spatial_model_superpatch_wrapper: A wrapper used to optimize a KMeans model on a superpatch to generate binary cluster masks for each sub-patch of the slide. These masks are converted to dataframes (X pixel, Y pixel, binary mask value) and fed into a spatial algorithm (e.g Dbscan) to perform further segmentation on the highest contour count cluster returned by segment_TILS for each path.
    	  	- Inputs:
@@ -386,8 +386,7 @@ This folder creates a superpatch from 3 class classified images, optimizes DBSCA
    	  	  	- dbscan_fit (sklearn.cluster.DBSCAN): fitted spatial model object
    	  	  	- cluster_mask_dict (dict): dictionary containg the filenames of the patches without the extensions as the keys and the binary cluster masks from segment_TILS as the values
    	  	  	- cluster_index_dict (dict): cluster labels from kemans that had the highest contour count in each image. The keys are the filenames and the values are the cluster numbers.
-
-	- Kmean_dbscan_patch_wrapper: A wrapper used to optimize a KMeans model on a patch to generate a binary cluster mask. This mask is converted to a dataframe (X pixel, Y pixel, binary mask value) and fed into a spatial algorithm (e.g Dbscan) to perform further segmentation on the highest contour count cluster returned by segment_TILS. This function is used to generate a ground truth image for scoring (fit KMeans model to patch and predict on same patch)
+   	- Kmean_dbscan_patch_wrapper: A wrapper used to optimize a KMeans model on a patch to generate a binary cluster mask. This mask is converted to a dataframe (X pixel, Y pixel, binary mask value) and fed into a spatial algorithm (e.g Dbscan) to perform further segmentation on the highest contour count cluster returned by segment_TILS. This function is used to generate a ground truth image for scoring (fit KMeans model to patch and predict on same patch)
    	  	- Inputs:
    	  	  	- patch_path(str): file path to a single patch image from the preprocessing step (.tif)
    	  	  	- spatial_hyperparameters: the spatial algorithm's optimized hyperparameters (use 'eps' = 15, 'min_samples' = 100)
@@ -398,12 +397,12 @@ This folder creates a superpatch from 3 class classified images, optimizes DBSCA
    	  	  	- save_cluster_overlays(bool): generate image containing individual clusters overlayed on the original patch
    	  	  	- save_all_clusters_img(bool): generate image of all the clusters
    	  	  	- save_csv(bool): generate CSV file containing contour information of each TIL segmented from the patch
-      	  	  	- random_state(int): random state to specify repeatable kmeans model
+   	  	  	- random_state(int): random state to specify repeatable kmeans model
    	  	- Outputs:
-   	  	  	- IM_labels (np.ndarray): labels from fitted sptail model
+   	  	  	- IM_labels (np.ndarray): labels from fitted spatial model
    	  	  	- dbscan_fit (sklearn.cluster.DBSCAN): fitted spatial model object
    	  	  	- cluster_mask_dict (dict): dictionary containg the filenames of the patches without the extensions as the keys and the binary cluster masks from segment_TILS as the values
-      	  	  	- cluster_index (int): cluster label from kemans that had the highest contour count. This is the cluster label that was fed into the spatial model for further classification.
+   	  	  	- cluster_index (int): cluster label from kemans that had the highest contour count. This is the cluster label that was fed into the spatial model for further classification.
 
 
 
