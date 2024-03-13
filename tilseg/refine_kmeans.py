@@ -320,7 +320,7 @@ def kmean_to_spatial_model_superpatch_wrapper(superpatch_path: str,
         #Dbcan Model Fitting
         tf3 = time.time()
         cluster_mask = cluster_mask_dict[file[:-4]]
-        save_path = out_dir_path + f"/{file[:-4]}/"
+        save_path = os.path.join(out_dir_path, file[:-4])
         im_labels, dbscan_fit = km_dbscan_wrapper(mask = cluster_mask, hyperparameter_dict= spatial_hyperparameters,save_filepath=save_path, print_flag = False)
         
         #Addings Labels and Models to Dictionaries
