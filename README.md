@@ -28,8 +28,14 @@ Last Updated: March 13th, 2024
 9. Model Selection Module
 10. Segmentation (Seg) Module
 11. KMeans to DBSCAN Module
-Future Directions
-Bug Fixes
+
+A. Future Directions
+    i. KMeans to DBSCAN Module
+    ii. Superpatch Similarity Scores
+    iii. Failing Unit Tests
+
+B. Bug Fixes
+    March 13th, 2024 Update
 
 ### 1. ABOUT: ###
 - - - -
@@ -308,12 +314,12 @@ Specifically, the arguments to this function is:
 - **save_csv (bool):** generates a CSV file containing countour information of each TIL segmented from the patch
 - **random_state: (int):** can specify repeatable kmeans model
 
-## FUTURE DIRECTIONS ##
+## A. FUTURE DIRECTIONS ##
 - - -
-### A. KMeans to DBSCAN Module ###
+### i. KMeans to DBSCAN Module ###
 Currently, our pipeline from K-Means to DBSCAN can only be performed on a single patch using the `kmean_to_spatial_model_patch_wrapper` function. Since the DBSCAN fitting can be highly specific to each patch, we allowed the DBSCAN hyperparameters to be directly modified without optimization and outputs iamges for the user to easily observe the results to compare to the KMeans model. This can allow future users/researchers to use our function and adapt the hyperparameters as needed. Additionally, we believe that this tool can be integrated into other functions or simply modified to be performed on multiple patches. By preprocessing using KMeans to isolate our cluster of interest, we have drastically decreased the number of pixels being fed into DBSCAN and, thus, the computation time and expense as opposed to feeding in the raw, RGB patch. We hope DBSCAN can be a useful tool in further clustering the other cell types from the TILs within KMeans. If not, the function could be easily adapted to feed a cluster from KMeans into other spatial algorithms. 
 
-### B. Superpatch Similarity Scores ###
+### ii. Superpatch Similarity Scores ###
 As noted above, we have also started constructing a pipeline for generating a 'similarity score' based on the mean square error (MSE) between two cluster masks. We have further created a tool that is able to implement this similarity score to compare: 1) a KMeans model that has been fitted and applied to a chosen reference patch (i.e. the ground truth) and 2) prefitted KMeans model(s) that have been fit on a superpatch(es) and then applied to the same chosen reference patch all in one function, `superpatch_similarity`. Since the image from 1) has a Kmeans model fit and clustered on the same image, we expect the model to do relatively well in capturing all the variance -- thus producing the ground truth. Since the superpatches in 2) are sampled across the whole slide image, these models may not capture as much variance as in 1), but we wanted to quantify and qualify how representative these superpatches are. Since the reference image is constant across all the superpatch model clustering, the scores should be somewhate comparable to one another. We also created the function so that it would output a contour overlay showcasing the ground truth (green) and the difference between the ground truth and superpatch model (red) over the original reference patch. <span style="color:red;">**Here are some current flaws and points to work on that we recommend</span>:
 
 * Mainly, this function currently is not integrated with the most updated version of `preprocessing.py`. This should be done first before anything else.
@@ -322,15 +328,16 @@ As noted above, we have also started constructing a pipeline for generating a 's
 
 For more information about the code and additional documentation, please see `similarity.py` in the `tilseg.py` folder. To see the preliminary use of this module, please see `similarity_use.ipynb` in the `Example` folder.
 
-### C. Failing Unit Tests ##
+### iii. Failing Unit Tests ##
 Since we had changed much of the original code in the `tilseg.py` folder, many of the unit tests that were created had failed and we were unable to resolve them at this time. Although we were able to fix the import of the `tilseg` package, we were not able to address the other errors/bugs that ahd appeared.
 
 The development of our new functions in `refine_kmeans.py` are in its early stages and were built off of the original modules in `tilseg`. Thus, we encountered some errors in these unit tests as well, specifically related to the file path naming. Although we wanted to pursue test driven development, we were not able to resolve these errors at this time, but you can access our current and working unit tests for all the `tilseg` modules in the `test folder`.
 
 <span style="color:red;">**We recommend that any user who wants to _implement_ or _build off of_ our code should address these errors in the unit tests before they proceed any further.**</span>
 
-## BUG FIXES ##
+## B. BUG FIXES ##
 - - -
+### March 13th, 2024 Update ###
 * **Hard-coded file Paths**: initially, filepaths in the example jupyter notebooks referred to paths that existed on the developer's local computer. We have updated these paths and have added test images/materials that can be accessed by any user on their computer.
 * _preprocessing.py_:
     * Changed the os handling to read in the full filepaths of each .svs image since the original code was using only the filename (this led to filepath exception errors)
