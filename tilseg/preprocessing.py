@@ -1,10 +1,9 @@
 """
 An image preprocessing module that can take in an svs
 file as an image and return separate patches of that
-image broken up and filtered down to hold patches of
-only one type. This is then used for testing/using a
-machine learning model or for superpatch creation in
-a consequtive module.
+image broken up and filtered to hold patches of
+only one type. This step is then used for implementation within a
+machine learning model or for superpatch creation in subsequent modules within this package.
 """
 # Core library imports
 import collections
@@ -766,7 +765,6 @@ def sort_patches(df):
     determines a cutoff value, and calculates the final
     dataframe for each image.
 
-    #TODO: Fix the parameters
     Parameters
     -----
     df (pd.DataFrame): the dataframe that is already created containing patches,
@@ -775,7 +773,9 @@ def sort_patches(df):
     Returns
     -----
     df (pd.DataFrame): an updated dataframe with a background column that indicates
-        if a patch should be considered background or not
+        if each patch should be considered background or not
+
+    Note: In this code 0.5 was chosen to multiply by the variance to get the std_dev, but user can decide if 1 or 0.25 may be better
     """
 
     # check that the input is a dataframe
@@ -802,7 +802,7 @@ def sort_patches(df):
     list_of_greys = df['greys'].values.tolist()
     list_of_greys = np.array(list_of_greys).reshape(-1,1)
 
-    #Calculate Scipy Statistics for Determining N_Components in Guassian
+    #Calculate Scipy Statistics for Determining N_Components in Gaussian
     mean, variance = scipy.stats.describe(list_of_greys)[2:4]
     std_dev = variance ** 0.5
     coef_of_variance = std_dev / mean
@@ -963,7 +963,7 @@ def count_images(path=os.getcwd()):
 
     Parameters:
     ------------
-    None
+    path=os.getcwd()
 
     Returns:
     -----------
@@ -1056,7 +1056,9 @@ def get_superpatch_patches(patches_df, patches=6, path=os.getcwd(),random_state=
     Parameters:
     -------------
     df (pd.DataFrame): MUST be dataframe from main_preprocessing output
-    random_state (int): random state for during sampling (to get consistent patch list)
+    path: 
+    patches: number of patches used to create superpatch
+    random_state (int): random state used for sampling (to get a consistent patch list)
 
     Returns:
     -------------
@@ -1172,7 +1174,6 @@ def get_superpatch_patches(patches_df, patches=6, path=os.getcwd(),random_state=
 
 def superpatcher(patches_list, sp_width=3):
     """
-    TODO: Update the naming convection for the returned variable!!!
      
     Superpatcher uses the selected patches and
     converts the individual patches into one patch
@@ -1185,7 +1186,8 @@ def superpatcher(patches_list, sp_width=3):
 
     Returns:
     --------------
-    superpatch (np.array): np.array that contains the superpatch
+    patch_row_1 (np.array): np.array that contains the superpatch
+    Note: naming convention of output variable should be updated
     """
 
     # check sp_width datattype
@@ -1249,7 +1251,7 @@ def superpatcher(patches_list, sp_width=3):
         if j == 0:
             patch_row_1 = patch_row_0
 
-        # else add the row to the other rows
+        # else add the row to existing rows
         else:
             patch_row_1 = np.concatenate((patch_row_0, patch_row_1), axis=0)
 
@@ -1280,7 +1282,7 @@ def preprocess(path, patches=6, training=True, save_im=True,
 
     Returns:
     --------------
-    spatch (pd.DataFrame): a dataframe containing all necessary information for
+    output (pd.DataFrame): a dataframe containing all necessary information for
                         creating superpatches for training (all_df) or for inputting into an
                         already generated model (sorted_df)
     """

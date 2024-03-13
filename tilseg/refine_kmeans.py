@@ -153,6 +153,7 @@ def km_dbscan_wrapper(mask: np.ndarray, hyperparameter_dict, save_filepath: str,
     binary_mask (np.ndarray): a binary mask with 1's corresponding to the pixels 
     involved in the cluser with the most contours and 0's for pixels not
     hyperparameter_dict: hyperparameters for dbscan model
+    save_filepath (str): filepath to the "ClusteringResults" directory to save the .jpg
     print_flag (bool): True for printing saved plot of dbscan model
     
     Returns
@@ -431,6 +432,7 @@ def kmean_to_spatial_model_patch_wrapper(patch_path: str,
     return im_labels, dbscan_fit, cluster_mask_dict, cluster_index
 
 ## MISC FUNCTIONS
+#These were not used within the scope of this project, but could be useful for future implementation
 
 # def kmeans_apply_patch(model, patch_path: str):
 
