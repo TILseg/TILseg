@@ -2,15 +2,16 @@ TILseg README File
 
 Last Updated: March 13th, 2024
 
-## SINCE PREVIOUS UPDATE (March 15th, 2023)##
+## SINCE PREVIOUS UPDATE (March 15th, 2023) ##
 
 ### DEVELOPMENTS ###
-* _K-Means to DBSCAN_: Previously, K-Means was found to be the best clustering algorithm among DBSCAN, Birch, and Optics. We have built a pipline that enables the user to optimize, fit, and apply K-Means to patches of a whole slide image and then uses the output cluster masks to feed into DBSCAN for further clustering. 
+* _K-Means to DBSCAN_: Previously, K-Means was found to be the best clustering algorithm among DBSCAN, Birch, and Optics. We have built a pipeline in `refine_kmeans.py` that enables the user to optimize, fit, and apply K-Means to patches of a whole slide image and then uses the output cluster masks to feed into DBSCAN for further clustering. 
     * Please see our additions in section *11. K-MEANS TO DBSCAN (REFINE_KMEANS)* for more details. 
 * _SuperPatch Scoring_: A module called `similarity.py` was created to generate a similarity score using the MSE between a K-Means model that had been fitted and applied to the same patch (i.e. 'ground truth') and a pre-fitted superpatch model(s) that is applied to the same refernce patch. However it should be noted that it has not yet been integrated to work with the current functions as `preprocessing.py` was updated before the development of `similarity.py`, so the `similarity.py` module has not been updated and tested to verify it's functionality with the current modules. 
     * Please see *Future Directions* at the bottom of this README for more details.
 * _Updated Environment_: the user would've had to install OpenSlide separately from the environment.yml file which lead to dependency issues and version conflicts since the version of OpenSlide initially used was not specified. We have created a new environment file that includes OpenSlide and all the compatible versions.    
 * _Updated Example Jupyter Notebook_: In the `Example` folder of the repository, a new and improved example jupyter notebook `dbscan_kmeans_example.ipynb` has been added to include our latest developments and fixes.
+* _User Cases and Components_: We have updated these documents in our `doc` folder to be more comprehensive while also reflecting our changes.
 * _New Archive Folder_: A new folder `Archive` has been created at the root of the repository to document and save previous code that had been written before the implementation of our updated. This folder should be better utilized for future developers.
 * _Bug Fixes Section_: Since this is the first update since the development of the `tilseg` package, we believe it would be useful to document our bug fixes for users and future developers to view and possibly use in their own work. 
     * Please scroll to the bottom of our README for more detailed information about our bug fixes.
@@ -26,6 +27,9 @@ Last Updated: March 13th, 2024
 8. Preprocessing Module
 9. Model Selection Module
 10. Segmentation (Seg) Module
+11. KMeans to DBSCAN Module
+Future Directions
+Bug Fixes
 
 ### 1. ABOUT: ###
 - - - -
@@ -306,7 +310,24 @@ Specifically, the arguments to this function is:
 
 ## FUTURE DIRECTIONS ##
 - - -
+### A. KMeans to DBSCAN Module ###
+Currently, our pipeline from K-Means to DBSCAN can only be performed on a single patch using the `kmean_to_spatial_model_patch_wrapper` function. Since the DBSCAN fitting can be highly specific to each patch, we allowed the DBSCAN hyperparameters to be directly modified without optimization and outputs iamges for the user to easily observe the results to compare to the KMeans model. This can allow future users/researchers to use our function and adapt the hyperparameters as needed. Additionally, we believe that this tool can be integrated into other functions or simply modified to be performed on multiple patches. By preprocessing using KMeans to isolate our cluster of interest, we have drastically decreased the number of pixels being fed into DBSCAN and, thus, the computation time and expense as opposed to feeding in the raw, RGB patch. We hope DBSCAN can be a useful tool in further clustering the other cell types from the TILs within KMeans. If not, the function could be easily adapted to feed a cluster from KMeans into other spatial algorithms. 
 
+### B. Superpatch Similarity Scores ###
+As noted above, we have also started constructing a pipeline for generating a 'similarity score' based on the mean square error (MSE) between two cluster masks. We have further created a tool that is able to implement this similarity score to compare: 1) a KMeans model that has been fitted and applied to a chosen reference patch (i.e. the ground truth) and 2) prefitted KMeans model(s) that have been fit on a superpatch(es) and then applied to the same chosen reference patch all in one function, `superpatch_similarity`. Since the image from 1) has a Kmeans model fit and clustered on the same image, we expect the model to do relatively well in capturing all the variance -- thus producing the ground truth. Since the superpatches in 2) are sampled across the whole slide image, these models may not capture as much variance as in 1), but we wanted to quantify and qualify how representative these superpatches are. Since the reference image is constant across all the superpatch model clustering, the scores should be somewhate comparable to one another. We also created the function so that it would output a contour overlay showcasing the ground truth (green) and the difference between the ground truth and superpatch model (red) over the original reference patch. <span style="color:red;">**Here are some current flaws and points to work on that we recommend</span>:
+
+* Mainly, this function currently is not integrated with the most updated version of `preprocessing.py`. This should be done first before anything else.
+* The choice of the reference is arbitrary and subjective at the moment, but further research can be done to optimize this. Alternatively, one could generate simialrity scores over a range of reference patches.
+* Implement other scoring metrics or modify the function to output other visualization that is desired.
+
+For more information about the code and additional documentation, please see `similarity.py` in the `tilseg.py` folder. To see the preliminary use of this module, please see `similarity_use.ipynb` in the `Example` folder.
+
+### C. Failing Unit Tests ##
+Since we had changed much of the original code in the `tilseg.py` folder, many of the unit tests that were created had failed and we were unable to resolve them at this time. Although we were able to fix the import of the `tilseg` package, we were not able to address the other errors/bugs that ahd appeared.
+
+The development of our new functions in `refine_kmeans.py` are in its early stages and were built off of the original modules in `tilseg`. Thus, we encountered some errors in these unit tests as well, specifically related to the file path naming. Although we wanted to pursue test driven development, we were not able to resolve these errors at this time, but you can access our current and working unit tests for all the `tilseg` modules in the `test folder`.
+
+<span style="color:red;">**We recommend that any user who wants to _implement_ or _build off of_ our code should address these errors in the unit tests before they proceed any further.**</span>
 
 ## BUG FIXES ##
 - - -
