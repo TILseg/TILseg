@@ -9,6 +9,7 @@ separate KMeans models. This is best done following superpatch creation
 import os
 import numpy as np
 import matplotlib.pyplot as plt
+import cv2
 from sklearn.metrics import mean_squared_error
 from skimage.measure import regionprops, label
 from tilseg.seg import KMeans_superpatch_fit, segment_TILs
@@ -63,7 +64,8 @@ def superpatch_similarity(superpatch_folder, reference_patch, output_path, refer
     Parameters:
     -----------
     superpatch_folder (str): path to the folder containing superpatch files
-
+    reference_patch (str): path to the reference patch image
+    output_path (str): path to the folder where images are saved
     reference_array (np.ndarray): the reference patch array
 
     Returns:
@@ -163,7 +165,19 @@ def superpatch_similarity(superpatch_folder, reference_patch, output_path, refer
             # compute and print mse 
             mse, diff = image_similarity(reference_array, super_array_filtered)
             print(f'Mean squared error for superpatch {filename}: {round(mse, 3)}')
-
-            # show difference image
-            plt.matshow(diff, cmap='gray')
-            plt.show() 
+            
+            # load original image
+            original_image = cv2.imread(reference_image_path) 
+            original_image_rgb = cv2.cvtColor(original_image, cv2.COLOR_BGR2RGB) 
+            
+            # find contours in the binary masks
+            contours_green, _ = cv2.findContours(reference_array, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+            contours_red, _ = cv2.findContours(super_array_filtered, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+            
+            # draw contours on the original image
+            cv2.drawContours(original_image_rgb, contours_green, -1, (0, 255, 0), 2)  # green contours
+            cv2.drawContours(original_image_rgb, contours_red, -1, (255, 0, 0), 2)    # red contours
+            # display the result
+            plt.imshow(original_image_rgb)
+            plt.axis(‘off’)
+            plt.show()
