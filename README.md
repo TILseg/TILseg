@@ -1,6 +1,27 @@
 TILseg README File
 
-Last Updated: March 15th, 2023
+Last Updated: March 13th, 2024
+
+## SINCE PREVIOUS UPDATE (March 15th, 2023)##
+
+### DEVELOPMENTS ###
+* **K-Means to DBSCAN**: Previously, K-Means was found to be the bext clustering algorithm among DBSCAN, Birch, and Optics. This was because the latter three algorithms were computationally expensive to run and the developers encountered memory issues. Thus, we have built a pipline that enables the user to optimize, fit, and apply K-Means to patches of a whole slide image and then uses the output cluster masks to feed into DBSCAN for further clustering. 
+    * Please see our additions *Section 11* for more details. 
+* **SuperPatch Scoring**: A module called `similarity.py` was created to generate a similarity score using the MSE between a K-Means model that had been fitted and applied to the same patch (i.e. 'ground truth') and a pre-fitted superpatch model(s) that is applied to the same refernce patch. However it should be noted that it has not yet been integrated to work with the current functions as `preprocessing.py` was updated before the development of `similarity.py`, so the `similarity.py` module has not been udated and tested to verify it's functionality with the current modules. 
+    * Please see *Future Directions* at the bottom of this README for more details.
+* **Updated Environment**: the user would've had to install OpenSlide separately from the environment.yml file which lead to dependency issues and version conflicts since the version of OpenSlide initially used was not specified. We have created a new environment file that includes OpenSlide and all the compatible versions.    
+* **Updated Example Jupyter Notebook**: In the `Example` folder of the repository, a new and improved example jupyter notebook `dbscan_kmeans_example.ipynb` has been added to include our latest developments and fixes.
+* **New Archive Folder**: A new folder `Archive` has been created at the root of the repository to document and save previous code that had been written before the implementation of our updated. This folder should be better utilized for future developers.
+* **Bug Fixes Section**: Since this is the first update since the development of the `tilseg` package, we believe it would be useful to document our bug fixes for users and future developers to view and possibly use in their own work. 
+    * Please scroll to the bottom of our README for more detailed information about our bug fixes.
+
+### BUG FIXES ###
+* **Hard-coded file Paths**: initially, filepaths in the example jupyter notebooks referred to paths that existed on the developer's local computer. We have updated these paths and have added test images/materials that can be accessed by any user on their computer.
+* **def segment_TILS**: updated to take in a `multiple_images` flag to be able to be able to fit a kmeans model to a patch rather than just a superpatch to use the predicted clusters on this patch in downstream scoring
+* **def immune_cluster_analyzer (def segment_TILS << def image_postprocessing << def immune_cluster_analyzer)**: updated to return the `cluster mask` of the highest TIL contour count to be able to do further segmenetation using dbscan (explained in next section)
+* **def draw_til_images (def segment_TILS << def image_postprocessing << def draw_til_images)**: had a bug for a wrong array type fed to .drawContours package that was fixed
+* **def segment_TILS**: had a bug fixed to only check for .tif images in a patches folder (avoid errors of hidden .ipynb or files)  
+* **Unit Tests**: Unit tests had issues importing the `tilseg module`. The `test` folder was initially inside of `tilseg`, but was moved outside to be at the same root as `tilseg`. The module was then imported using `import ..tilseg` to access the parent directory containing both `tilseg` and `test`.
 
 ## CONTENTS: ##
 1. About
@@ -13,8 +34,6 @@ Last Updated: March 15th, 2023
 8. Preprocessing Module
 9. Model Selection Module
 10. Segmentation (Seg) Module
-
-
 
 ### 1. ABOUT: ###
 - - - -
