@@ -15,8 +15,7 @@ import sklearn.datasets
 import sklearn.metrics
 
 # Local imports
-import tilseg
-import tilseg.model_selection
+from .. import model_selection
 
 
 class TestModelSelection(unittest.TestCase):
@@ -48,7 +47,7 @@ class TestModelSelection(unittest.TestCase):
         """
         Test the find elbow function
         """
-        n_clusters = tilseg.model_selection.find_elbow(self.elbow_data)
+        n_clusters = model_selection.find_elbow(self.elbow_data)
         self.assertIsInstance(n_clusters, int)
         self.assertEqual(n_clusters, 3)
 
@@ -56,7 +55,7 @@ class TestModelSelection(unittest.TestCase):
         """
         Test the eval knn elbow function
         """
-        n_clusters = tilseg.model_selection.eval_km_elbow(self.cluster_data,
+        n_clusters = model_selection.eval_km_elbow(self.cluster_data,
                                                           list(range(1, 10)),
                                                           r2_cutoff=0.9,
                                                           n_init=10)
@@ -80,7 +79,7 @@ class TestModelSelection(unittest.TestCase):
         ]
         model = sklearn.cluster.KMeans
         # Catch fire test
-        n_clusters = tilseg.model_selection.eval_model_hyperparameters(
+        n_clusters = model_selection.eval_model_hyperparameters(
             self.cluster_data,
             model,
             hyper)["n_clusters"]
@@ -105,7 +104,7 @@ class TestModelSelection(unittest.TestCase):
         metric_direction = "max"
         full_return = False
         # Catch fire test
-        model = tilseg.model_selection.eval_models(
+        model = model_selection.eval_models(
             self.cluster_data,
             models,
             hyperparameters,
@@ -126,7 +125,7 @@ class TestModelSelection(unittest.TestCase):
                 "n_clusters": 3, "linkage": "complete"}
         }
         # Catch fire test
-        model = tilseg.model_selection.eval_models_dict(
+        model = model_selection.eval_models_dict(
             self.cluster_data, model_dict)
         # Check if it correctly returns a model
         self.assertIsInstance(model, sklearn.base.ClusterMixin)
@@ -145,7 +144,7 @@ class TestModelSelection(unittest.TestCase):
         ]
         full_return = False
         # Catch fire test
-        model = tilseg.model_selection.eval_models_silhouette_score(
+        model = model_selection.eval_models_silhouette_score(
             self.cluster_data,
             models,
             hyperparameters,
@@ -168,7 +167,7 @@ class TestModelSelection(unittest.TestCase):
         ]
         full_return = False
         # Catch fire test
-        model = tilseg.model_selection.eval_models_calinski_harabasz(
+        model = model_selection.eval_models_calinski_harabasz(
             self.cluster_data,
             models,
             hyperparameters,
@@ -191,7 +190,7 @@ class TestModelSelection(unittest.TestCase):
         ]
         full_return = False
         # Catch fire test
-        model = tilseg.model_selection.eval_models_davies_bouldin(
+        model = model_selection.eval_models_davies_bouldin(
             self.cluster_data,
             models,
             hyperparameters,
@@ -205,7 +204,7 @@ class TestModelSelection(unittest.TestCase):
         Test plot_inertia function
         """
         path = os.path.join(".", "test_plot.png")
-        plot = tilseg.model_selection.plot_inertia(
+        plot = model_selection.plot_inertia(
             self.cluster_data,
             list(range(1, 10)),
             path,
@@ -223,11 +222,11 @@ class TestModelSelection(unittest.TestCase):
         """
         Test opt_kmeans function
         """
-        opt_kmeans_result = tilseg.model_selection.opt_kmeans(
+        opt_kmeans_result = model_selection.opt_kmeans(
             self.cluster_data, list(range(1, 10)), n_init=10)
         self.assertAlmostEqual(opt_kmeans_result, 3.0)
         with self.assertRaises(ValueError):
-            _ = tilseg.model_selection.opt_kmeans(
+            _ = model_selection.opt_kmeans(
                 self.cluster_data, list(range(10)), n_init=10)
 
     def test_opt_dbscan(self):
@@ -235,13 +234,13 @@ class TestModelSelection(unittest.TestCase):
         test opt_dbscan function
         """
         # Catch fire test
-        result = tilseg.model_selection.opt_dbscan(
+        result = model_selection.opt_dbscan(
             self.cluster_data, eps=[0.1, 0.7, 1.4, 2.1, 3.0],
             min_samples=[5, 5, 5, 5, 5])
         # Known value
         self.assertAlmostEqual(result['eps'], 2.1)
         with self.assertRaises(ValueError):
-            _ = tilseg.model_selection.opt_dbscan(
+            _ = model_selection.opt_dbscan(
                 self.cluster_data, eps=[0.001, 0.02, 0.3],
                 min_samples=[5, 5, 5])
 
@@ -250,7 +249,7 @@ class TestModelSelection(unittest.TestCase):
         test opt_birch function
         """
         # Catch fire test
-        result = tilseg.model_selection.opt_birch(
+        result = model_selection.opt_birch(
             self.cluster_data,
             threshold=[0.25, 0.5, 1.0],
             branching_factor=[10, 25, 30],
@@ -268,7 +267,7 @@ class TestModelSelection(unittest.TestCase):
         Test opt_optics function
         """
         # Catch fire test
-        result = tilseg.model_selection.opt_optics(
+        result = model_selection.opt_optics(
             self.cluster_data,
             min_samples=[2, 5, 10],
             max_eps=[3, 5, np.inf]
@@ -282,11 +281,11 @@ class TestModelSelection(unittest.TestCase):
         """
         Test sample_patch function
         """
-        sample = tilseg.model_selection.sample_patch(
+        sample = model_selection.sample_patch(
             self.cluster_data, sample=20)
         self.assertAlmostEqual(len(sample), 20)
         with self.assertRaises(ValueError):
-            _ = tilseg.model_selection.sample_patch(
+            _ = model_selection.sample_patch(
                 self.cluster_data, sample="hi")
 
     def test_generate_hyperparameter_combinations(self):
@@ -294,7 +293,7 @@ class TestModelSelection(unittest.TestCase):
         test generate_hyperparameter_combinations
         """
         combinations = \
-            tilseg.\
+            \
             model_selection.\
             generate_hyperparameter_combinations({"min_eps": [0.1, 0.3],
                                                   "n_clusters": [1, 3, 5]})
@@ -303,7 +302,7 @@ class TestModelSelection(unittest.TestCase):
             'n_clusters': [1, 3, 5, 1, 3, 5]}
         self.assertDictEqual(combinations, expected_result_dict)
         combinations2 = \
-            tilseg.model_selection.generate_hyperparameter_combinations(
+            model_selection.generate_hyperparameter_combinations(
                 {"a": [1], "b": [2]})
         expected_result_dict2 = {
             "a": [1],
@@ -316,9 +315,9 @@ class TestModelSelection(unittest.TestCase):
         test read_json_hyperparameters
         """
         hyperparameter_dict =\
-            tilseg.model_selection.\
+            model_selection.\
             read_json_hyperparameters(
-                os.path.join(os.path.dirname(tilseg.__file__),
+                os.path.join(os.path.dirname(__file__),
                              "test",
                              "test_birch_hyperparameters.json"))
         expected_results = {
