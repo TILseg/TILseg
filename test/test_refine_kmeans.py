@@ -101,16 +101,16 @@ class TestRefineKMeans(unittest.TestCase):
         os.remove(os.path.join(directory_path, 'dbscan_result_colorbar.jpg'))
         os.remove(os.path.join(directory_path, 'dbscan_result.jpg'))
 
-    @pytest.mark.skip
     def test_kmean_to_spatial_model_superpatch_wrapper(self):
         """
         Unittests for kmean_to_spatial_model_superpatch_wrapper function
         """
         # one-shot test with correct inputs
-        IM_labels, dbscan_fit, cluster_mask_dict = refine_kmeans.kmean_to_spatial_model_superpatch_wrapper(superpatch_path = SUPERPATCH_PATH,
+        IM_labels, dbscan_fit, cluster_mask_dict,cluster_index = refine_kmeans.kmean_to_spatial_model_superpatch_wrapper(superpatch_path = SUPERPATCH_PATH,
                                             in_dir_path = TEST_IN_DIR_PATH,
                                             spatial_hyperparameters = TEST_SPATIAL_HYPERPARAMETERS,
-                                            out_dir_path = TEST_OUT_DIR_PATH)
+                                            out_dir_path = TEST_OUT_DIR_PATH,
+                                            save_TILs_overlay=True)
         
         #checks if each output type is correct
         self.assertIsInstance(IM_labels, np.ndarray)
