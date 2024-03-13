@@ -113,29 +113,24 @@ class TestRefineKMeans(unittest.TestCase):
                                             save_TILs_overlay=True)
         
         #checks if each output type is correct
-        self.assertIsInstance(IM_labels, np.ndarray)
-        self.assertTrue(isinstance(dbscan_fit, sklearn.cluster.DBSCAN))
+        self.assertIsInstance(IM_labels, dict)
+        self.assertTrue(isinstance(dbscan_fit, dict))
         self.assertIsInstance(cluster_mask_dict, dict)
         # checks that the model outputted above is fitted
-        self.assertTrue(sklearn.utils.validation.check_is_fitted(dbscan_fit) is None)
+        self.assertTrue(sklearn.utils.validation.check_is_fitted(dbscan_fit[next(iter(dbscan_fit))]) is None)
 
         shutil.rmtree(os.path.join(TEST_OUT_DIR_PATH, 'test_small_patch'))
         shutil.rmtree(os.path.join(TEST_OUT_DIR_PATH, 'test_small_patch_2'))              
 
-    @pytest.mark.skip
     def test_kmean_to_spatial_model_patch_wrapper(self):
         """
         Unittests for kmean_dbscan_patch_wrapper function
         """
         # one-shot test with correct inputs
-        IM_labels, dbscan_fit, cluster_mask_dict = refine_kmeans.kmean_to_spatial_model_patch_wrapper(TEST_PATCH_PATH,
+        IM_labels, dbscan_fit, cluster_mask_dict, cluster_index = refine_kmeans.kmean_to_spatial_model_patch_wrapper(TEST_PATCH_PATH,
                         TEST_SPATIAL_HYPERPARAMETERS,
                         out_dir_path = TEST_OUT_DIR_PATH,
-                        save_TILs_overlay = False,
-                        save_cluster_masks = False,
-                        save_cluster_overlays = False,
-                        save_all_clusters_img = False,
-                        save_csv = False,
+                        save_TILs_overlay = True,
                         random_state = None)
 
         #checks if each output type is correct

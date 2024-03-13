@@ -444,10 +444,6 @@ def segment_TILs(in_dir_path: str,
     if not isinstance(in_dir_path, str):
         raise TypeError('in_dir_path must be a string')
 
-    # Checks that the input directory actually exists
-    if not os.path.isdir(in_dir_path):
-        raise NotADirectoryError('Please enter a valid input directory')
-
     # Checks that algorithm is a string
     if not isinstance(algorithm, str):
         raise TypeError('Please enter a string for algorithm')
@@ -498,9 +494,15 @@ def segment_TILs(in_dir_path: str,
 
     if multiple_images:
         files = [file for file in os.listdir(in_dir_path)]
+        # Checks that the input directory actually exists
+        if not os.path.isdir(in_dir_path):
+            raise NotADirectoryError('Please enter a valid input directory')
     else:
         files = [os.path.basename(in_dir_path)]
         in_dir_path = os.path.dirname(in_dir_path)
+        # Checks that the input directory actually exists
+        if not os.path.isdir(in_dir_path):
+            raise NotADirectoryError('Please enter a valid input directory')
         
     # Condition for when model is not None and the user is trying to input a
     # pre-fitted (e.g. on a superpatch) model
