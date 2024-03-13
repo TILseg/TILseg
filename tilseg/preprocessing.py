@@ -19,6 +19,7 @@ import pandas as pd
 import scipy
 from skimage import io
 pd.options.mode.chained_assignment = None
+from sklearn.mixture import GaussianMixture
 
 # pylint: disable=no-else-raise, too-many-lines, too-many-locals, invalid-name
 # pylint: disable=too-many-arguments, too-many-branches, useless-return
@@ -533,156 +534,156 @@ def save_all_images(df, path, f):  # pylint disable = invalid-name
     return
 
 
-def find_max(arr, cutoff, greater):
-    """
-    A function that finds the max value of a list/array
-    within a specific range.
+# def find_max(arr, cutoff, greater):
+#     """
+#     A function that finds the max value of a list/array
+#     within a specific range.
 
-    Parameters
-    -----
-    arr (collections.abc.Sequence, np.ndarray): the array that contains the list of data in question
-    cutoff (int): the value at which you want to start looking for a maximum
-    greater (boolean): a boolean that determines if you want the maximum above
-        or below the cutoff (above is when greater=False)
+#     Parameters
+#     -----
+#     arr (collections.abc.Sequence, np.ndarray): the array that contains the list of data in question
+#     cutoff (int): the value at which you want to start looking for a maximum
+#     greater (boolean): a boolean that determines if you want the maximum above
+#         or below the cutoff (above is when greater=False)
 
-    Returns
-    -----
-    loca: the index (from zero) at which the maximum value occurs
-    """
+#     Returns
+#     -----
+#     loca: the index (from zero) at which the maximum value occurs
+#     """
 
-    # check that greater is a boolean
-    if not isinstance(greater, bool) or (greater and not greater):
-        raise TypeError('The greater argument must be True or False.')
-    else:
-        pass
+#     # check that greater is a boolean
+#     if not isinstance(greater, bool) or (greater and not greater):
+#         raise TypeError('The greater argument must be True or False.')
+#     else:
+#         pass
 
-    # check that arr is a list or array
-    if not isinstance(arr, (collections.abc.Sequence, np.ndarray)):
-        raise TypeError('The input list must be an array or list.')
-    else:
-        pass
+#     # check that arr is a list or array
+#     if not isinstance(arr, (collections.abc.Sequence, np.ndarray)):
+#         raise TypeError('The input list must be an array or list.')
+#     else:
+#         pass
 
-    # check that the cutoff value is an integer or float
-    if not isinstance(cutoff, (int, float)):
-        raise TypeError('The cutoff value must be an integer or float value.')
-    else:
-        pass
+#     # check that the cutoff value is an integer or float
+#     if not isinstance(cutoff, (int, float)):
+#         raise TypeError('The cutoff value must be an integer or float value.')
+#     else:
+#         pass
 
-    # check that all list values are positive
-    if any(item < 0 for item in arr):
-        raise ValueError('The list can only contain non-negative values.')
-    else:
-        pass
+#     # check that all list values are positive
+#     if any(item < 0 for item in arr):
+#         raise ValueError('The list can only contain non-negative values.')
+#     else:
+#         pass
 
-    # a dummy number for the max that will never actually be the max
-    maximum = 0
+#     # a dummy number for the max that will never actually be the max
+#     maximum = 0
 
-    # iterate through the array, but enumerate so that it is easy to get index
-    for index, number in enumerate(arr):
+#     # iterate through the array, but enumerate so that it is easy to get index
+#     for index, number in enumerate(arr):
 
-        # if interested in a maximum below the cutoff and the
-        # index is greater than this cutoff, then break out of the loop
-        if greater and index > cutoff:
-            break
+#         # if interested in a maximum below the cutoff and the
+#         # index is greater than this cutoff, then break out of the loop
+#         if greater and index > cutoff:
+#             break
 
-        # if interested in a maximum above the cutoff and the index
-        # is less than the cutoff, continue looping but do not do anything
-        if not greater and index < cutoff:
-            continue
+#         # if interested in a maximum above the cutoff and the index
+#         # is less than the cutoff, continue looping but do not do anything
+#         if not greater and index < cutoff:
+#             continue
 
-        # check if the number in the appropriate range is
-        # greater than the maximum
-        if number > maximum:
+#         # check if the number in the appropriate range is
+#         # greater than the maximum
+#         if number > maximum:
 
-            # if it is, reassign the maximum value at this new
-            # value and record the index
-            maximum = number
-            loca = index
+#             # if it is, reassign the maximum value at this new
+#             # value and record the index
+#             maximum = number
+#             loca = index
 
-        # if the number is not greater than the maximum do nothing and continue
-        else:
-            continue
+#         # if the number is not greater than the maximum do nothing and continue
+#         else:
+#             continue
 
-    return loca
+#     return loca
 
 
-def find_min(arr, range_min, range_max):
-    """
-    A function that finds the min value of a list/array
-    within a specific range.
+# def find_min(arr, range_min, range_max):
+#     """
+#     A function that finds the min value of a list/array
+#     within a specific range.
 
-    Parameters
-    -----
-    arr (collections.abc.Sequence, np.ndarray): the array that contains the list of data in question
-    range_min (int, float): the lower bound on which to look for the minimum
-    range_max (int, float): the upper bound on which to look for the minimum
+#     Parameters
+#     -----
+#     arr (collections.abc.Sequence, np.ndarray): the array that contains the list of data in question
+#     range_min (int, float): the lower bound on which to look for the minimum
+#     range_max (int, float): the upper bound on which to look for the minimum
 
-    Returns
-    -----
-    loca (int): the index (from zero) at which the minimum value occurs
-    """
+#     Returns
+#     -----
+#     loca (int): the index (from zero) at which the minimum value occurs
+#     """
 
-    # check that the range_max value is an integer or float
-    if not isinstance(range_max, (int, float)):
-        raise TypeError('The range_max value must be an \
-                        integer or float value.')
-    else:
-        pass
+#     # check that the range_max value is an integer or float
+#     if not isinstance(range_max, (int, float)):
+#         raise TypeError('The range_max value must be an \
+#                         integer or float value.')
+#     else:
+#         pass
 
-    # check that the range_min value is an integer or float
-    if not isinstance(range_min, (int, float)):
-        raise TypeError('The range_min value must be an \
-                        integer or float value.')
-    else:
-        pass
+#     # check that the range_min value is an integer or float
+#     if not isinstance(range_min, (int, float)):
+#         raise TypeError('The range_min value must be an \
+#                         integer or float value.')
+#     else:
+#         pass
 
-    # check that arr is a list or array
-    if not isinstance(arr, (collections.abc.Sequence, np.ndarray)):
-        raise TypeError('The input list must be an array or list.')
-    else:
-        pass
+#     # check that arr is a list or array
+#     if not isinstance(arr, (collections.abc.Sequence, np.ndarray)):
+#         raise TypeError('The input list must be an array or list.')
+#     else:
+#         pass
 
-    # check that all list values are positive
-    if any(item < 0 for item in arr):
-        raise ValueError('The list can only contain non-negative values.')
-    else:
-        pass
+#     # check that all list values are positive
+#     if any(item < 0 for item in arr):
+#         raise ValueError('The list can only contain non-negative values.')
+#     else:
+#         pass
 
-    # check that the range min and range max are less than or greater than
-    assert range_min < range_max, 'The range minimum is \
-        greater than the maximum.'
-    assert range_min != range_max, 'The range minimum and \
-        maximum are the same.'
+#     # check that the range min and range max are less than or greater than
+#     assert range_min < range_max, 'The range minimum is \
+#         greater than the maximum.'
+#     assert range_min != range_max, 'The range minimum and \
+#         maximum are the same.'
 
-    # a dummy number for the min that will never actually be the min
-    minimum = 1000000
+#     # a dummy number for the min that will never actually be the min
+#     minimum = 1000000
 
-    # iterate through the array, but enumerate so that it is easy to get index
-    for index, number in enumerate(arr):
+#     # iterate through the array, but enumerate so that it is easy to get index
+#     for index, number in enumerate(arr):
 
-        # check if the index is between the desired range
-        if range_min < index < range_max:
+#         # check if the index is between the desired range
+#         if range_min < index < range_max:
 
-            # if it is in the correct range then check if the number
-            # is less than the current minimum
-            if number < minimum:
+#             # if it is in the correct range then check if the number
+#             # is less than the current minimum
+#             if number < minimum:
 
-                # if it is less than the current minimum, reassign
-                # the minimum and record the new index
-                minimum = number
-                loca = index
+#                 # if it is less than the current minimum, reassign
+#                 # the minimum and record the new index
+#                 minimum = number
+#                 loca = index
 
-            # if it is in the correct range but not less than the
-            # current minimum then continue through the loop and do nothing
-            else:
-                continue
+#             # if it is in the correct range but not less than the
+#             # current minimum then continue through the loop and do nothing
+#             else:
+#                 continue
 
-        # if the index is out of the desired range,
-        # continue and do nothing with that index
-        else:
-            continue
+#         # if the index is out of the desired range,
+#         # continue and do nothing with that index
+#         else:
+#             continue
 
-    return loca
+#     return loca
 
 
 def compile_patch_data(slide, ypatch, xpatch, xdim, ydim):
@@ -748,22 +749,17 @@ def is_it_background(cutoff, actual):
     return background
 
 
-def sort_patches(df, lin_space=100, approx_between=200):
+def sort_patches(df):
     """
     A function that starts sorting patches based on a KDE,
     determines a cutoff value, and calculates the final
     dataframe for each image.
 
+    #TODO: Fix the parameters
     Parameters
     -----
     df (pd.DataFrame): the dataframe that is already created containing patches,
         average patch color, and the greyscale value
-    lin_space (int): the multiple by which the KDE axis will be split into
-        while it is being formed for a PDF (default is 100)
-    approx_between (int): the approximate value at which the grey values
-        will be split into two populations in the bimodal distribution.
-        This is usually around 200 for slides and is going to be
-        set to that as a default.
 
     Returns
     -----
@@ -791,45 +787,40 @@ def sort_patches(df, lin_space=100, approx_between=200):
         else:
             pass
 
-    # calculate min, max, and range of grey values
-    minimum_grey = int(df['greys'].min())
-    maximum_grey = int(df['greys'].max())
-    range_grey = maximum_grey - minimum_grey
-
     # put all grey values into a list
     list_of_greys = df['greys'].values.tolist()
+    list_of_greys = np.array(list_of_greys).reshape(-1,1)
 
-    # create a linspace for all grey values for
-    # which the PDF will be calculated
-    grey_space = np.linspace(minimum_grey, maximum_grey,
-                             range_grey * lin_space)
+    #Calculate Scipy Statistics for Determining N_Components in Guassian
+    mean, variance = scipy.stats.describe(list_of_greys)[2:4]
+    std_dev = variance ** 0.5
+    coef_of_variance = std_dev / mean
+    if coef_of_variance > 0.075: #based off observation of histogram
 
-    # create a KDE distribution from the list of greys
-    kde_distr = scipy.stats.gaussian_kde(list_of_greys)
+        # Fit Gaussian Mixture Model with 2 components
+        gmm = GaussianMixture(n_components=2)
+        gmm.fit(list_of_greys)
 
-    # use the KDE distribution to create a PDF of
-    # the grey values along the grey space
-    kde_pdf = kde_distr(grey_space)
+        # Get means and standard deviations of the two Gaussian components
+        means = gmm.means_.flatten()
+        std_devs = np.sqrt(gmm.covariances_).flatten()
 
-    # find all local maxima and minima
-    color_max = find_max(kde_pdf, (approx_between - minimum_grey)
-                         * lin_space, True)
-    background_max = find_max(kde_pdf, (maximum_grey - approx_between)
-                              * lin_space, False)
-    minimum = find_min(kde_pdf, color_max, background_max)
+        # Sort means and std_devs to identify higher and lower peaks
+        sorted_indices = np.argsort(means)
+        lower_peak_mean, higher_peak_mean = means[sorted_indices]
+        lower_peak_std_dev, higher_peak_std_dev = std_devs[sorted_indices]
 
-    # complete correct reindexing
-    color_max = color_max / lin_space + minimum_grey
-    background_max = background_max / lin_space + minimum_grey
-    minimum = minimum / lin_space + minimum_grey
+        # Calculate cutoff values for each peak
+        cutoff_value_lower_peak = lower_peak_mean + 0.25 * lower_peak_std_dev
+        cutoff_value_higher_peak = higher_peak_mean + 0.25 * higher_peak_std_dev
 
-    # calculate the cutoff value for greys
-    cutoff_value = (background_max + minimum) / 2
+    else:
+        std_dev = (variance)**0.5
+        cutoff_value_lower_peak  = mean + std_dev #decide if 1 or 0.5 or 0.25
 
     # add column to dataframe that classifies each image as background or not
-    df['background'] = df.apply(lambda row: is_it_background(cutoff_value,
-                                                             row['greys']),
-                                axis=1)
+    df['background'] = df.apply(lambda row: is_it_background(cutoff_value_lower_peak,
+                                                             row['greys']), axis=1)
 
     return df
 
@@ -1043,7 +1034,7 @@ def patches_per_img(num_patches, path=os.getcwd()):
     return patch_img
 
 
-def get_superpatch_patches(patches_df, patches=6, path=os.getcwd()):
+def get_superpatch_patches(patches_df, patches=6, path=os.getcwd(),random_state=None):
     """
     This function finds the patches to comprise the superpatch.
     The patches are selected based off of distribution of
@@ -1054,6 +1045,7 @@ def get_superpatch_patches(patches_df, patches=6, path=os.getcwd()):
     Parameters:
     -------------
     df (pd.DataFrame): MUST be dataframe from main_preprocessing output
+    random_state (int): random state for during sampling (to get consistent patch list)
 
     Returns:
     -------------
@@ -1137,7 +1129,10 @@ def get_superpatch_patches(patches_df, patches=6, path=os.getcwd()):
             bin_df = img_df.loc[img_df['grey_binned'] == bin_i]
 
             # pick a patch from this set of relevant patches
-            patch_df = bin_df.sample()
+            if random_state == None:
+                patch_df = bin_df.sample()
+            else:
+                patch_df = bin_df.sample(random_state = random_state)
             actual_patch = patch_df['patches']
 
             # add patch to list of patches to access later
@@ -1244,11 +1239,9 @@ def superpatcher(patches_list, sp_width=3):
     return patch_row_1
 
 
-def preprocess(path, patches=6, sp_width=3, training=True, save_im=True,
-               max_tile_x=4000, max_tile_y=3000):
+def preprocess(path, patches=6, training=True, save_im=True,
+               max_tile_x=4000, max_tile_y=3000,random_state = None):
     """
-    #TODO: Continue to edit what the output and input variables definintions are
-    
     The preprocess function that is called when running the
     code. Complete details are found in the README file. This
     only calls other functions and is used as a wrapper.
@@ -1266,6 +1259,7 @@ def preprocess(path, patches=6, sp_width=3, training=True, save_im=True,
                     of a slide patch (default is 4000)
     max_tile_y (int): the maximum y dimension size, in pixels,
                     of a slide patch (default is 3000)
+    random_state (int): random state to use during sampling of patches
 
     Returns:
     --------------
@@ -1276,12 +1270,11 @@ def preprocess(path, patches=6, sp_width=3, training=True, save_im=True,
     if training:
         dataframe = main_preprocessing(path, training, save_im,
                                        max_tile_x, max_tile_y)
-        plist = get_superpatch_patches(dataframe, patches, path)
-        spatch = superpatcher(plist, sp_width)
-        save_image(path, 'superpatch_training.tif', spatch)
+        plist = get_superpatch_patches(dataframe, patches, path, random_state = random_state)
+        output = superpatcher(plist)
+        save_image(path, 'superpatch_training.tif', output)
 
     else:
-        #TODO: this is never going to return anything? meant to equal to patch?
-        main_preprocessing(path, training, save_im, max_tile_x, max_tile_y)
+        output = main_preprocessing(path, training, save_im, max_tile_x, max_tile_y)
 
-    return spatch
+    return output
