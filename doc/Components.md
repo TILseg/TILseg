@@ -5,12 +5,136 @@ Inputs: WSIs, usually .svs or .ndpi
 
 
 **Subcomponents**
-##### Patch Creation
-Divides the whole slide image(s) (WSI) into smaller sections called “patches”
-1. open_slide: opens a slide and returns OpenSlide object and slide’s dimensions
-      - Input:
-      - Output:
+1. Patch Creation: Divides the whole slide image(s) (WSI) into smaller sections called “patches”
+   	- open_slide: opens a slide and returns OpenSlide object and slide’s dimensions
+   	  	- Input: slidepath (str): the complete path to the slide file (.svs)
+   	  	- Outputs:
+   	  	  	- slide (openslide.OpenSlide): slide object created by OpenSlide
+   	  	  	- slide_x (int): x dimension of slide
+   	  	  	- slide_y (int): y dimension of slide
+   	- get_tile_size: A function that takes in a slide dimension and returns the optimal breakdown of each slide into x patches.
+   	  	- Inputs:
+   	  	  	- maximum (int): the maximum dimension desired
+   	  	  	- size (int): the size of the entire slide image
+   	  	  	- cutoff (int): the maximum number of pixels to remove (default is 4)
+   	  	- Outputs:
+   	  	  	- dimension (int): the desired pixel size needed
+   	  	  	- slices (int): the number of slices needed in the given direction
+   	  	  	- remainder (int): the number of pixels lost with the slicing provided
 
+   	- percent_of_pixels_lost: A function that calculates the total percentage of pixels lost from the whole slide when the slicing occurs.
+   	  	- Inputs:
+   	  	  	- lost_x (int): the number of pixels lost in the x direction
+   	  	  	- patch_x (int): the number of patches that are split in the x direction
+   	  	  	- lost_y (int): the number of pixels lost in the y direction
+   	  	  	- patch_y (int): the number of patches that are split in the y direction
+   	  	  	-  x_size (int): the total number of pixels in the x direction of the slide
+   	  	  	-  y_size (int): the total number of pixels in the y direction of the slide
+   	  	- Outputs:
+   	  	  	- percent (float): the percent of pixels deleted, rounded to two places
+   	- save_image:  A function that saves an image given a path.
+   	  	- Inputs:
+   	  	  	- path (str): the complete path to a directory to which the image should be saved
+   	  	  	- name (str): the name of the file, with extension, to save
+   	  	  	- image_array (np.array): a numpy array that stores image information
+   	  	- Outputs: None
+   	 
+   	- create_patches: A function that creates patches and yields an numpy array that describes the image patch for each patch in the slide.
+   	  	- Inputs:
+   	  	  	-  slide (openslide.OpenSlide): the OpenSlide object of the entire slide
+   	  	  	-  xpatch (int): the number of the patch in the x direction
+   	  	  	-  ypatch (int): the number of the patch in the y direction
+   	  	  	-   xdim (int): the size of the patch in the x direction
+   	  	  	-   ydim (int): the size of the patch in the y direction
+   	  	- Outputs:
+   	  	  	- np_patches (lst(np.arrays)): a list of all patches, each as a number array
+   	  	  	- patch_position (lst(np.arrays)): a list of tuples containing indices
+   
+   	  
+2. Converting Patch RGB Values to Averaged Grey Scale Values (SKimage):
+   	- get_average_color: A function that returns the average RGB color of an input image array (in this case a patch)
+   	  	- Inputs: img (np.array): a numpy array containing all information about the RGB colors in a patch
+   	  	- Outputs: average (np.array): a numpy array containing the RGB code for the average color of the entire patch
+   	  	  
+   	- get_grey: A function that calculates the greyscale value of an image given an RGB array.
+   	  	- Inputs: rgb (np.array): a numpy array containing three values, one each for R, G, and B
+   	  	- Outputs: grey (float): the greyscale value of an image/patch
+   	 
+   	- save_all_images: A function to save all the images as background or tissue.
+   	  	- Inputs:
+   	  	  	- df (pd.DataFrame): the dataframe that is already created containing patches,average patch color, and the greyscale value
+   	  	  	- path (str): the path to which the folders and subdirectories will be made
+   	  	  	- f (str): the slide .svs file name that is currently being read
+   	  	- Outputs:
+   	  	  	- None, but all images are saved
+   	  
+3. Filtering Background vs. Tissue: Filters out patches with primarily background and retains patches of interest (i.e., ones with primarily tissue) based on a cutoff between the bimodal distribution (i.e., one average should belong to background patches and one for tissue) of the grey scaled values of all the patches.
+   	- compile_patch_data: A function that compiles all relevant data for all patches into a dataframe.
+   	  	- Input: slide (openslide.OpenSlide): the OpenSlide object of the entire slide
+   	  	  	- ypatch (int): the number of patches in the y direction
+   	  	  	- xpatch (int): the number of patches in the x direction
+   	  	  	- xdim (int): the size of the patch in the x direction
+   	  	  	- ydim (int): the size of the patch in the y direction
+   	  	- Outputs:
+   	  	  	- patchdf (pd.DataFrame): a pandas dataframe containing the three following
+   	  	  	  
+   	- is_it_background: A function that tests if a specific image should be classified as a background image or not.
+   	  	- Inputs: cutoff (int): the cutoff value for a background image
+   	  	- Outputs: background (boolean): a boolean that is True if the patch should be considered background
+   	  	  
+   	- sort_patches: A function that starts sorting patches based on a KDE, determines a cutoff value, and calculates the finaldataframe for each image
+   	  	- Inputs:
+   	  	  	- df (pd.DataFrame): the dataframe that is already created containing patches, average patch color, and the greyscale value
+   	  	- Outputs:
+   	  	  	- df (pd.DataFrame): an updated dataframe with a background column that indicates if a patch should be considered background or not
+   	  	  	  
+   	- main_preprocessing: The primary function to perform all preprocessing of the data, creating patches and returning a final large dataframe with all information contained.
+   	  	- Inputs:
+   	  	  	- complete_path (str): the full path to the file containing all svs files that will be used for training the model or a single svs file to get an output value
+   	  	  	- training (boolean): a boolean that indicates if this preprocessing is for training data or if it to only be used for the existing model
+   	  	  	- save_im (boolean): a boolean that indicates if tissue images should be saved (beware this is a lot of data, at least 10GB per slide)
+   	  	  	- max_tile_x (int): the maximum x dimension size, in pixels, of a slide patch (default is 4000)
+   	  	  	- max_tile_y (int): the maximum y dimension size, in pixels, of a slide patch (default is 3000)
+   	  	- Outputs:
+   	  	  	- all_df or sorted_df (pd.DataFrame): a dataframe containing all necessary information for creating superpatches for training (all_df) or for inputting into an already generated model (sorted_df)
+   	  
+   	- count_images: Count images finds the number of whole slide images available in your current working directory.
+   	  	- Inputs: None (path=os.getcwd())
+   	  	- Outputs: img_count (int): the number of whole slide images in your directory
+
+4. Superpatch Creation: Bins all of the patches into X bins based on the range of averaged grey scaled values across the WSI and randomly selects one patch from each bin to be incorporated into the superpatch. 
+   	- patches_per_img: Patches_per_img calculates the number of patches to be extracted from each image. If there are no images in the current working directory or provided path.
+   	  	- Inputs:
+   	  	  	- num_patches (int): number of total patches (that make up the entire image)
+   	  	  	- path -- optional (str): path in which images might be located
+   	  	- Outputs:
+   	  	  	- patch_img (int): number of patches to be extraced from each image
+   	  
+   	- get_superpatch_patches: This function finds the patches to comprise the superpatch. The patches are selected based off of distribution of average color and the source image. This way, the superpatch is not entirely made of patches from one image (unless there is only one image available).
+   	  	- Inputs:
+   	  	  	- patches_df (pd.DataFrame): MUST be dataframe from main_preprocessing output random_state (int): random state for during sampling (to get consistent patch list)
+   	  	  	- patches (int): number of patches
+   	  	  	- path=os.getcwd(): 
+   	  	  	- random_state: random state for during sampling (to get consistent patch list)
+   	  	- Outputs:
+   	  	  	- patches_list (list): list of the patches that make up the superpatch
+
+	- superpatcher: Superpatcher uses the selected patches and converts the individual patches into one patch
+		- Inputs:
+			- patches_list (lst): MUST be output from get_superpatch_patches list of patches
+     			- sp_width (int): the width of a superpatch (how many images, default 3)
+          	- Outputs: superpatch (np.array): np.array that contains the superpatch
+   	    
+	- preprocess: The preprocess function that is called when running the code. Complete details are found in the README file. This only calls other functions and is used as a wrapper.
+		- Inputs:
+			- path (str): path to the folder containing the .svs slide files patches (int): number of patches to create superpatch with
+     			- training (boolean): a boolean that indicates if this preprocessing is for training data or if it to only be used for the existing model
+          		- save_im (boolean): a boolean that indicates if tissue images should be saved (beware this is a lot of data, at least 10GB per slide)
+              		- max_tile_x (int): the maximum x dimension size, in pixels, of a slide patch (default is 4000)
+                  	- max_tile_y (int): the maximum y dimension size, in pixels, of a slide patch (default is 3000)
+                  	- random_state (int): random state to use during sampling of patches
+                - Outputs:
+                  	- spatch (pd.DataFrame): a dataframe containing all necessary information for creating superpatches for training (all_df) or for inputting into an already generated model (sorted_df)
 
 
 
@@ -67,7 +191,7 @@ Utilizes various functions to score and select clustering algorithms and their h
            - Inputs:
            - Outputs:
 
-3. Optimizing Models:
+3. Optimizing Models: all components below remained the same from previous project
    - opt_kmeans:
         - Inputs:
         - Outputs:
@@ -81,7 +205,7 @@ Utilizes various functions to score and select clustering algorithms and their h
         - Inputs:
         - Outputs:
      
-5. Miscellaneous:
+5. Miscellaneous: all components below remained the same from previous project
    - sample_patch:
         - Inputs:
         - Outputs:
@@ -138,8 +262,44 @@ This section include functions that either train a kmeans model on a superpatch 
    	  	  	- TIL_count_dict(dict): contains patch filenames without the extension as the key and TIL counts in respective patches as the values
    	  	  	- kmeans_labels_dict(dict): contains patch filenames names without the extension as the key (e.g. 'position_7_8tissue') and the kmean cluster label array as the values
    	  	  	- cluster_mask_dict(dict): contains patch filenames without the extension as the key and the binary cluster mask for the cluster that had the highest contour count. This mask is a 2D array where dimensions correspond to the X and Y pixel dimensions in the original image. The mask will contain 1s in pixels associated with the cluster and 0s everywhere else.
+   	  	  	- cluster_index_dict: dictionary containing keys corresponding to the file name and values representing the cluster from kmeans
 
-5. Wrapper Functions
+
+### REFINED KMEANS
+##### What it does:
+This folder creates a superpatch from 3 class classified images, optimizes DBSCAN hyperparameters on these images, and then fits this model on a superpatch.
+
+**Subcomponents**
+1. Improved KMeans Integration
+   	- KMeans_superpatch_fit: Fits a KMeans clustering model to a patch that will be used to cluster other patches
+   	  	- Inputs:
+   	  	  	- patch_path(str): the directory path to the patch that the model will be fitted to obtain cluster decision boundaries
+   	  	  	- hyperparameter_dict (dict): dicitonary of hyperparameters for KMeans containing 'n_clusters' as the only key this dictionary can be obtained by reading the JSON file outputted by tilseg.module_selection
+   	  	  	- random_state (int): the random state used in model creation to get reproducible model outputs
+   	  	- Outputs:
+   	  	  	- model(sklearn.base.ClusterMixin): the fitted model
+
+2. Integration with DBSCAN
+	- mask_to_features: Generates the spatial coordinates from a binary mask as features to cluster with DBSCAN
+		- Inputs: binary_mask(np.narray): a binary mask with 1's corresponding to the pixels involved in the cluster with the most contours and 0's for pixels not
+		- Outputs: features(np.array): an array where each row corresponds to a set of 
+    	coordinates (x,y) of the pixels where the binary_mask had a value of 1
+    
+3. Wrapper Functions
+   	- km_dbscan_wrapper: Generates a fitted dbscan model and labels when provided a binary mask 
+    2D array for the KMeans cluster with the highest contour count. A plot of 
+    the dbscan clustering results is printed to the window, with a colorbar and 
+    non-color bar version saved to the "ClusteringResults" directory as 
+    "dbscan_result.jpg"
+		- Inputs:
+			- binary_mask (np.ndarray): a binary mask with 1's corresponding to the pixels 
+    involved in the cluser with the most contours and 0's for pixels not
+     			- hyperparameter_dict(dict): Contains hyperparameters as keys, corresponding to optimized values
+          		- print_flag(bool) = True for printing saved plot of dbscan model 
+		- Outputs:
+			- all_labels (np.ndarray): labels of image after dbscan clustering for plotting
+     			- dbscan (sklearn.cluster.DBSCAN): fitted dbscan model
+   
    	- Kmean_to_spatial_model_superpatch_wrapper: A wrapper used to optimize a KMeans model on a superpatch to generate binary cluster masks for each sub-patch of the slide. These masks are converted to dataframes (X pixel, Y pixel, binary mask value) and fed into a spatial algorithm (e.g Dbscan) to perform further segmentation on the highest contour count cluster returned by segment_TILS for each path.
    	  	- Inputs:
    	  	  	- superpatch_path(str): filepath to superpatch image from preprocessing step (.tif)
@@ -152,15 +312,14 @@ This section include functions that either train a kmeans model on a superpatch 
    	  	  	- save_cluster_overlays(bool): generate image containing individual clusters overlayed on the original patch
    	  	  	- save_all_clusters_img(bool): generate image of all the clusters
    	  	  	- save_csv(bool): generate CSV file containing contour information of each TIL segmented from the patch
-
+   	  	  	- random_state(int): random state to specify repeatable kmeans model
    	  	- Outputs:
    	  	  	- IM_labels (np.ndarray): labels from fitted sptail model
    	  	  	- dbscan_fit (sklearn.cluster.DBSCAN): fitted spatial model object
-   	  	  	- cluster_mask_dict (dict): dictionary containg the filenames of the patches
-    without the extensions as the keys and the binary cluster masks from 
-    segment_TILS as the values
-   	  	  	  
-   	- Kmean_dbscan_patch_wrapper: A wrapper used to optimize a KMeans model on a patch to generate a binary cluster mask. This mask is converted to a dataframe (X pixel, Y pixel, binary mask value) and fed into a spatial algorithm (e.g Dbscan) to perform further segmentation on the highest contour count cluster returned by segment_TILS. This function is used to generate a ground truth image for scoring (fit KMeans model to patch and predict on same patch)
+   	  	  	- cluster_mask_dict (dict): dictionary containg the filenames of the patches without the extensions as the keys and the binary cluster masks from segment_TILS as the values
+   	  	  	- cluster_index_dict (dict): cluster labels from kemans that had the highest contour count in each image. The keys are the filenames and the values are the cluster numbers.
+
+	- Kmean_dbscan_patch_wrapper: A wrapper used to optimize a KMeans model on a patch to generate a binary cluster mask. This mask is converted to a dataframe (X pixel, Y pixel, binary mask value) and fed into a spatial algorithm (e.g Dbscan) to perform further segmentation on the highest contour count cluster returned by segment_TILS. This function is used to generate a ground truth image for scoring (fit KMeans model to patch and predict on same patch)
    	  	- Inputs:
    	  	  	- patch_path(str): file path to a single patch image from the preprocessing step (.tif)
    	  	  	- spatial_hyperparameters: the spatial algorithm's optimized hyperparameters (use 'eps' = 15, 'min_samples' = 100)
@@ -171,38 +330,13 @@ This section include functions that either train a kmeans model on a superpatch 
    	  	  	- save_cluster_overlays(bool): generate image containing individual clusters overlayed on the original patch
    	  	  	- save_all_clusters_img(bool): generate image of all the clusters
    	  	  	- save_csv(bool): generate CSV file containing contour information of each TIL segmented from the patch
+      	  	  	- random_state(int): random state to specify repeatable kmeans model
    	  	- Outputs:
    	  	  	- IM_labels (np.ndarray): labels from fitted sptail model
    	  	  	- dbscan_fit (sklearn.cluster.DBSCAN): fitted spatial model object
    	  	  	- cluster_mask_dict (dict): dictionary containg the filenames of the patches without the extensions as the keys and the binary cluster masks from segment_TILS as the values
+      	  	  	- cluster_index (int): cluster label from kemans that had the highest contour count. This is the cluster label that was fed into the spatial model for further classification.
 
-
-### REFINED KMEANS
-##### What it does:
-This folder creates a superpatch from 3 class classified images, optimizes DBSCAN hyperparameters on these images, and then fits this model on a superpatch.
-
-**Subcomponents**
-1. Improved KMeans Integration
-	- KMeans_superpatch_fit: documentation can be found above in Segmentation
-
-2. Integration with DBSCAN
-	- mask_to_features: Generates the spatial coordinates from a binary mask as features to cluster with DBSCAN
-		- Inputs: binary_mask(np.narray): a binary mask with 1's corresponding to the pixels involved in the cluster with the most contours and 0's for pixels not
-		- Outputs: features(np.array): an array where each row corresponds to a set of 
-    	coordinates (x,y) of the pixels where the binary_mask had a value of 1
-    
-	- km_dbscan_wrapper: Generates a fitted dbscan model and labels when provided a binary mask 
-    2D array for the KMeans cluster with the highest contour count. A plot of 
-    the dbscan clustering results is printed to the window, with a colorbar and 
-    non-color bar version saved to the "ClusteringResults" directory as 
-    "dbscan_result.jpg"
-		- Inputs:
-			- binary_mask (np.ndarray): a binary mask with 1's corresponding to the pixels 
-    involved in the cluser with the most contours and 0's for pixels not
-     			- hyperparameter_dict(dict): Contains hyperparameters as keys, corresponding to optimized values	
-		- Outputs:
-			- all_labels (np.ndarray): labels of image after dbscan clustering for plotting
-     			- dbscan (sklearn.cluster.DBSCAN): fitted dbscan model
 
 
 ## CLUSTER PROCESSING
@@ -276,7 +410,7 @@ Incorrect identification of clusters
    	  	  	- filepath (str): the filepath where the CSV file will be saved
    	  	- Outputs: a csv file and the associated path
    	  	  
-   	- Immune_cluster_analyzer: This function will generate the contours, identify the relevant cluster
+   	- immune_cluster_analyzer: This function will generate the contours, identify the relevant cluster
     that contains the immune cells and export the data as a CSV. It will also
     generate an image of the contours overlaid on the image.
    	  	- Input: masks (list): list of masks which are arrays of 0s and 1s corresponding to cluster location
@@ -284,6 +418,7 @@ Incorrect identification of clusters
    	  	  	- TIL_contour (list): list of arrays that correspond to the contours of the filtered TILs
    	  	  	- max_contour_count (int): maximum number of contours found
    	  	  	- cluster_mask (np.ndarray): 2D array slice of 3D binary mask (num): (clusters by image x-dim by image y-dim) corresponding to cluster with most contours
+   	  	  	- count_index: cluster index with highest contour count
 
    	- draw_til_images: This function will generate relevant file paths and save overlaid image and mask from the contours.
    	  	- Inputs:
@@ -301,7 +436,10 @@ Incorrect identification of clusters
    	  	  	- gen_tils (bool): determines if overlaid and mask of TILs will be generated
    	  	  	- gen_masks (bool): determines if masks will be generated
    	  	  	- gen_csv (bool): determines if CSV of contours will be generated
-   	  	- Output: til_count (int): maximum number of contours found
+   	  	- Output:
+   	  	  	- til_count (int): maximum number of contours found
+   	  	  	- cluster_mask (np.ndarray): a binary cluster mask for the cluster that had the highest contour count. It is a 2D array where dimensions correspond to the X and Y pixel dimensions in the original image. The mask will contain 1s in pixels associated with the cluster and 0s everywhere else.
+   	  	  	- cluster_index: cluster label that has the highest contour count
 
 
 ## SIMILARITY
@@ -314,24 +452,25 @@ Patches + superpatch (.tif) of the original image(s) that will be used to create
 ##### Side Effects:
 Loss of data (when dividing WSI into patches)
 
+##### Note:
+We did not complete this section. This will be a major interest in further investigations.
+
 **Subcomponents**
 1. Mean Squared Error & Model Fitting
-	- image_similarity: This function calculates the mean squared error and image difference between two arrays
-		- Inputs:
-			- mask1 (np.ndarray): array of first image
-     			- mask2 (np.ndarray): array of second image
-		- Outputs:
-			- mse (float): mean squared error
-     			- diff (np.ndarray): image difference as numpy array
-
-	- superpatch_similarity: This iterates through a folder of superpatches and calculates the mean squared error and plots an image of the difference between the superpatch mask and reference mask.
-		- Inputs:
-			- superpatch_folder (str): path to folder containing superpatch files
-     			- reference_patch (str): file of reference patch that model will be applied
- 			- output_path (str): path to folder where images are saved
-     			- reference_array (np.ndarray): reference patch array after running 
-segment_TILs in similarity_use.ipynb
-		- Outputs: None, but prints mean squared error and plots difference image
+   	- image_similarity: This function calculates the mean squared error and image difference between two arrays
+   	  	- Inputs:
+   	  	  	- mask1 (np.ndarray): array of first image
+   	  	  	- mask2 (np.ndarray): array of second image
+   	  	- Outputs:
+   	  	  	- mse (float): mean squared error
+   	  	  	- diff (np.ndarray): image difference as numpy array
+   	- superpatch_similarity: This iterates through a folder of superpatches and calculates the mean squared error and plots an image of the difference between the superpatch mask and reference mask.
+   	  	- Inputs:
+   	  	  	- superpatch_folder (str): path to folder containing superpatch files
+   	  	  	- reference_patch (str): file of reference patch that model will be applied
+   	  	  	- output_path (str): path to folder where images are saved
+   	  	  	- reference_array (np.ndarray): reference patch array after running segment_TILs in similarity_use.ipynb
+   	  	- Outputs: None, but prints mean squared error and plots difference image
 			
 
 
