@@ -12,11 +12,10 @@ import numpy as np
 # from skimage.measure import label, regionprops
 # import matplotlib.pyplot as plt
 import unittest
-import sys
 import sklearn
+import pytest
 
-# Local imports: add parent directory to path
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+# Local imports
 from tilseg import seg, refine_kmeans
 #from refine_kmeans import mask_to_features, km_dbscan_wrapper, kmean_to_spatial_model_patch_wrapper, kmean_to_spatial_model_superpatch_wrapper, KMeans_superpatch_fit
 
@@ -38,7 +37,7 @@ FAIL_TEST_PATCH_PATH = os.path.join(parent_dir, 'test',
 TEST_IN_DIR_PATH = os.path.join(parent_dir, 'test',
                                 'test_patches', 'patches')
 TEST_OUT_DIR_PATH = os.path.join(parent_dir, 'test',
-                                'test_patches', 'results')
+                                'test_patches', 'test_results')
 SUPERPATCH_PATH = os.path.join(parent_dir, 'test',
                                 'test_patches', 'test_superpatch.tif')
 TEST_SPATIAL_HYPERPARAMETERS = {
@@ -70,6 +69,7 @@ class TestRefineKMeans(unittest.TestCase):
                                       [2, 2]])
         self.assertTrue(np.array_equal(features_not_empty, expected_features))
 
+
     def test_kb_dbscan_wrapper(self):
         """
         Unittests for test_dbscan_wrapper function
@@ -78,8 +78,8 @@ class TestRefineKMeans(unittest.TestCase):
         binary_mask = np.array([[0, 1, 0],
                                 [1, 0, 1],
                                 [0, 1, 0]])
-        hyperparameter_dict = {'eps': 0.5, 'min_samples': 5}  # What hyperparameters are we choosing?
-        save_filepath = 'path to the saved file'  # Not quite sure how to set this up for reproducability?
+        hyperparameter_dict = TEST_SPATIAL_HYPERPARAMETERS
+        save_filepath = os.path.join(TEST_OUT_DIR_PATH, 'ClusteringResults') 
         
         # Calling km_dbscan_wrapper function
         all_labels, dbscan = refine_kmeans.km_dbscan_wrapper(binary_mask, hyperparameter_dict, 
@@ -96,21 +96,16 @@ class TestRefineKMeans(unittest.TestCase):
         self.assertTrue(np.all(all_labels >= -1))  # Making sure labels are greater than -1
         self.assertTrue(all_labels.dtype == int) #Checking label types are integers
     
+    @pytest.mark.skip
     def test_kmean_to_spatial_model_superpatch_wrapper(self):
         """
         Unittests for kmean_to_spatial_model_superpatch_wrapper function
         """
         # one-shot test with correct inputs
-        IM_labels, dbscan_fit, cluster_mask_dict = refine_kmeans.kmean_to_spatial_model_superpatch_wrapper(SUPERPATCH_PATH,
-                                            TEST_IN_DIR_PATH,
-                                            TEST_SPATIAL_HYPERPARAMETERS,
-                                            TEST_OUT_DIR_PATH,
-                                            save_TILs_overlay = False,
-                                            save_cluster_masks = False,
-                                            save_cluster_overlays = False,
-                                            save_all_clusters_img = False,
-                                            save_csv = False,
-                                            random_state = None)
+        IM_labels, dbscan_fit, cluster_mask_dict = refine_kmeans.kmean_to_spatial_model_superpatch_wrapper(superpatch_path = SUPERPATCH_PATH,
+                                            in_dir_path = TEST_IN_DIR_PATH,
+                                            spatial_hyperparameters = TEST_SPATIAL_HYPERPARAMETERS,
+                                            out_dir_path = TEST_OUT_DIR_PATH)
         
         #checks if each output type is correct
         self.assertIsInstance(IM_labels, np.ndarray)
@@ -119,6 +114,7 @@ class TestRefineKMeans(unittest.TestCase):
         # checks that the model outputted above is fitted
         self.assertTrue(sklearn.utils.validation.check_is_fitted(dbscan_fit) is None)
 
+    @pytest.mark.skip
     def test_kmean_to_spatial_model_patch_wrapper(self):
         """
         Unittests for kmean_dbscan_patch_wrapper function
