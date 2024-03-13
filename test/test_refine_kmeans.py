@@ -2,22 +2,21 @@
 
 # Core library imports
 import os
+import shutil
+import unittest
 # import pathlib
 
 # External library imports
 import numpy as np
-# import pandas as pd
-# import sklearn.cluster
-# from sklearn.preprocessing import StandardScaler
-# from skimage.measure import label, regionprops
-# import matplotlib.pyplot as plt
-import unittest
-import sklearn
 import pytest
+import sklearn
+import sys
+import unittest
 
 # Local imports
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 from tilseg import seg, refine_kmeans
-#from refine_kmeans import mask_to_features, km_dbscan_wrapper, kmean_to_spatial_model_patch_wrapper, kmean_to_spatial_model_superpatch_wrapper, KMeans_superpatch_fit
+
 
 # Get the absolute path of the current file
 current_file_path = os.path.abspath(__file__)
@@ -44,6 +43,7 @@ TEST_SPATIAL_HYPERPARAMETERS = {
     'eps': 10,
     'min_samples': 100,
 }
+
 
 class TestRefineKMeans(unittest.TestCase):
     
@@ -79,7 +79,7 @@ class TestRefineKMeans(unittest.TestCase):
                                 [1, 0, 1],
                                 [0, 1, 0]])
         hyperparameter_dict = TEST_SPATIAL_HYPERPARAMETERS
-        save_filepath = os.path.join(TEST_OUT_DIR_PATH, 'ClusteringResults') 
+        save_filepath = TEST_OUT_DIR_PATH
         
         # Calling km_dbscan_wrapper function
         all_labels, dbscan = refine_kmeans.km_dbscan_wrapper(binary_mask, hyperparameter_dict, 
@@ -95,6 +95,10 @@ class TestRefineKMeans(unittest.TestCase):
         # Testing al_labels output
         self.assertTrue(np.all(all_labels >= -1))  # Making sure labels are greater than -1
         self.assertTrue(all_labels.dtype == int) #Checking label types are integers
+
+        directory_path = os.path.join(TEST_OUT_DIR_PATH, 'ClusteringResults')
+        shutil.rmtree(os.path.join(directory_path, 'dbscan_result_colorbar.jpg')) 
+        shutil.rmtree(os.path.join(directory_path, 'dbscan_result.jpg'))
     
     @pytest.mark.skip
     def test_kmean_to_spatial_model_superpatch_wrapper(self):
