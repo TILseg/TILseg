@@ -13,9 +13,11 @@ import sklearn.base
 import sklearn.cluster
 import sklearn.datasets
 import sklearn.metrics
+import sys
 
-# Local imports
-from ..tilseg import model_selection
+# Local imports: add parent directory to path
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+from tilseg import model_selection
 
 
 class TestModelSelection(unittest.TestCase):

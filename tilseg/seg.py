@@ -33,10 +33,8 @@ import sklearn.utils.validation
 from PIL import Image
 import time
 
-
-# Local imports
-from ..tilseg.cluster_processing import image_postprocessing
-from ..tilseg.model_selection import opt_kmeans
+from tilseg.cluster_processing import image_postprocessing
+from tilseg.model_selection import opt_kmeans
 
 # def mean_shift_patch_fit(data):
 #     data = np.array(data)

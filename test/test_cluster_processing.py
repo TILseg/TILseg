@@ -11,9 +11,11 @@ import unittest
 import numpy as np
 import pandas as pd
 import skimage.data
+import sys
 
-# Local imports
-from ..tilseg import cluster_processing
+# Local imports: add parent directory to path
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+from tilseg import cluster_processing
 
 class TestClusterProcessing(unittest.TestCase):
     """
@@ -253,12 +255,14 @@ class TestClusterProcessing(unittest.TestCase):
         single_blob = skimage.data.binary_blobs(100, 0.5, 2, 0.5, 1)
 
         # generate list of filtered contours
-        til_contour, contour_count = \
+        til_contour, contour_count, cluster_mask, count_index = \
             cluster_processing.immune_cluster_analyzer([double_blob,
                                                                single_blob])
         # check output types are as expected
         self.assertIsInstance(til_contour, list)
         self.assertIsInstance(contour_count, int)
+        self.assertIsInstance(cluster_mask, np.ndarray)
+        self.assertIsInstance(count_index, int)
         # ensure the correct number of contours were counted
         self.assertTrue(contour_count == 4)
 
@@ -371,11 +375,13 @@ class TestClusterProcessing(unittest.TestCase):
                                                                wr_shape_array,
                                                                home)
         # run function without any file outputs
-        til_count = cluster_processing.image_postprocessing(double_blob,
+        til_count, mask, index = cluster_processing.image_postprocessing(double_blob,
                                                                    dim_array_3,
                                                                    home)
         # ensure correct number of tils was generated
         self.assertTrue(til_count == 4)
+        self.assertIsInstance(mask, np.ndarray)
+        self.assertIsInstance(index, int)
         # check aligned file outputs
         file_exists = self.file_exists_function()
         self.assertTrue(all(([False, False, False, False, False, False, False],

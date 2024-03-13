@@ -10,9 +10,11 @@ import numpy as np
 import openslide
 import pandas as pd
 import pytest
+import sys
 
-# Local imports
-from ..tilseg import preprocessing
+# Local imports: add parent directory to path
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+from tilseg import preprocessing
 
 # pylint: disable=useless-return
 

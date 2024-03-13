@@ -4,6 +4,8 @@ Unittests for seg module
 
 # KMeans and TILs do not conform to snake-case naming:
 # pylint: disable=invalid-name
+
+
 # Need to check types of inputs and outputs which have protected class type
 # e.g. sklearn models:
 # pylint: disable=protected-access
@@ -19,7 +21,9 @@ from PIL import UnidentifiedImageError
 from PIL import Image
 import sys
 
-from ..tilseg import seg, refine_kmeans
+# Local imports: add parent directory to path
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+from tilseg import seg, refine_kmeans
 
 TEST_PATCH_PATH = os.path.join(os.path.dirname(__file__),
                                'test_patches', 'patches',

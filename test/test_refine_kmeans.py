@@ -12,10 +12,11 @@ import numpy as np
 # from skimage.measure import label, regionprops
 # import matplotlib.pyplot as plt
 import unittest
+import sys
 import sklearn
 
-# Internal imports
-from .. import tilseg
+# Local imports: add parent directory to path
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 from tilseg import seg, refine_kmeans
 #from refine_kmeans import mask_to_features, km_dbscan_wrapper, kmean_to_spatial_model_patch_wrapper, kmean_to_spatial_model_superpatch_wrapper, KMeans_superpatch_fit
 
