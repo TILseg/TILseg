@@ -26,8 +26,8 @@ def find_elbow(data: np.array, r2_cutoff: float = 0.9) -> int:
     Parameters
     ----------
     data: Cluster and inertia data, first column is number of clusters,
-        second column is the intertia (pr other metric)
-    r2_cutoff: Cutoff for r2 score for the elbow, when the reamining data
+        second column is the intertia (or other metric)
+    r2_cutoff: Cutoff for r2 score for the elbow, when the remaining data
         fits a linear regression line with
     Returns
     -------
@@ -37,7 +37,7 @@ def find_elbow(data: np.array, r2_cutoff: float = 0.9) -> int:
     for i in range(len(data)):
         # Create an array with data beyond the current elbow
         remaining = data[i:]
-        # Find rvalue to asses how lienar this data is
+        # Find rvalue to asses how linear this data is
         rvalue = scipy.stats.linregress(remaining[:, 0],
                                         remaining[:, 1]).rvalue
         if rvalue**2 > r2_cutoff:
@@ -346,7 +346,7 @@ def eval_models_davies_bouldin(data: np.array,
     Returns
     -------
     model: sklearn.base.ClusterMixin
-        model which clusters the data beest according to Davies Bouldin Index
+        model which clusters the data best according to Davies Bouldin Index
     or
     model_dictionary: dict
         dictionary mapping models to Davies Bouldin Index
@@ -373,8 +373,11 @@ def plot_inertia(data: np.array,
     ----------
     data: np.array containing data to cluster
     n_clusters: List of n_clusters to create the inertial plot for
-    file_path: path of where to save the image of the plot,
-        either string or pathlike object
+    file_path: path of where to save the image of the plot, either string or pathlike object
+    mark_elbow: Typically set to FALSE
+    r2_cutoff: R2_cutoff (float): This value is subjective. This is the point where adding more clusters will not significantly affect inertia.
+    **kwargs: Keyword arguments passed to metric function
+
     Returns
     -------
     matplotlib plot object

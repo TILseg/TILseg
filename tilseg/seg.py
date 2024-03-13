@@ -385,7 +385,7 @@ def segment_TILs(in_dir_path: str,
         containing significant amount of tissue using the tilseg.preprocessing module.
         multiple_images (False): the path to a single patch that will be clustered and have TILS
         segemented form its own model. This is used to generate a ground truth image after clustering.
-    out_dir: str
+    out_dir_path: str
         the directory path where output images and CSV files will be saved
     hyperparameter_dict: dict
         dicitonary of hyperparameters for the chosen algorithm
