@@ -500,6 +500,7 @@ def image_postprocessing(clusters: np.ndarray, ori_img: np.ndarray,
     ori_img: np.ndarray
         3D array with dimensions X, Y, and color with three color channels
         as RGB. This is the original image clustering was performed on
+    filepath: str
     gen_all_clusters: bool
         determines if image with all clusters visualized will be generated
     gen_overlays: bool
