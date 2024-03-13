@@ -7,12 +7,12 @@ Last Updated: March 13th, 2024
 ### DEVELOPMENTS ###
 * _K-Means to DBSCAN_: Previously, K-Means was found to be the best clustering algorithm among DBSCAN, Birch, and Optics. We have built a pipeline in `refine_kmeans.py` that enables the user to optimize, fit, and apply K-Means to patches of a whole slide image and then uses the output cluster masks to feed into DBSCAN for further clustering. 
     * Please see our additions in section *11. K-MEANS TO DBSCAN (REFINE_KMEANS)* for more details. 
-* _SuperPatch Scoring_: A module called `similarity.py` was created to generate a similarity score using the MSE between a K-Means model that had been fitted and applied to the same patch (i.e. 'ground truth') and a pre-fitted superpatch model(s) that is applied to the same refernce patch. However it should be noted that it has not yet been integrated to work with the current functions as `preprocessing.py` was updated before the development of `similarity.py`, so the `similarity.py` module has not been updated and tested to verify it's functionality with the current modules. 
+* _SuperPatch Scoring_: A module called `similarity.py` was created to generate a similarity score using the MSE between a K-Means model that had been fitted and applied to the same patch (i.e. 'ground truth') and a pre-fitted superpatch model(s) that is applied to the same reference patch. However, it should be noted that it has not yet been integrated to work with the current functions as `preprocessing.py` was updated before the development of `similarity.py`, so the `similarity.py` module has not been updated and tested to verify it's functionality with the current modules. 
     * Please see *Future Directions* at the bottom of this README for more details.
-* _Updated Environment_: the user would've had to install OpenSlide separately from the environment.yml file which lead to dependency issues and version conflicts since the version of OpenSlide initially used was not specified. We have created a new environment file that includes OpenSlide and all the compatible versions.    
+* _Updated Environment_: the user would've had to install OpenSlide separately from the environment.yml file which led to dependency issues and version conflicts since the version of OpenSlide initially used was not specified. We have created a new environment file that includes OpenSlide and all the compatible versions.    
 * _Updated Example Jupyter Notebook_: In the `Example` folder of the repository, a new and improved example jupyter notebook `dbscan_kmeans_example.ipynb` has been added to include our latest developments and fixes.
 * _User Cases and Components_: We have updated these documents in our `doc` folder to be more comprehensive while also reflecting our changes.
-* _New Archive Folder_: A new folder `Archive` has been created at the root of the repository to document and save previous code that had been written before the implementation of our updated. This folder should be better utilized for future developers.
+* _New Archive Folder_: A new folder `Archive` has been created at the root of the repository to document and save previous code that had been written before the implementation of our update. This folder should be better utilized for future developers.
 * _Bug Fixes Section_: Since this is the first update since the development of the `tilseg` package, we believe it would be useful to document our bug fixes for users and future developers to view and possibly use in their own work. 
     * Please scroll to the bottom of our README for more detailed information about our bug fixes.
 
@@ -39,15 +39,15 @@ B. Bug Fixes
 
 ### 1. ABOUT: ###
 - - - -
-TILseg (Tumor-Infiltrating Lymphocyte segmentation) is a software created to segment different types of cells capatured on a whole slide image of breast tissue. The tissue is stained using hematoxylin and eosin (H&E), then the resulting images are often used by pathologists to diagnose breast cancer. Tumor-infiltrating lymphocytes (TILs) are often found in high concentrations in breast cancer tissue. Therefore, reliable identification of cell types, and their locations is imperative for accurate diagnoses. This software aims to complement the diangosis pipeline by automating the segmentation and quantification of these cells from whole slide images. Approaches, like TILseg, are carving out the interface between computational tools and traditional histological, pathological, and medicinal approaches. 
+TILseg (Tumor-Infiltrating Lymphocyte segmentation) is a software created to segment different types of cells captured on a whole slide image of breast tissue. The tissue is stained using hematoxylin and eosin (H&E), then the resulting images are often used by pathologists to diagnose breast cancer. Tumor-infiltrating lymphocytes (TILs) are often found in high concentrations in breast cancer tissue. Therefore, reliable identification of cell types, and their locations is imperative for accurate diagnoses. This software aims to complement the diagnosis pipeline by automating the segmentation and quantification of these cells from whole slide images. Approaches, like TILseg, are carving out the interface between computational tools and traditional histological, pathological, and medicinal approaches. 
 
-This software provides a straightforward method for analyzing H&E stained microscope images and classifying and quantifying TILs present in the stained image. Briefly, the software takes in a given number of slide images, divides the image into a set of smaller patches, and filters out patches that do not contain significant amounts of tissue. A superpatch consisting of several smaller patches, from multiple slide images, is then passed into the machine learning model. 
+This software provides a straightforward method for analyzing H&E stained microscope images and classifying and quantifying TILs present in the stained image. Briefly, the software takes in a given number of slide images, divides the image into a set of smaller patches, and filters out patches that do not contain significant amounts of tissue. A superpatch consisting of several smaller patches, from multiple slide images, is then passed into the machine-learning model. 
 
-K-Means (n=4) was found to be the optimal clustering algorithm used to segment TILs. However, the model fitting is still imperfect as the TILs cluster may also include other cell types such as fibroblast cells (more fibrous and elongated), plasma (more triangular), etc. due to the similarity in their staining to TILs (more circular).The current algorithm accounts for this by filtering the TILs cluster based on area and circularity criteria that a TIL is assumed to meet. On the other hand, clustering algorithms such as DBSCAN can prove to be a more nuanced 'filter' since it takes into account the spatial distribution of pixels that K-Means does not. Thus, it may be able to differentate and cluster cells types based on the spatial arrangement of pixels within each cell (i.e. a cell's shape). However, the spatial algorithms previously tested in this module faced memory issues when initially implemented due to their computational complexity and large image sizes. To circumvent these memory issues, we have developed a tool that can use K-Means to as a preliminary step to isolate the pixels corresponding to the assumed TILs cluster. Then, this cluster can be transformed into features that can be further clustered by DBSCAN. 
+K-Means (n=4) was found to be the optimal clustering algorithm used to segment TILs. However, the model fitting is still imperfect as the TILs cluster may also include other cell types such as fibroblast cells (more fibrous and elongated), plasma (more triangular), etc. due to the similarity in their staining to TILs (more circular). The current algorithm accounts for this by filtering the TILs cluster based on area and circularity criteria that a TIL is assumed to meet. On the other hand, clustering algorithms such as DBSCAN can prove to be a more sophisticated 'filter' since it takes into account the spatial distribution of pixels that K-Means does not. Thus, it may be able to differentiate and cluster cell types based on the spatial arrangement of pixels within each cell (i.e. a cell's shape). However, the spatial algorithms previously tested in this module faced memory issues when initially implemented due to their computational complexity and large image sizes. To circumvent these memory issues, we have developed a tool that can use K-Means as a preliminary step to isolate the pixels corresponding to the assumed TILs cluster. Then, this cluster can be transformed into features that can be further clustered by DBSCAN. 
 
-Though hyparameter tuning has not yet been done, we hope that this tool can be utilized by future users and/or researchers in tailoring DBSCAN for their own needs.
+Though hyperparameter tuning has not yet been done, we hope that this tool can be utilized by future users and/or researchers in tailoring DBSCAN for their own needs.
 
-This software is broken into four different modules that users can call: `preprocessing.py`, `model_selection.py`, `seg.py`, and `refine_kmeans`. The modules are intended to be used sequentially and their main functions/use cases are outlined in sections below.
+This software is broken into four different modules that users can call: `preprocessing.py`, `model_selection.py`, `seg.py`, and `refine_kmeans`. The modules are intended to be used sequentially and their main functions/use cases are outlined in the sections below.
 
 ### 2. METHODOLOGY: ###
 - - - -
@@ -71,15 +71,15 @@ These dependencies can be most easily handled using the provided environment.yml
 1. Install [Anaconda](https://www.anaconda.com/). 
 2. Clone this repository
     - For example by running the command `git clone git@github.com:TILseg/TILseg.git` 
-3. Creating and running virtual environment:
+3. Creating and running a virtual environment:
     - For Windows and Linux: *not yet configured*
     - For macOS:
         - From the TILseg directory run `conda env create -f environment_mac.yml`
         - The environment can then be activated using `conda activate tilseg_mac`
 4. Add TILseg to the PYTHONPATH environment variable
     - To update the environment variable run `export PYTHONPATH = "path/to/TILseg:$PYTHONPATH"` on the command line
-        - To update this environment variable more permanately this command can be added to the .bashrc file on linux, or the .profile file on MacOS
-    - Alternatively, in a python file or at the REPL prior to importing tilseg, run `import sys`, then `sys.path.append("path/to/TILseg")`  
+        - To update this environment variable more permanently this command can be added to the .bashrc file on linux, or the .profile file on MacOS
+    - Alternatively, in a Python file or at the REPL before importing tilseg, run `import sys`, then `sys.path.append("path/to/TILseg")`  
 
 ### 4. EXAMPLE: ###
 - - - -
@@ -106,7 +106,7 @@ Please reference the `dbscan_kmeans_example.ipynb` file for an example of how th
 - - - -
 This work is a revision and an extension of a [previous project](https://github.com/ViditShah98/Digital_segmentation_BRCA_547_Capstone) that originated from the CHEME 545/546 course at the University of Washington. Updates have been made from a fork of the [TILseg/TILseg respository](https://github.com/TILseg/TILseg) that originated from the CHEME 545/546 course (Winter 2023) at the University of Washington.
 
-Both the previous project and this work is a continuation of the research performed in [Mittal Research Lab](https://shachimittal.com/) at the University of Washington.
+Both the previous project and this work are a continuation of the research performed in [Mittal Research Lab](https://shachimittal.com/) at the University of Washington.
 
 ### 7. REPO STRUCTURE ###
 - - - -
@@ -229,12 +229,12 @@ The numpy array of the superpatch is ultimately returned which is then fed into 
 
 ### 9. MODEL SELECTION: ###
 - - - -
-The `model_selection` module contains functions for optimizing hyperparameters, and comparing various clustering algorithms. This module can either be interacted with as a python library, or as a command line interface. To use as a command line interface, from within the conda environment run `python path/to/opt_cluster_hyperparameters.py <args>`. For using this module as a python library the main functions from this module are the opt_\<cluster algorithm\> functions. The high level functionality of this family of functions is:  
+The `model_selection` module contains functions for optimizing hyperparameters and comparing various clustering algorithms. This module can either be interacted with as a python library, or as a command line interface. To use as a command line interface, from within the conda environment run `python path/to/opt_cluster_hyperparameters.py <args>`. For using this module as a python library the main functions from this module are the opt_\<cluster algorithm\> functions. The high level functionality of this family of functions is:  
 - **Input:** The patch or superpatch, along with lists of the       hyperparameter values to test. 
 - **Output:** Dictionary of hyperparameter:value pairs of the optimized hyperparameters. 
 
 Specifically, the arguments to these functions are: 
-- **data:** A numpy array, of shape 3xP, where the columns are the RGB vaues of the image, and the rows represent the individual pixels.
+- **data:** A numpy array, of shape 3xP, where the columns are the RGB values of the image, and the rows represent the individual pixels.
 - **\<hyperparameter_lists\>:** These arguments vary from function to function, depending on the hyperparameters for a specific clustering algorithm. For example, with opt_dbscan this takes the form of `eps`, and `min_samples`, lists of values to try for the `eps` and `min_samples` parameters for DBSCAN respectively. The hyperparameters for a model are taken as groups based on the order in the list. So, if opt_dbscan is given eps=[0.01, 0.1, 1] and min_samples=[5, 10,20], the hyperparameters for the models would be {eps=0.01, min_samples=5}, {eps=0.1, min_samples=10}, and {eps=1, min_samples=20}. The generation of these lists can be helped with the `generate_hyperparameter_combinations` function.  
 - **metric:** Which scoring method to use for evaluating the clustering from each set of hyperparameters.  This is a string describing the method, could be:
     - Silhouette Score
@@ -242,7 +242,7 @@ Specifically, the arguments to these functions are:
     - Calinski Harabasz Index  
 *note: For KMeans, the [elbow](https://en.wikipedia.org/wiki/Elbow_method_(clustering)) method based on inertia plots will be used*
 - **verbose:** Whether a verbose output is desired. When True, the function will print the hyperparameters currently being tried, and a list of the clusters that are generated from them to the standard output.
-- **kwargs:** Keyword arguments which are passed to the metric class.
+- **kwargs:** Keyword arguments that are passed to the metric class.
 
 The opt_ family of functions is the main interface to this module, but there are a variety of other methods available. These will be listed with a short description here, for details on arguments see docstrings within the module. 
 - `find_elbow`: Finds the elbow of an inertia plot.
@@ -266,9 +266,9 @@ There are two main functions in the `seg` module: `clustering_score`, and `segme
 - **Input:** The patch, hyperparameters(optional), algorithm, fitted model (optional), output scoring metrics.
 - **Output:** Clustering scores. 
 
-Specifically, the arguments to this function is: 
+Specifically, the arguments for this function are: 
 - **patch_path:** String containing directory path to the patch that will be fitted and/or clustered on to produce cluster labels that will be used for the scoring
-- **hyperparameter_dict:** Dicitonary of hyperparameters for the chosen algorithm. This dictionary can be read by the JSON file outputted by `tilseg.model_selection` module.
+- **hyperparameter_dict:** Dictionary of hyperparameters for the chosen algorithm. This dictionary can be read by the JSON file outputted by `tilseg.model_selection` module.
     - for KMeans: dictionary should have 'n_clusters' key
     - for DBSCAN: dictionary should have 'eps' and 'min_samples' keys
     - for OPTICS: dictionary should have 'min_samples' and 'max_eps' keys
@@ -281,15 +281,15 @@ Specifically, the arguments to this function is:
 
 
 
-`segment_TILs` applies a clustering model to patches and generates multiple files outputs and TILs counts.: TILs
+`segment_TILs` applies a clustering model to patches and generates multiple file outputs and TILs counts.: TILs
     overlayed on the original H&E patch, binary segmentation masks of each
-    cluster, individual clusters overlayed on the original patch, image of all
-    the clusters, and a CSV file containing countour information of each TIL
+    cluster, individual clusters overlayed on the original patch, images of all
+    the clusters, and a CSV file containing contour information of each TIL
     segmented from the patch
 - **Input:** Directory containing patches, output directory (optional), hyperparameters(optional), algorithm, fitted model (optional).
-- **Output:** : TIL counts from each patch, TILs overlayed on the original H&E patch, binary segmentation masks of each cluster, individual clusters overlayed on the original patch, image of all the clusters, and a CSV file containing countour information of each TIL segmented from the patch 
+- **Output:** TIL counts from each patch, TILs overlayed on the original H&E patch, binary segmentation masks of each cluster, individual clusters overlayed on the original patch, image of all the clusters, and a CSV file containing countour information of each TIL segmented from the patch 
 
-Specifically, the arguments to this fucntion is: 
+Specifically, the arguments for this fucntion are: 
 - **in_dir_path:** String containing the directory path to the patches that will clustered and have TILs segmented
 - **out_dir_path:** String containing the directory path where output images and CSV files will be saved
 - **hyperparameter_dict:** Dicitonary of hyperparameters for the chosen algorithm. This dictionary can be read by the JSON file outputted by `tilseg.model_selection` module.
@@ -310,22 +310,22 @@ Specifically, the arguments to this fucntion is:
 - - - - 
 There are three main functions in the `refine_kmeans` module: `KMeans_superpatch_fit`, `kmean_to_spatial_model_superpatch_wrapper`, and `kmean_to_spatial_model_patch_wrapper`.
 
-`KMeans_superpatch_fit` fits a KMeans clustering model to a patch that will be used to cluster other patches. KMeans is the only clustering algorithms that allows fitting a model to one patch clustering on another. 
+`KMeans_superpatch_fit` fits a KMeans clustering model to a patch that will be used to cluster other patches. KMeans is the only clustering algorithm that allows fitting a model to one patch clustering on another. 
 - **Input:** The superpatch, KMeans hyperparameters (default is n_clusters = 4), and the random state (optional).
 - **Output:** Fitted model. 
 
-Specifically, the arguments to this function is: 
+Specifically, the arguments for this function are: 
 - **patch_path:** String containing the directory path to the patch that the model will be fitted to obtain cluster decision boundaries
 - **hyperparameter_dict:** Dictionary of hyperparameters for KMeans containing 'n_clusters' as the only key this dictionary can be obtained by reading the JSON file outputted by `tilseg.module_selection`
-- **random_state (default=None):** the random state can be specified if the user desires to test the function, use other functions that depend on the preprocessing step, or implement it in other functions that require a superpatch to be made froem the same patches each time it is run in a jupyter notebook.
+- **random_state (default=None):** The random state can be specified if the user desires to test the function, use other functions that depend on the preprocessing step, or implement it in other functions that require a superpatch to be made froem the same patches each time it is run in a jupyter notebook.
 
-`kmean_to_spatial_model_superpatch_wrapper` sequentially fits a DBSCAN clustering model to a superpatch following K-means clustering which will be used to cluster other patches. This can be used to see if DBSCAN can be used to fit a model to one patch clustering on another. However, it should be noted that DBSCAN is highly depended on the spatial distribution of pixels. H&E stained images are largely heterogenous by nature, so this function may not prove to be useful but we have developed this tool for verification and/or future research to be done.
-- **Input:** The superpatch, the folder containing the patches to be clustered, DBSCAN hpyerparameters, list of KMeans hyperparameters to be optimized, folder that will be used to save the results (optional), the masks and overlays from clustering (optional), and the random state (optional)
+`kmean_to_spatial_model_superpatch_wrapper` sequentially fits a DBSCAN clustering model to a superpatch following K-means clustering which will be used to cluster other patches. This can be used to see if DBSCAN can be used to fit a model to one patch clustering on another. However, it should be noted that DBSCAN is highly dependent on the spatial distribution of pixels. H&E stained images are largely heterogenous by nature, so this function may not prove to be useful but we have developed this tool for verification and/or future research to be done.
+- **Input:** The superpatch, the folder containing the patches to be clustered, DBSCAN hyperparameters, list of KMeans hyperparameters to be optimized, the folder that will be used to save the results (optional), the masks and overlays from clustering (optional), and the random state (optional)
 - **Output:** The DBSCAN model, model labels, the TILs binary mask from KMeans, and the KMeans cluster label with the highest contour count (i.e. the one identified as the TILs cluster) for each patch
 
-Specifically, the arguments to this function is: 
-- **superpatch_path (str):** filepath to superpatch image from preprocessing step (.tif)
-- **in_dir_path (str):** the directory path to the patches that will be clustered and have TILs segmented from superpatch model. This directory could be one that contains all the extracted patches containing significant amount of tissue using the tilseg.preprocessing module.
+Specifically, the arguments for this function are: 
+- **superpatch_path (str):** file path to superpatch image from preprocessing step (.tif)
+- **in_dir_path (str):** the directory path to the patches that will be clustered and have TILs segmented from the superpatch model. This directory could be one that contains all the extracted patches containing a significant amount of tissue using the tilseg.preprocessing module.
 - **spatial_hyperparameters (dict):** the spatial algorithm's optimized hyperparameters
 - **n_clusters (list):** a list of the number clusters to test in KMeans optimization
 - **out_dir (str):** the directory path where output images and CSV files will be saved
@@ -333,15 +333,15 @@ Specifically, the arguments to this function is:
 - **save_cluster_masks (bool):** generates images showing binary segmentation masks of each cluster
 - **save_cluster_overlays (bool):** generates images containing individual clusters overlayed on the original patch
 - **save_all_clusters_img (bool):** generates images of all the clusters
-- **save_csv (bool):** generates a CSV file containing countour information of each TIL segmented from the patch
+- **save_csv (bool):** generates a CSV file containing contour information of each TIL segmented from the patch
 - **random_state: (int):** can specify repeatable kmeans model
 
 `kmean_to_spatial_model_patch_wrapper` fits a DBSCAN clustering model to a single patch following K-means clustering which will be applied to cluster the same patch. This function has high functionality as the user is able to manually input the hyperparameters for the DBSCAN model. This allows further implementation into functions that can perform the same clustering on a folder of multiple patches or can perform optimization/scoring metrics.
-- **Input:** The patch, the folder containing the patches to be clustered, DBSCAN hpyerparameters, list of KMeans hyperparameters to be optimized, folder that will be used to save the results (optional), the masks and overlays from clustering (optional), and the random state (optional)
+- **Input:** The patch, the folder containing the patches to be clustered, DBSCAN hyperparameters, the list of KMeans hyperparameters to be optimized, the folder that will be used to save the results (optional), the masks and overlays from clustering (optional), and the random state (optional)
 - **Output:** The DBSCAN model, model labels, the TILs binary mask from KMeans, and the KMeans cluster label with the highest contour count (i.e. the one identified as the TILs cluster)
 
-Specifically, the arguments to this function is: 
-- **patch_path (str):** filepath to a single patch image from the preprocessing step (.tif)
+Specifically, the arguments for this function are: 
+- **patch_path (str):** file path to a single patch image from the preprocessing step (.tif)
 - **in_dir_path (str):** the directory path to the patches that will be clustered and have TILs segmented from superpatch model. This directory could be one that contains all the extracted patches containing significant amount of tissue using the tilseg.preprocessing module.
 - **spatial_hyperparameters (dict):** the spatial algorithm's optimized hyperparameters
 - **n_clusters (list):** a list of the number clusters to test in KMeans optimization
@@ -359,32 +359,32 @@ Specifically, the arguments to this function is:
 Currently, our pipeline from K-Means to DBSCAN can only be performed on a single patch using the `kmean_to_spatial_model_patch_wrapper` function. Since the DBSCAN fitting can be highly specific to each patch, we allowed the DBSCAN hyperparameters to be directly modified without optimization and outputs iamges for the user to easily observe the results to compare to the KMeans model. This can allow future users/researchers to use our function and adapt the hyperparameters as needed. Additionally, we believe that this tool can be integrated into other functions or simply modified to be performed on multiple patches. By preprocessing using KMeans to isolate our cluster of interest, we have drastically decreased the number of pixels being fed into DBSCAN and, thus, the computation time and expense as opposed to feeding in the raw, RGB patch. We hope DBSCAN can be a useful tool in further clustering the other cell types from the TILs within KMeans. If not, the function could be easily adapted to feed a cluster from KMeans into other spatial algorithms. 
 
 ### ii. Superpatch Similarity Scores ###
-As noted above, we have also started constructing a pipeline for generating a 'similarity score' based on the mean square error (MSE) between two cluster masks. We have further created a tool that is able to implement this similarity score to compare: 1) a KMeans model that has been fitted and applied to a chosen reference patch (i.e. the ground truth) and 2) prefitted KMeans model(s) that have been fit on a superpatch(es) and then applied to the same chosen reference patch all in one function, `superpatch_similarity`. Since the image from 1) has a Kmeans model fit and clustered on the same image, we expect the model to do relatively well in capturing all the variance -- thus producing the ground truth. Since the superpatches in 2) are sampled across the whole slide image, these models may not capture as much variance as in 1), but we wanted to quantify and qualify how representative these superpatches are. Since the reference image is constant across all the superpatch model clustering, the scores should be somewhate comparable to one another. We also created the function so that it would output a contour overlay showcasing the ground truth (green) and the difference between the ground truth and superpatch model (red) over the original reference patch. <span style="color:red;">**Here are some current flaws and points to work on that we recommend</span>:
+As noted above, we have also started constructing a pipeline for generating a 'similarity score' based on the mean square error (MSE) between two cluster masks. We have further created a tool that can implement this similarity score to compare: 1) a KMeans model that has been fitted and applied to a chosen reference patch (i.e. the ground truth) and 2) pre-fitted KMeans model(s) that have been fit on a superpatch(es) and then applied to the same chosen reference patch all in one function, `superpatch_similarity`. Since the image from 1) has a Kmeans model fit and clustered on the same image, we expect the model to do relatively well in capturing all the variance -- thus producing the ground truth. Since the superpatches in 2) are sampled across the whole slide image, these models may not capture as much variance as in 1), but we wanted to quantify and qualify how representative these superpatches are. Since the reference image is constant across all the superpatch model clustering, the scores should be somewhat comparable to one another. We also created the function so that it would output a contour overlay showcasing the ground truth (green) and the difference between the ground truth and superpatch model (red) over the original reference patch. Here are some current flaws and points to work on that we recommend:
 
 * Mainly, this function currently is not integrated with the most updated version of `preprocessing.py`. This should be done first before anything else.
-* The choice of the reference is arbitrary and subjective at the moment, but further research can be done to optimize this. Alternatively, one could generate simialrity scores over a range of reference patches.
+* The choice of the reference is arbitrary and subjective at the moment, but further research can be done to optimize this. Alternatively, one could generate similarity scores over a range of reference patches.
 * Implement other scoring metrics or modify the function to output other visualization that is desired.
 
 For more information about the code and additional documentation, please see `similarity.py` in the `tilseg.py` folder. To see the preliminary use of this module, please see `similarity_use.ipynb` in the `Example` folder.
 
 ### iii. Failing Unit Tests ##
-Since we had changed much of the original code in the `tilseg.py` folder, many of the unit tests that were created had failed and we were unable to resolve them at this time. Although we were able to fix the import of the `tilseg` package, we were not able to address the other errors/bugs that ahd appeared.
+Since we had changed much of the original code in the `tilseg.py` folder, many of the unit tests that were created had failed and we were unable to resolve them at this time. Although we were able to fix the import of the `tilseg` package, we were not able to address the other errors/bugs that had appeared.
 
-The development of our new functions in `refine_kmeans.py` are in its early stages and were built off of the original modules in `tilseg`. Thus, we encountered some errors in these unit tests as well, specifically related to the file path naming. Although we wanted to pursue test driven development, we were not able to resolve these errors at this time, but you can access our current and working unit tests for all the `tilseg` modules in the `test folder`.
+The development of our new functions in `refine_kmeans.py` is in its early stages and was built off of the original modules in `tilseg`. Thus, we encountered some errors in these unit tests as well, specifically related to the file path naming. Although we wanted to pursue test-driven development, we were not able to resolve these errors at this time, but you can access our current and working unit tests for all the `tilseg` modules in the `test folder`. Currently, `test_kmean_to_spatial_model_superpatch_wrapper` and `test_kmean_to_spatial_model_patch_wrapper` are failing and receive the following errors:
 
-<span style="color:red;">**We recommend that any user who wants to _implement_ or _build off of_ our code should address these errors in the unit tests before they proceed any further.**</span>
+We recommend that any user who wants to _implement_ or _build off of_ our code should address these errors in the unit tests before they proceed any further.**</span>
 
 ## B. BUG FIXES ##
 - - -
 ### March 13th, 2024 Update ###
-* **Hard-coded file Paths**: initially, filepaths in the example jupyter notebooks referred to paths that existed on the developer's local computer. We have updated these paths and have added test images/materials that can be accessed by any user on their computer.
+* **Hard-coded file Paths**: initially, file paths in the example jupyter notebooks referred to paths that existed on the developer's local computer. We have updated these paths and have added test images/materials that can be accessed by any user on their computer.
 * _preprocessing.py_:
-    * Changed the os handling to read in the full filepaths of each .svs image since the original code was using only the filename (this led to filepath exception errors)
+    * Changed the os handling to read in the full file paths of each .svs image since the original code was using only the filename (this led to file path exception errors)
     * **def get_superpatch_patches (def preprocess << def get_superpatch_patches)**: updated to now have a random state argument to allow for the superpatch to be made from the same patches each time a notebook is run
-    * **def sort_patches (def preprocess << def main_preprocessing << def sort_patches)**: updated to use a Gaussian Mixture distribution to identify the peaks associated with the pink tissue and white background to reduce the background in the returned superpatches. Original method was documented very poorly and did not accurately remove white background patches,
+    * **def sort_patches (def preprocess << def main_preprocessing << def sort_patches)**: updated to use a Gaussian Mixture distribution to identify the peaks associated with the pink tissue and white background to reduce the background in the returned superpatches. The original method was documented very poorly and did not accurately remove white background patches,
 * _seg.py_:
-    * **def segment_TILS**: updated to take in a `multiple_images` flag to be able to be able to fit a kmeans model to a patch rather than just a superpatch to use the predicted clusters on this patch in downstream scoring
-    * **def immune_cluster_analyzer (def segment_TILS << def image_postprocessing << def immune_cluster_analyzer)**: updated to return the `cluster mask` of the highest TIL contour count to be able to do further segmenetation using dbscan (explained in next section)
+    * **def segment_TILS**: updated to take in a `multiple_images` flag to be able to be able to fit a KMeans model to a patch rather than just a superpatch to use the predicted clusters on this patch in downstream scoring
+    * **def immune_cluster_analyzer (def segment_TILS << def image_postprocessing << def immune_cluster_analyzer)**: updated to return the `cluster mask` of the highest TIL contour count to be able to do further segmentation using DBSCAN
     * **def draw_til_images (def segment_TILS << def image_postprocessing << def draw_til_images)**: had a bug for a wrong array type fed to .drawContours package that was fixed
     * **def segment_TILS**: had a bug fixed to only check for .tif images in a patches folder (avoid errors of hidden .ipynb or files)  
 * **Unit Tests**: All unit tests in the `test` folder had issues importing the `tilseg module`. The `test` folder was initially inside of `tilseg`, but was moved outside to be at the same root as `tilseg`. The module was then imported using `import ..tilseg` to access the parent directory containing both `tilseg` and `test`.
