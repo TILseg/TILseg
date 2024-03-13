@@ -113,52 +113,91 @@ Both the previous project and this work is a continuation of the research perfor
 ```
 TILseg
 -----
-tilseg/
-|-__init__.py
-|-preprocessing.py
-|-model_selection.py
-|-cluster_processing.py
-|-seg.py
-|-test/
-||-__init__.py
-||-test_preprocessing.py
-||-test_model_selection.py
-||-test_cluster_processing.py
-||-test_seg.py
-||-test_birch_hyperparameters.json
-||-test_patches/
-|||-test_img.txt
-|||-test_patch.tif
-|||-test_superpatch.tif
-|||-dummy.csv
-|||-dummy.svs
-|||-patches/
-||||-test_small_patch.tif
-||||-test_small_patch_2.tif
-docs/
-|-COMPONENTS.md
-|-USECASES.md
-|-USERSTORIES.md
-examples/
-|-tilseg_example.ipynb
-|-tilseg_use.ipynb
-scripts/
-|-input_hyperparameters
-||-birch_hyperparameters.json
-||-dbscan_hyperparameters.json
-||-kmeans_hyperparameters.json
-||-optics_hyperparameters.json
-|-output
-||-birch_hyperparameters.json
-||-dbscan_hyperparameters.json
-||-kmeans_hyperparameters.json
-||-optics_hyperparameters.json
-|-opt_cluster_hyperparameters.py
-environment.yml
-environment_mac.yml
-LICENSE
-README.md
-.gitignore
+├── Archive
+│   ├── docs
+│   │   ├── COMPONENTS.md
+│   │   ├── TILseg Final Presentation.pdf
+│   │   ├── USECASES.md
+│   │   └── USERSTORIES.md
+│   ├── environment.yml
+│   ├── environment_mac.yml
+│   ├── examples
+│   │   ├── tilseg_example.ipynb
+│   │   └── tilseg_use.ipynb
+│   └── scripts
+│       ├── input_hyperparameters
+│       │   ├── birch_hyperparameters.json
+│       │   ├── dbscan_hyperparameters.json
+│       │   ├── kmeans_hyperparameters.json
+│       │   └── optics_hyperparameters.json
+│       ├── opt_cluster_hyperparameters.py
+│       └── output
+│           ├── birch_hyperparameters.json
+│           ├── dbscan_hyperparameters.json
+│           ├── kmeans_hyperparameters.json
+│           └── optics_hyperparameters.json
+├── Example
+│   ├── Notebook_Images
+│   │   ├── Image_1.png
+│   │   ├── Image_4.png
+│   │   ├── Image_9.png
+│   │   ├── image_10.png
+│   │   ├── image_11.png
+│   │   ├── image_12.png
+│   │   ├── image_13.png
+│   │   ├── image_14.png
+│   │   ├── image_15.png
+│   │   ├── image_16.png
+│   │   ├── image_17.png
+│   │   ├── image_18.png
+│   │   ├── image_19.png
+│   │   ├── image_2.png
+│   │   ├── image_20.png
+│   │   ├── image_21.png
+│   │   ├── image_22.png
+│   │   ├── image_23.png
+│   │   ├── image_24.png
+│   │   ├── image_3.png
+│   │   ├── image_5.png
+│   │   ├── image_6.png
+│   │   ├── image_7.png
+│   │   ├── image_8.png
+│   │   └── super_before.png
+│   ├── dbscan_kmeans_example.ipynb
+│   └── similarity_use.ipynb
+├── LICENSE
+├── README.md
+├── __init__.py
+├── doc
+│   ├── Components.md
+│   ├── Use_Cases_and_Components.pdf
+│   └── User_Stories&Use_Cases.md
+├── environment.yml
+├── test
+│   ├── __init__.py
+│   ├── test_cluster_processing.py
+│   ├── test_model_selection.py
+│   ├── test_patches
+│   │   ├── dummy.csv
+│   │   ├── dummy.svs
+│   │   ├── patches
+│   │   │   ├── test_small_patch.tif
+│   │   │   └── test_small_patch_2.tif
+│   │   ├── test_img.txt
+│   │   ├── test_patch.tif
+│   │   └── test_superpatch.tif
+│   ├── test_preprocessing.py
+│   ├── test_refine_kmeans.py
+│   ├── test_seg.py
+│   └── test_similarity.py
+└── tilseg
+    ├── __init__.py
+    ├── cluster_processing.py
+    ├── model_selection.py
+    ├── preprocessing.py
+    ├── refine_kmeans.py
+    ├── seg.py
+    └── similarity.py
 ```
 ### 8. PREPROCESSING: ###
 - - - -
