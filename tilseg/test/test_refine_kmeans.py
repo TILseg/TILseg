@@ -19,7 +19,7 @@ import tilseg.refine_kmeans
 
 
 
-class TestRefineKMeans(unittest.TestCase)
+class TestRefineKMeans(unittest.TestCase):
     def test_mask_to_features(self):
         """
         Unittests for mask_to_features function
