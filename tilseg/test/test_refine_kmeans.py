@@ -39,7 +39,7 @@ TEST_IN_DIR_PATH = os.path.join(parent_dir, 'test',
 TEST_OUT_DIR_PATH = os.path.join(parent_dir, 'test',
                                 'test_patches', 'results')
 SUPERPATCH_PATH = os.path.join(parent_dir, 'test',
-                               'test_patches', 'test_superpatch.tif')
+                                'test_patches', 'test_superpatch.tif')
 TEST_SPATIAL_HYPERPARAMETERS = {
     'eps': 10,
     'min_samples': 100,
