@@ -12,7 +12,7 @@ import matplotlib.pyplot as plt
 import cv2
 from sklearn.metrics import mean_squared_error
 from skimage.measure import regionprops, label
-from tilseg.seg import KMeans_superpatch_fit, segment_TILs
+from tilseg.refine_kmeans import KMeans_superpatch_fit, segment_TILs
 
 def image_similarity(mask1, mask2):
     """
@@ -130,7 +130,7 @@ def superpatch_similarity(superpatch_folder, reference_patch, output_path, refer
             hyperparameter_dict={'n_clusters': 4})
             
             # apply superpatch model to reference patch
-            _, _, cluster_mask_dict_super = segment_TILs(reference_patch, 
+            _, _, cluster_mask_dict_super, _ = segment_TILs(reference_patch, 
                                                         output_path,
                                                         hyperparameter_dict=None, 
                                                         model=model_superpatch,
@@ -167,7 +167,7 @@ def superpatch_similarity(superpatch_folder, reference_patch, output_path, refer
             print(f'Mean squared error for superpatch {filename}: {round(mse, 3)}')
             
             # load original image
-            original_image = cv2.imread(reference_image_path) 
+            original_image = cv2.imread(reference_patch) 
             original_image_rgb = cv2.cvtColor(original_image, cv2.COLOR_BGR2RGB) 
             
             # find contours in the binary masks
@@ -179,5 +179,5 @@ def superpatch_similarity(superpatch_folder, reference_patch, output_path, refer
             cv2.drawContours(original_image_rgb, contours_red, -1, (255, 0, 0), 2)    # red contours
             # display the result
             plt.imshow(original_image_rgb)
-            plt.axis(‘off’)
+            plt.axis('off')
             plt.show()
