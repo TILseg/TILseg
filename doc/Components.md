@@ -457,22 +457,20 @@ We did not complete this section. This will be a major interest in further inves
 
 **Subcomponents**
 1. Mean Squared Error & Model Fitting
-	- image_similarity: This function calculates the mean squared error and image difference between two arrays
-		- Inputs:
-			- mask1 (np.ndarray): array of first image
-     			- mask2 (np.ndarray): array of second image
-		- Outputs:
-			- mse (float): mean squared error
-     			- diff (np.ndarray): image difference as numpy array
-
-	- superpatch_similarity: This iterates through a folder of superpatches and calculates the mean squared error and plots an image of the difference between the superpatch mask and reference mask.
-		- Inputs:
-			- superpatch_folder (str): path to folder containing superpatch files
-     			- reference_patch (str): file of reference patch that model will be applied
- 			- output_path (str): path to folder where images are saved
-     			- reference_array (np.ndarray): reference patch array after running 
-segment_TILs in similarity_use.ipynb
-		- Outputs: None, but prints mean squared error and plots difference image
+   	- image_similarity: This function calculates the mean squared error and image difference between two arrays
+   	  	- Inputs:
+   	  	  	- mask1 (np.ndarray): array of first image
+   	  	  	- mask2 (np.ndarray): array of second image
+   	  	- Outputs:
+   	  	  	- mse (float): mean squared error
+   	  	  	- diff (np.ndarray): image difference as numpy array
+   	- superpatch_similarity: This iterates through a folder of superpatches and calculates the mean squared error and plots an image of the difference between the superpatch mask and reference mask.
+   	  	- Inputs:
+   	  	  	- superpatch_folder (str): path to folder containing superpatch files
+   	  	  	- reference_patch (str): file of reference patch that model will be applied
+   	  	  	- output_path (str): path to folder where images are saved
+   	  	  	- reference_array (np.ndarray): reference patch array after running segment_TILs in similarity_use.ipynb
+   	  	- Outputs: None, but prints mean squared error and plots difference image
 			
 
 
