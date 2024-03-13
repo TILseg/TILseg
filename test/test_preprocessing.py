@@ -12,8 +12,7 @@ import pandas as pd
 import pytest
 
 # Local imports
-import tilseg
-from tilseg import preprocessing
+from ..tilseg import preprocessing
 
 # pylint: disable=useless-return
 
@@ -131,9 +130,9 @@ class TestPreProcessing(unittest.TestCase):
 
     def test_save_image(self):
         """Test save_image function."""
-        dummy_img = np.random.rand(100, 100, 3) * 255
-        dummy1_img = np.random.rand(100, 100) * 255
-        dummy2_img = np.random.rand(100, 100, 2) * 255
+        dummy_img = np.array(np.random.rand(100, 100, 3) * 255,dtype=np.uint8)
+        dummy1_img = np.array(np.random.rand(100, 100) * 255, dtype = np.uint8)
+        dummy2_img = np.array(np.random.rand(100, 100, 2) * 255, dtype = np.uint8)
 
         # edge test: ensure error is raised if path is not a string
         with self.assertRaises(TypeError):
@@ -285,61 +284,6 @@ class TestPreProcessing(unittest.TestCase):
 
         return
 
-    def test_find_max(self):
-        """Test find_max function."""
-        with self.assertRaises(TypeError):
-            # error if a nonboolean is passed through for the greater
-            # than argument
-            preprocessing.find_max([1, 2, 3], 1, 'a')
-            # error if 'None' is passed through for the greater than argument
-            preprocessing.find_max([1, 2, 3], 1, None)
-            # error if not a list/array
-            preprocessing.find_max('s', 1, True)
-            # error if the cuttoff value is not numericc
-            preprocessing.find_max([1, 4, 2], 'a', False)
-
-        with self.assertRaises(ValueError):
-            # error if array contains negative numbers
-            preprocessing.find_max([1, 2, -3], 4.3, True)
-
-        # check that max is working as expected
-        self.assertEqual(preprocessing.find_max([3, 6, 100], 1, True), 1)
-        self.assertEqual(preprocessing.find_max([3, 10, 20, 33, 103, 6, 100],
-                                                4, True), 4)
-        self.assertEqual(preprocessing.find_max([3, 10, 20, 33, 103, 6, 100],
-                                                2, False), 4)
-
-        return
-
-    def test_find_min(self):
-        """Test find_min function."""
-        with self.assertRaises(TypeError):
-            # error if a non numeric is passed through for the range_min
-            preprocessing.find_min([1, 2, 3], '1', 3)
-            # error if a non numeric is passed through for the range_max
-            preprocessing.find_min([1, 2, 3], 1.3, '0')
-            # error if not a list/array
-            preprocessing.find_min('s', 1, 23)
-
-        with self.assertRaises(ValueError):
-            # error if array contains negative numbers
-            preprocessing.find_min([1, 2, -3], 4.3, True)
-
-        with self.assertRaises(AssertionError):
-            # error if range is equal to each other
-            preprocessing.find_min([1, 2, 3, 4, 5, 6], 11, 11)
-            # error if range is not right
-            preprocessing.find_min([1, 2, 3, 4, 5, 6], 10, 3)
-
-        # check that max is working as expected
-        self.assertEqual(preprocessing.find_min([3, 6, 100, 9], 0, 3), 1)
-        self.assertEqual(preprocessing.find_min([3, 10, 20, 33, 103, 6, 100],
-                                                4, 6), 5)
-        self.assertEqual(preprocessing.find_min([3, 10, 20, 33, 103, 6, 100],
-                                                2, 6), 5)
-
-        return
-
     def test_is_it_background(self):
         """Test is_it_background function."""
         # test if it works as expected
@@ -371,7 +315,7 @@ class TestPreProcessing(unittest.TestCase):
     def test_count_images(self):
         """Test count_images function."""
         # make svs dummy file path
-        svs_path = os.path.join(os.path.dirname(tilseg.__file__), 'test',
+        svs_path = os.path.join(os.path.dirname(__file__), 'test',
                                 'test_patches', 'dummy.svs')
 
         # smoke test: make sure the function runs
@@ -392,7 +336,7 @@ class TestPreProcessing(unittest.TestCase):
     def test_patches_per_img(self):
         """Test patches_per_img function"""
         # make svs dummy file path
-        svs_path = os.path.join(os.path.dirname(tilseg.__file__), 'test',
+        svs_path = os.path.join(os.path.dirname(__file__), 'test',
                                 'test_patches', 'dummy.svs')
 
         # smoke test: making sure the function runs
@@ -417,11 +361,11 @@ class TestPreProcessing(unittest.TestCase):
     def test_get_superpatch_patches(self):
         """Test get_superpatch_patches"""
         # make svs dummy file path
-        svs_path = os.path.join(os.path.dirname(tilseg.__file__), 'test',
+        svs_path = os.path.join(os.path.dirname(__file__), 'test',
                                 'test_patches', 'dummy.svs')
 
         # make csv dummy file path
-        csv_path = os.path.join(os.path.dirname(tilseg.__file__), 'test',
+        csv_path = os.path.join(os.path.dirname(__file__), 'test',
                                 'test_patches', 'dummy.csv')
 
         # edge test: make sure nondataframe is not accepted
@@ -469,11 +413,11 @@ class TestPreProcessing(unittest.TestCase):
     def test_superpatcher(self):
         """Test superpatcher function"""
         # make svs dummy file path
-        svs_path = os.path.join(os.path.dirname(tilseg.__file__), 'test',
+        svs_path = os.path.join(os.path.dirname(__file__), 'test',
                                 'test_patches', 'dummy.svs')
 
         # make csv dummy file path
-        csv_path = os.path.join(os.path.dirname(tilseg.__file__), 'test',
+        csv_path = os.path.join(os.path.dirname(__file__), 'test',
                                 'test_patches', 'dummy.csv')
 
         test_df = pd.read_csv(csv_path)

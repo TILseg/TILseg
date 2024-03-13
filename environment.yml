@@ -197,4 +197,3 @@ dependencies:
   - zlib=1.2.13
   - zlib-ng=2.0.7
   - zstd=1.5.5
-prefix: /Users/lisacarr/opt/anaconda3/envs/tilseg_mac2

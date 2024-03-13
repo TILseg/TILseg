@@ -13,8 +13,7 @@ import pandas as pd
 import skimage.data
 
 # Local imports
-import tilseg.cluster_processing
-
+from ..tilseg import cluster_processing
 
 class TestClusterProcessing(unittest.TestCase):
     """
@@ -32,18 +31,18 @@ class TestClusterProcessing(unittest.TestCase):
 
         # asserts error when image is wrong dimension for RGB and grayscale
         with self.assertRaises(ValueError):
-            tilseg.cluster_processing.image_series_exceptions(dim_array_1,
+            cluster_processing.image_series_exceptions(dim_array_1,
                                                               True)
         with self.assertRaises(ValueError):
-            tilseg.cluster_processing.image_series_exceptions(dim_array_1,
+            cluster_processing.image_series_exceptions(dim_array_1,
                                                               False)
         # asserts error when image contains more than RGB channels
         with self.assertRaises(ValueError):
-            tilseg.cluster_processing.image_series_exceptions(dim_array_4,
+            cluster_processing.image_series_exceptions(dim_array_4,
                                                               True)
         # asserts error when grayscale values are out of range
         with self.assertRaises(ValueError):
-            tilseg.cluster_processing.image_series_exceptions(dim_array_3,
+            cluster_processing.image_series_exceptions(dim_array_3,
                                                               False)
 
     def test_generate_image_series(self):
@@ -62,9 +61,9 @@ class TestClusterProcessing(unittest.TestCase):
         gray_image_path = os.path.join(color_dir_path, "Image1.jpg")
 
         # Generate image series
-        tilseg.cluster_processing.generate_image_series(dim_array_4, home,
+        cluster_processing.generate_image_series(dim_array_4, home,
                                                         "color", True)
-        tilseg.cluster_processing.generate_image_series(dim_array_3, home,
+        cluster_processing.generate_image_series(dim_array_3, home,
                                                         "gray", False)
 
         # Check if file and directory was succesfully created
@@ -89,7 +88,7 @@ class TestClusterProcessing(unittest.TestCase):
         # run gen_base_arrays and store outputs
         (final_array,
          binary_array,
-         all_mask_array) = tilseg.cluster_processing.gen_base_arrays(
+         all_mask_array) = cluster_processing.gen_base_arrays(
             dim_array_3, num_clust)
 
         # ensure it outputs an array where every value is 3
@@ -126,16 +125,16 @@ class TestClusterProcessing(unittest.TestCase):
         # generate results and store the arrays
         (final_arrays,
          binary_arrays,
-         all_masks) = tilseg.cluster_processing.result_image_generator(
+         all_masks) = cluster_processing.result_image_generator(
             img_clust, original_image)
 
         # ensure it raises an error if the image or cluster arrays are the
         # wrong dimensions
         with self.assertRaises(ValueError):
-            _, _, _ = tilseg.cluster_processing.result_image_generator(
+            _, _, _ = cluster_processing.result_image_generator(
                 original_image, original_image)
         with self.assertRaises(ValueError):
-            _, _, _ = tilseg.cluster_processing.result_image_generator(
+            _, _, _ = cluster_processing.result_image_generator(
                 img_clust, img_clust)
 
         # checks that all of the outputs are arrays
@@ -162,13 +161,13 @@ class TestClusterProcessing(unittest.TestCase):
         img_clust = np.random.randint(1, 4, size=(10, 10))
 
         # run function and generate results
-        binary_arrays = tilseg.cluster_processing.mask_only_generator(
+        binary_arrays = cluster_processing.mask_only_generator(
             img_clust)
 
         # check that a value error is raised when wrong dimensional array
         # is passed in
         with self.assertRaises(ValueError):
-            _, _, _ = tilseg.cluster_processing.mask_only_generator(
+            _, _, _ = cluster_processing.mask_only_generator(
                 original_image)
 
         # ensure mask shape and values are as expected
@@ -187,14 +186,14 @@ class TestClusterProcessing(unittest.TestCase):
                                            [[100, 3]], [[0, 3]]))
 
         # generate results and check to ensure the output is a boolean
-        meets_crit = tilseg.cluster_processing.filter_boolean(pass_contour)
+        meets_crit = cluster_processing.filter_boolean(pass_contour)
         self.assertIsInstance(meets_crit, bool)
         # check for each contour to ensure it passes or fails the filters as
         # expected based on area and roundness
-        self.assertTrue(tilseg.cluster_processing.filter_boolean(pass_contour))
+        self.assertTrue(cluster_processing.filter_boolean(pass_contour))
         self.assertFalse(
-            tilseg.cluster_processing.filter_boolean(area_fail_contour))
-        self.assertFalse(tilseg.cluster_processing.filter_boolean(
+            cluster_processing.filter_boolean(area_fail_contour))
+        self.assertFalse(cluster_processing.filter_boolean(
             roundness_fail_contour))
 
     def test_contour_generator(self):
@@ -207,9 +206,9 @@ class TestClusterProcessing(unittest.TestCase):
         double_blob = skimage.data.binary_blobs(100, 0.5, 2, 0.25, 1)
         # generate list of contours from the masks and store
         contours_mod, contours_count = \
-            tilseg.cluster_processing.contour_generator(single_blob)
+            cluster_processing.contour_generator(single_blob)
         _, contours_count2 = \
-            tilseg.cluster_processing.contour_generator(double_blob)
+            cluster_processing.contour_generator(double_blob)
 
         # check output types
         self.assertIsInstance(contours_mod, list)
@@ -223,7 +222,7 @@ class TestClusterProcessing(unittest.TestCase):
         # ensure an error is thrown if the input is not binary
         with self.assertRaises(ValueError):
             contours_mod, contours_count = \
-                tilseg.cluster_processing.contour_generator(2*single_blob)
+                cluster_processing.contour_generator(2*single_blob)
 
     def test_csv_results_compiler(self):
         """
@@ -233,8 +232,8 @@ class TestClusterProcessing(unittest.TestCase):
         double_blob = skimage.data.binary_blobs(100, 0.5, 2, 0.25, 1)
         # generate contours and save them to a csv
         contours_mod, _ = \
-            tilseg.cluster_processing.contour_generator(double_blob)
-        tilseg.cluster_processing.csv_results_compiler(contours_mod, ".")
+            cluster_processing.contour_generator(double_blob)
+        cluster_processing.csv_results_compiler(contours_mod, ".")
         # check that a csv was generated in the correct location
         path = os.path.join(".", "Compiled_Data.csv")
         self.assertTrue(os.path.isfile(path))
@@ -255,7 +254,7 @@ class TestClusterProcessing(unittest.TestCase):
 
         # generate list of filtered contours
         til_contour, contour_count = \
-            tilseg.cluster_processing.immune_cluster_analyzer([double_blob,
+            cluster_processing.immune_cluster_analyzer([double_blob,
                                                                single_blob])
         # check output types are as expected
         self.assertIsInstance(til_contour, list)
@@ -272,13 +271,13 @@ class TestClusterProcessing(unittest.TestCase):
         # create a mask and generate contours from the image
         double_blob = skimage.data.binary_blobs(100, 0.5, 2, 0.25, 1)
         contours_mod, _ = \
-            tilseg.cluster_processing.contour_generator(double_blob)
+            cluster_processing.contour_generator(double_blob)
 
         # generate expected filepaths for final output files
         overlay = os.path.join(".", "ContourOverlay.jpg")
         mask = os.path.join(".", "ContourMask.jpg")
         # save files based on contour list and original image
-        tilseg.cluster_processing.draw_til_images(dim_array_3,
+        cluster_processing.draw_til_images(dim_array_3,
                                                   contours_mod, ".")
         # check that the files were successfully saved
         self.assertTrue(os.path.isfile(overlay))
@@ -352,27 +351,27 @@ class TestClusterProcessing(unittest.TestCase):
         wr_shape_array = np.ones((100, 50, 3), np.uint8)
         # ensure raise error when clusters has wrong dimension
         with self.assertRaises(ValueError):
-            _ = tilseg.cluster_processing.image_postprocessing(dim_array_3,
+            _ = cluster_processing.image_postprocessing(dim_array_3,
                                                                dim_array_3,
                                                                home)
         # ensure raises error when image has wrong dimension
         with self.assertRaises(ValueError):
-            _ = tilseg.cluster_processing.image_postprocessing(double_blob,
+            _ = cluster_processing.image_postprocessing(double_blob,
                                                                double_blob,
                                                                home)
         # ensure raises error when image does not have RGB channels
         with self.assertRaises(ValueError):
-            _ = tilseg.cluster_processing.image_postprocessing(double_blob,
+            _ = cluster_processing.image_postprocessing(double_blob,
                                                                wr_chan_array,
                                                                home)
         # ensure raises error when image and clusters have different X, Y
         # dimensions
         with self.assertRaises(ValueError):
-            _ = tilseg.cluster_processing.image_postprocessing(double_blob,
+            _ = cluster_processing.image_postprocessing(double_blob,
                                                                wr_shape_array,
                                                                home)
         # run function without any file outputs
-        til_count = tilseg.cluster_processing.image_postprocessing(double_blob,
+        til_count = cluster_processing.image_postprocessing(double_blob,
                                                                    dim_array_3,
                                                                    home)
         # ensure correct number of tils was generated
@@ -384,7 +383,7 @@ class TestClusterProcessing(unittest.TestCase):
         # run through various boolean arguments and ensure the expected output
         # files are generated and unexpected files do not exist
         til_count = \
-            tilseg.cluster_processing. \
+            cluster_processing. \
             image_postprocessing(double_blob, dim_array_3,
                                  home, gen_all_clusters=True)
         file_exists = self.file_exists_function()
@@ -392,7 +391,7 @@ class TestClusterProcessing(unittest.TestCase):
                         file_exists)))
 
         til_count = \
-            tilseg.cluster_processing.image_postprocessing(double_blob,
+            cluster_processing.image_postprocessing(double_blob,
                                                            dim_array_3,
                                                            home,
                                                            gen_overlays=True)
@@ -401,7 +400,7 @@ class TestClusterProcessing(unittest.TestCase):
                         file_exists)))
 
         til_count = \
-            tilseg.cluster_processing.image_postprocessing(double_blob,
+            cluster_processing.image_postprocessing(double_blob,
                                                            dim_array_3,
                                                            home,
                                                            gen_tils=True)
@@ -410,7 +409,7 @@ class TestClusterProcessing(unittest.TestCase):
                         file_exists)))
 
         til_count = \
-            tilseg.cluster_processing.image_postprocessing(double_blob,
+            cluster_processing.image_postprocessing(double_blob,
                                                            dim_array_3,
                                                            home,
                                                            gen_masks=True)
@@ -419,7 +418,7 @@ class TestClusterProcessing(unittest.TestCase):
                         file_exists)))
 
         til_count = \
-            tilseg.cluster_processing.image_postprocessing(double_blob,
+            cluster_processing.image_postprocessing(double_blob,
                                                            dim_array_3,
                                                            home,
                                                            gen_csv=True)
@@ -428,7 +427,7 @@ class TestClusterProcessing(unittest.TestCase):
                         file_exists)))
 
         til_count = \
-            tilseg.cluster_processing.image_postprocessing(double_blob,
+            cluster_processing.image_postprocessing(double_blob,
                                                            dim_array_3,
                                                            home,
                                                            gen_tils=True,
@@ -438,7 +437,7 @@ class TestClusterProcessing(unittest.TestCase):
                         file_exists)))
 
         til_count = \
-            tilseg.cluster_processing.image_postprocessing(
+            cluster_processing.image_postprocessing(
                 double_blob, dim_array_3, home, gen_all_clusters=True,
                 gen_overlays=True, gen_tils=True, gen_masks=True, gen_csv=True)
         file_exists = self.file_exists_function()
