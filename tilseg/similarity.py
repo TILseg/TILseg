@@ -10,6 +10,7 @@ import os
 import numpy as np
 import matplotlib.pyplot as plt
 from sklearn.metrics import mean_squared_error
+from skimage.measure import regionprops, label
 from tilseg.seg import KMeans_superpatch_fit, segment_TILs
 
 def image_similarity(mask1, mask2):
@@ -140,9 +141,27 @@ def superpatch_similarity(superpatch_folder, reference_patch, output_path, refer
             
             # obtain first (and only) values from dictionary as an array
             super_array = next(iter(cluster_mask_dict_super.values()))
+            
+            # initialize empty array
+            super_array_filtered = np.zeros_like(super_array)
+
+            # use skimage's regionprops to get properties of connected regions
+            labeled_regions = label(super_array)
+            regions = regionprops(labeled_regions)
+
+            # filter regions based on circularity and area of a single TIL
+            for region in regions:
+                area = region.area
+                perimeter = region.perimeter
+                # ensure that the denominator is not zero before calculating circularity
+                if area != 0 and perimeter != 0:
+                    circularity = 4 * np.pi * area / (perimeter ** 2)
+                    if 200 < region.area < 2000 and circularity > 0.3:
+                        # add the pixels of the qualified region to the TIL mask
+                        super_array_filtered += (labeled_regions == region.label)
 
             # compute and print mse 
-            mse, diff = image_similarity(reference_array, super_array)
+            mse, diff = image_similarity(reference_array, super_array_filtered)
             print(f'Mean squared error for superpatch {filename}: {round(mse, 3)}')
 
             # show difference image
