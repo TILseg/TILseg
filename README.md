@@ -363,7 +363,7 @@ As noted above, we have also started constructing a pipeline for generating a 's
 
 * Mainly, this function currently is not integrated with the most updated version of `preprocessing.py`. This should be done first before anything else.
 * The choice of the reference is arbitrary and subjective at the moment, but further research can be done to optimize this. Alternatively, one could generate similarity scores over a range of reference patches.
-* Implement other scoring metrics or modify the function to output other visualization that is desired.
+* Implement other scoring metrics or modify the function to output other visualizations.
 
 For more information about the code and additional documentation, please see `similarity.py` in the `tilseg.py` folder. To see the preliminary use of this module, please see `similarity_use.ipynb` in the `Example` folder.
 
@@ -377,14 +377,14 @@ We recommend that any user who wants to _implement_ or _build off of_ our code s
 ## B. BUG FIXES ##
 - - -
 ### March 13th, 2024 Update ###
-* **Hard-coded file Paths**: initially, file paths in the example jupyter notebooks referred to paths that existed on the developer's local computer. We have updated these paths and have added test images/materials that can be accessed by any user on their computer.
+* **Hard-coded file Paths**: Initially, file paths in the example jupyter notebooks referred to paths that existed on the developer's local computer. We have updated these paths and have added test images/materials that can be accessed by any user on their computer. Note that due to the size of the test images (~100+ MB), these images were uploaded to a public google drive.
 * _preprocessing.py_:
     * Changed the os handling to read in the full file paths of each .svs image since the original code was using only the filename (this led to file path exception errors)
-    * **def get_superpatch_patches (def preprocess << def get_superpatch_patches)**: updated to now have a random state argument to allow for the superpatch to be made from the same patches each time a notebook is run
-    * **def sort_patches (def preprocess << def main_preprocessing << def sort_patches)**: updated to use a Gaussian Mixture distribution to identify the peaks associated with the pink tissue and white background to reduce the background in the returned superpatches. The original method was documented very poorly and did not accurately remove white background patches,
+    * **def get_superpatch_patches (def preprocess << def get_superpatch_patches)**: Updated to now have a random state argument to allow for the superpatch to be made from the same patches each time a notebook is run
+    * **def sort_patches (def preprocess << def main_preprocessing << def sort_patches)**: Updated to use a Gaussian Mixture distribution to identify the peaks associated with the pink tissue and white background to reduce the background in the returned superpatches. The original method was documented very poorly and did not accurately remove white background.
 * _seg.py_:
-    * **def segment_TILS**: updated to take in a `multiple_images` flag to be able to be able to fit a KMeans model to a patch rather than just a superpatch to use the predicted clusters on this patch in downstream scoring
-    * **def immune_cluster_analyzer (def segment_TILS << def image_postprocessing << def immune_cluster_analyzer)**: updated to return the `cluster mask` of the highest TIL contour count to be able to do further segmentation using DBSCAN
-    * **def draw_til_images (def segment_TILS << def image_postprocessing << def draw_til_images)**: had a bug for a wrong array type fed to .drawContours package that was fixed
-    * **def segment_TILS**: had a bug fixed to only check for .tif images in a patches folder (avoid errors of hidden .ipynb or files)  
+    * **def segment_TILS**: Updated to take in a `multiple_images` flag to be able to fit a KMeans model to a patch, rather than just a superpatch. This enables use of the predicted clusters on this patch in downstream scoring.
+    * **def immune_cluster_analyzer (def segment_TILS << def image_postprocessing << def immune_cluster_analyzer)**: Updated to return the `cluster mask` of the highest TIL contour count to enable further segmentation using DBSCAN.
+    * **def draw_til_images (def segment_TILS << def image_postprocessing << def draw_til_images)**: Had a bug for a wrong array type fed to .drawContours package that was fixed
+    * **def segment_TILS**: Had a bug fixed to only check for .tif images in a patches folder (avoid errors of hidden .ipynb or files)  
 * **Unit Tests**: All unit tests in the `test` folder had issues importing the `tilseg module`. The `test` folder was initially inside of `tilseg`, but was moved outside to be at the same root as `tilseg`. The module was then imported using `import ..tilseg` to access the parent directory containing both `tilseg` and `test`.
