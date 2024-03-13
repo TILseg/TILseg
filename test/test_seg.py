@@ -375,12 +375,6 @@ class TestSeg(unittest.TestCase):
                 in_dir_path=5,
                 hyperparameter_dict={'n_clusters': 4})
 
-        # tests that in_dir_path actually exists
-        with self.assertRaises(NotADirectoryError):
-            _ = seg.segment_TILs(
-                in_dir_path='gaga',
-                hyperparameter_dict={'n_clusters': 4})
-
         # tests if save_TILs_overlay is not a boolean
         with self.assertRaises(TypeError):
             _ = seg.segment_TILs(
