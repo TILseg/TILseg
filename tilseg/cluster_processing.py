@@ -447,7 +447,6 @@ def immune_cluster_analyzer(masks: list):
     
     return til_contour, max_contour_count, cluster_mask, count_index
 
-
 def draw_til_images(img: np.ndarray, contours: list, filepath: str):
     """
     This function will generate the an overlaid and mask image from the
@@ -596,5 +595,5 @@ def image_postprocessing(clusters: np.ndarray, ori_img: np.ndarray,
 
     # go back to home directory
     os.chdir(home)
-
+    
     return til_count, cluster_mask, cluster_index

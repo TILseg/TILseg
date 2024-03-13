@@ -121,23 +121,12 @@ def get_tile_size(maximum, size, cutoff=4):
     else:
         pass
 
-    # iterate through possible sizes of tiles starting
-    # with the largest possible tile size
-    for dimension in reversed(range(0, (maximum+1))):
+    remainder = size % maximum
+            
+    slices = math.trunc(size / maximum)
 
-        # calculate the remainder (number of pixels missing)
-        remainder = size % dimension
-
-        # check if the remainder is less than cutoff
-
-        if remainder <= cutoff:
-
-            # calculate the number of patches made
-            slices = math.trunc(size / dimension)
-
-            # return requested values
-            return dimension, slices, remainder
-    return None, None, None
+    # return requested values
+    return maximum, slices, remainder
 
 
 def percent_of_pixels_lost(lost_x, patch_x, lost_y, patch_y, x_size, y_size):
@@ -463,7 +452,7 @@ def get_grey(rgb):
     else:
         raise IndexError('input not correct size; must have three entries')
 
-    grey = (rgb[0] + rgb[1] + rgb[2]) / 3
+    grey = (rgb[0]+rgb[1]+rgb[2])/3
 
     return grey
 
@@ -1109,12 +1098,6 @@ def get_superpatch_patches(patches_df, patches=6, path=os.getcwd(),random_state=
     else:
         raise IndexError('Fewer patches available in dataframe than \
                         requested for superpatch')
-
-    # force number of patches to be even
-    if patches % 2 == 0:
-        pass
-    else:
-        raise ValueError('Number of patches must be an even integer')
 
     # patches list
     patches_list = []

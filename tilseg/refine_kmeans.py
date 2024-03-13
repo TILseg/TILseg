@@ -6,6 +6,7 @@ import pathlib
 import numpy as np
 import pandas as pd
 import sklearn.cluster
+
 import matplotlib.pyplot as plt
 from PIL import UnidentifiedImageError, Image
 import time
@@ -188,11 +189,11 @@ def km_dbscan_wrapper(mask: np.ndarray, hyperparameter_dict, save_filepath: str,
     all_labels = all_labels.reshape(mask.shape)
     
     #Plotting
-
     plt.figure(figsize=(8, 6))
     plt.imshow(all_labels, cmap='viridis')  # Change the colormap as needed
     plt.colorbar()
     plt.title('DBSCAN Clustering Result')
+
     plt.savefig(save_filepath + '/ClusteringResults/dbscan_result_colorbar.jpg')
     if print_flag == True:
         plt.show()
@@ -429,7 +430,6 @@ def kmean_to_spatial_model_patch_wrapper(patch_path: str,
     print(f"Script completed. Dbscan fitting time: {tf4 - tf3} seconds.")
 
     return im_labels, dbscan_fit, cluster_mask_dict, cluster_index
-
 
 ## MISC FUNCTIONS
 

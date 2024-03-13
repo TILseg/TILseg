@@ -36,7 +36,20 @@ from tqdm import tqdm
 
 # Local imports
 from tilseg.cluster_processing import image_postprocessing
+from tilseg.model_selection import opt_kmeans
+#from tilseg.kmeans_input_seg import mean_shift_patch_fit
 
+# def mean_shift_patch_fit(data):
+#     data = np.array(data)
+#     hyperparameter_dict = opt_mean_shift(data = data,
+#                    bandwidth = [0.1,0.2,0.3,0.5,0.6,0.7,0.8,0.9],
+#                    seeds=[0.1,0.2,0.4,0.5])
+#     model = sklearn.cluster.MeanShift(**hyperparameter_dict, max_iter=20,
+#                                    n_init=3, tol=1e-3)
+#     model.fit_predict(data)
+#     cluster_labels = model.labels_
+#     cluster_centers = model.cluster_centers_
+#     return model, cluster_labels, cluster_centers
 
 def clustering_score(patch_path: str,
                      hyperparameter_dict: dict = None,
@@ -788,5 +801,3 @@ def segment_TILs(in_dir_path: str,
     # returns the dictionary containing patch filenames without the extension
     # as the key and TIL counts as the values
     return TIL_count_dict, kmean_labels_dict, cluster_mask_dict, cluster_index_dict
-
-
