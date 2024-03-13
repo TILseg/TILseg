@@ -12,6 +12,7 @@ import pytest
 import sklearn
 import sys
 import unittest
+from PIL import UnidentifiedImageError
 
 # Local imports
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
@@ -47,6 +48,66 @@ TEST_SPATIAL_HYPERPARAMETERS = {
 
 class TestRefineKMeans(unittest.TestCase):
     
+    def test_KMeans_superpatch_fit(self):
+        """
+        Unittests for KMeans_superpatch_fit function
+        """
+
+        # one-shot test with correct inputs
+        model = refine_kmeans.KMeans_superpatch_fit(
+            patch_path=TEST_PATCH_PATH,
+            hyperparameter_dict={'n_clusters': 4})
+
+        # checks that the model outputted above is of the correct type
+        self.assertTrue(isinstance(model, sklearn.cluster._kmeans.KMeans))
+
+        # checks that the model outputted above is fitted
+        self.assertTrue(
+            sklearn.utils.validation.check_is_fitted(model) is None)
+
+        # tests that non-string input for patch_path is dealt with
+        with self.assertRaises(TypeError):
+            model = seg.KMeans_superpatch_fit(
+                patch_path=2,
+                hyperparameter_dict={'n_clusters': 4})
+
+        # tests when input file does not exist
+        with self.assertRaises(FileNotFoundError):
+            model = seg.KMeans_superpatch_fit(
+                patch_path=TEST_PATCH_PATH+'blahblah',
+                hyperparameter_dict={'n_clusters': 4})
+
+        # tests when input file is not an image
+        with self.assertRaises(UnidentifiedImageError):
+            model = seg.KMeans_superpatch_fit(
+                patch_path=FAIL_TEST_PATCH_PATH,
+                hyperparameter_dict={'n_clusters': 4})
+
+        # tests when hyperparameter_dict is not a dictionary
+        with self.assertRaises(TypeError):
+            model = seg.KMeans_superpatch_fit(
+                patch_path=TEST_PATCH_PATH,
+                hyperparameter_dict=4)
+
+        # tests when hyperparameter_dict does not have the expected keys
+        with self.assertRaises(KeyError):
+            model = seg.KMeans_superpatch_fit(
+                patch_path=TEST_PATCH_PATH,
+                hyperparameter_dict={'n_clusters': 4, 'tol': 0.001})
+        with self.assertRaises(KeyError):
+            model = seg.KMeans_superpatch_fit(
+                patch_path=TEST_PATCH_PATH,
+                hyperparameter_dict={'n_flusters': 4})
+
+        # tests when n_clusters is not an integer less than 9
+        with self.assertRaises(ValueError):
+            model = seg.KMeans_superpatch_fit(
+                patch_path=TEST_PATCH_PATH,
+                hyperparameter_dict={'n_clusters': 'four'})
+        with self.assertRaises(ValueError):
+            model = seg.KMeans_superpatch_fit(
+                patch_path=TEST_PATCH_PATH,
+                hyperparameter_dict={'n_clusters': 9})
     
     def test_mask_to_features(self):
         """
@@ -101,6 +162,7 @@ class TestRefineKMeans(unittest.TestCase):
         os.remove(os.path.join(directory_path, 'dbscan_result_colorbar.jpg'))
         os.remove(os.path.join(directory_path, 'dbscan_result.jpg'))
 
+
     def test_kmean_to_spatial_model_superpatch_wrapper(self):
         """
         Unittests for kmean_to_spatial_model_superpatch_wrapper function
@@ -121,6 +183,7 @@ class TestRefineKMeans(unittest.TestCase):
 
         shutil.rmtree(os.path.join(TEST_OUT_DIR_PATH, 'test_small_patch'))
         shutil.rmtree(os.path.join(TEST_OUT_DIR_PATH, 'test_small_patch_2'))              
+
 
     def test_kmean_to_spatial_model_patch_wrapper(self):
         """
