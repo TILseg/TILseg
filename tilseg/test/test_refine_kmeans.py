@@ -14,27 +14,34 @@ import numpy as np
 import unittest
 import sklearn
 
-# Internal imports
-from .. import refine_kmeans
-import tilseg
+# # Internal imports
+from .. import tilseg
 import tilseg.seg
 from tilseg.refine_kmeans import mask_to_features, km_dbscan_wrapper, kmean_to_spatial_model_patch_wrapper, kmean_to_spatial_model_superpatch_wrapper, KMeans_superpatch_fit
 
+# Get the absolute path of the current file
+current_file_path = os.path.abspath(__file__)
 
-TEST_PATCH_PATH = os.path.join(os.path.dirname(tilseg.__file__), 'test',
+# Get the directory containing the current file
+current_dir = os.path.dirname(current_file_path)
+
+# Move up one directory
+parent_dir = os.path.dirname(current_dir)
+
+TEST_PATCH_PATH = os.path.join(parent_dir, 'test',
                                'test_patches', 'patches',
                                'test_small_patch.tif')
-FAIL_TEST_PATCH_PATH = os.path.join(os.path.dirname(tilseg.__file__), 'test',
+FAIL_TEST_PATCH_PATH = os.path.join(parent_dir, 'test',
                                     'test_patches', 'test_img.txt')
-TEST_IN_DIR_PATH = os.path.join(os.path.dirname(tilseg.__file__), 'test',
+TEST_IN_DIR_PATH = os.path.join(parent_dir, 'test',
                                 'test_patches', 'patches')
-TEST_OUT_DIR_PATH = os.path.join(os.path.dirname(tilseg.__file__), 'test',
+TEST_OUT_DIR_PATH = os.path.join(parent_dir, 'test',
                                 'test_patches', 'results')
-SUPERPATCH_PATH = os.path.join(os.path.dirname(tilseg.__file__), 'test',
+SUPERPATCH_PATH = os.path.join(parent_dir, 'test',
                                'test_patches', 'test_superpatch.tif')
 TEST_SPATIAL_HYPERPARAMETERS = {
-    'eps': 'value1',
-    'min_samples': 'value2',
+    'eps': 10,
+    'min_samples': 100,
 }
 
 class TestRefineKMeans(unittest.TestCase):
@@ -67,7 +74,7 @@ class TestRefineKMeans(unittest.TestCase):
         """
         # Creating example binary mask and defining parameters
         binary_mask = np.array([[0, 1, 0],
-                                [1, 0, 1]
+                                [1, 0, 1],
                                 [0, 1, 0]])
         hyperparameter_dict = {'eps': 0.5, 'min_samples': 5}  # What hyperparameters are we choosing?
         save_filepath = 'path to the saved file'  # Not quite sure how to set this up for reproducability?
