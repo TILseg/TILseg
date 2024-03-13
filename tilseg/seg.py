@@ -32,7 +32,6 @@ import sklearn.metrics
 import sklearn.utils.validation
 from PIL import Image
 import time
-from tqdm import tqdm
 
 # Local imports
 from tilseg.cluster_processing import image_postprocessing
