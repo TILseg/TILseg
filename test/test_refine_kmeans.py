@@ -47,6 +47,7 @@ TEST_SPATIAL_HYPERPARAMETERS = {
 
 class TestRefineKMeans(unittest.TestCase):
     
+    
     def test_mask_to_features(self):
         """
         Unittests for mask_to_features function
@@ -69,7 +70,7 @@ class TestRefineKMeans(unittest.TestCase):
                                       [2, 2]])
         self.assertTrue(np.array_equal(features_not_empty, expected_features))
 
-
+    
     def test_kb_dbscan_wrapper(self):
         """
         Unittests for test_dbscan_wrapper function
@@ -97,9 +98,9 @@ class TestRefineKMeans(unittest.TestCase):
         self.assertTrue(all_labels.dtype == int) #Checking label types are integers
 
         directory_path = os.path.join(TEST_OUT_DIR_PATH, 'ClusteringResults')
-        shutil.rmtree(os.path.join(directory_path, 'dbscan_result_colorbar.jpg')) 
-        shutil.rmtree(os.path.join(directory_path, 'dbscan_result.jpg'))
-    
+        os.remove(os.path.join(directory_path, 'dbscan_result_colorbar.jpg'))
+        os.remove(os.path.join(directory_path, 'dbscan_result.jpg'))
+
     @pytest.mark.skip
     def test_kmean_to_spatial_model_superpatch_wrapper(self):
         """
@@ -117,6 +118,9 @@ class TestRefineKMeans(unittest.TestCase):
         self.assertIsInstance(cluster_mask_dict, dict)
         # checks that the model outputted above is fitted
         self.assertTrue(sklearn.utils.validation.check_is_fitted(dbscan_fit) is None)
+
+        shutil.rmtree(os.path.join(TEST_OUT_DIR_PATH, 'test_small_patch'))
+        shutil.rmtree(os.path.join(TEST_OUT_DIR_PATH, 'test_small_patch_2'))              
 
     @pytest.mark.skip
     def test_kmean_to_spatial_model_patch_wrapper(self):
