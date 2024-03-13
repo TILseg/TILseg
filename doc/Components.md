@@ -118,23 +118,22 @@ Inputs: WSIs, usually .svs or .ndpi
    	  	  	- random_state: random state for during sampling (to get consistent patch list)
    	  	- Outputs:
    	  	  	- patches_list (list): list of the patches that make up the superpatch
-
-	- superpatcher: Superpatcher uses the selected patches and converts the individual patches into one patch
-		- Inputs:
-			- patches_list (lst): MUST be output from get_superpatch_patches list of patches
-     			- sp_width (int): the width of a superpatch (how many images, default 3)
-          	- Outputs: superpatch (np.array): np.array that contains the superpatch
-   	    
-	- preprocess: The preprocess function that is called when running the code. Complete details are found in the README file. This only calls other functions and is used as a wrapper.
-		- Inputs:
-			- path (str): path to the folder containing the .svs slide files patches (int): number of patches to create superpatch with
-     			- training (boolean): a boolean that indicates if this preprocessing is for training data or if it to only be used for the existing model
-          		- save_im (boolean): a boolean that indicates if tissue images should be saved (beware this is a lot of data, at least 10GB per slide)
-              		- max_tile_x (int): the maximum x dimension size, in pixels, of a slide patch (default is 4000)
-                  	- max_tile_y (int): the maximum y dimension size, in pixels, of a slide patch (default is 3000)
-                  	- random_state (int): random state to use during sampling of patches
-                - Outputs:
-                  	- spatch (pd.DataFrame): a dataframe containing all necessary information for creating superpatches for training (all_df) or for inputting into an already generated model (sorted_df)
+   	- superpatcher: Superpatcher uses the selected patches and converts the individual patches into one patch
+   	  	- Inputs:
+   	  	  	- patches_list (lst): MUST be output from get_superpatch_patches list of patches
+   	  	  	- sp_width (int): the width of a superpatch (how many images, default 3)
+   	  	  - Outputs: superpatch (np.array): np.array that contains the superpatch
+   	  	    
+   	- preprocess: The preprocess function that is called when running the code. Complete details are found in the README file. This only calls other functions and is used as a wrapper
+   	  	- Inputs:
+   	  	  	- path (str): path to the folder containing the .svs slide files patches (int): number of patches to create superpatch with
+   	  	  	- training (boolean): a boolean that indicates if this preprocessing is for training data or if it to only be used for the existing model
+   	  	  	- save_im (boolean): a boolean that indicates if tissue images should be saved (beware this is a lot of data, at least 10GB per slide)
+   	  	  	- max_tile_x (int): the maximum x dimension size, in pixels, of a slide patch (default is 4000)
+   	  	  	- max_tile_y (int): the maximum y dimension size, in pixels, of a slide patch (default is 3000)
+   	  	  	- random_state (int): random state to use during sampling of patches
+   	  	  - Outputs:
+   	  	    	- spatch (pd.DataFrame): a dataframe containing all necessary information for creating superpatches for training (all_df) or for inputting into an already generated model (sorted_df)
 
 
 
@@ -171,50 +170,125 @@ Utilizes various functions to score and select clustering algorithms and their h
                 - Verbose (bool): Whether or not a verbose is desired
                 - **kwargs: Keyword arguments passed to metric function
             - Outputs: 
-                 - Depends on full_return input; If full_return = True: Dictionary that maps the hyperparameters to their score based on the metric provided, If full_return = False: Dictionary with the hyperparameters 
+                 - Depends on full_return input; If full_return = True: Dictionary that maps the hyperparameters to their score based on the metric provided, If full_return = False: Dictionary with the hyperparameters
+                  
       - eval_models:
            - Inputs:
+             	- data (np.array): Contains data used for clustering
+             	- Model (list): List of models that will be evaluated against one another
+             	- Metric: Metric used to evaluate the hyperparameters. This can be either Sillhouette score, Calinksi Harabasz score, or Davies Bouldin score using the sklearn package.
+             	- Metric_direction (str): Sets whether a small or large value is “good” in terms of score, and helps in comparing to other models
+             	- Full_return (bool): Determines whether the function will return the a dictionary of the models, or a dictionary of the models mapped to their score
+             	- **kwargs: Keyword arguments passed to metric function
            - Outputs:
-      - eval_models_dict:
+             	- If full_return = True: model_scores(dict): Dictionary that maps models to their respective scores, If full_return = False: model (sklearn.base.ClusterMixin), model that clusters the data most effectively according to the metrics provided
+             	  
+      - eval_models_dict: Wrapper function to take in a dictionary of hyperparameters and call eval_models to test a given model
            - Inputs:
+             	- data (np.array): Contains data used for clustering
+             	- Model_parameter_dict: Dictionary mapping models to parameters
+             	- metric: Callable = sklearn.metrics.silhouette_score
+             	- Metric_direction (str): Sets whether a small or large value is “good” in terms of score, and helps in comparing to other models
+             	- Full_return (bool): Determines whether the function will return the a dictionary of the models, or a dictionary of the models mapped to their score
+             	- **kwargs: Keyword arguments passed to metric function
            - Outputs:
-      - eval_models_silhouette_score:
-           - Inputs
-           - Outputs:
+             	- Either the model that clusters the data best according to the metric, or a dictionary mapping models to their respective scores (using eval_model)
+       
+      - eval_models_silhouette_score: Wrapper function to take in a dictionary of hyperparameters and call eval_models to test a given model using Silhouette scores as metric
+           - Inputs:
+             	- data (np.array): Contains data used for clustering
+             	- Models (list): List of models to evaluate
+             	- Hyperparameters: List of dictionaries to create a comparison of models
+             	- Full_return: Determines whether the function will return the a dictionary of the models, or a dictionary of the models mapped to their Silhouette score
+             	- **kwargs: Keyword arguments passed to metric function
+           - Outputs:  Either the model that clusters the data best according to the Silhouette Score, or a dictionary mapping models to their Silhouette scores (using eval_model)
+             
       - eval_models_calinski_harabasz:
            - Inputs:
-           - Outputs:
-      - eval_models_davies_bouldin:
+             	- data (np.array): Contains data used for clustering
+             	- Models (list): List of models to evaluate
+             	- Hyperparameters: List of dictionaries to create a comparison of models
+             	- Full_return: Determines whether the function will return the a dictionary of the models, or a dictionary of the models mapped to their Calinski Harabasz score
+             	- **kwargs: Keyword arguments passed to metric function
+           - Outputs: Either the model that clusters the data best according to the Silhouette Score, or a dictionary mapping models to their Calinski Harabasz scores (using eval_model)
+       
+      - eval_models_davies_bouldin: Wrapper function to take in a dictionary of hyperparameters and call eval_models to test a given model using Davies Bouldin scores as metric
            - Inputs:
-           - Outputs:
+             	- data (np.array): Contains data used for clustering
+             	- Models (list): List of models to evaluate
+             	- Hyperparameters: List of dictionaries to create a comparison of models
+             	- Full_return: Determines whether the function will return the a dictionary of the models, or a dictionary of the models mapped to their Davies Bouldin score
+             	- **kwargs: Keyword arguments passed to metric function
+           - Outputs: Either the model that clusters the data best according to the Silhouette Score, or a dictionary mapping models to their Davies Bouldin scores
+ (using eval_model)
+       
       - plot_inertia:
            - Inputs:
-           - Outputs:
+             	- data (np.array): Contains data used for clustering
+             	- N_clusters Ilist): List containing the number of clusters to be used to create the inertial plot
+             	- File_path (str): Filepath of location to save the plot produced
+             	- Mark_elbow (bool): Typically set to FALSE
+             	- R2_cutoff (float): This value is subjective. This is the point where adding more clusters will not significantly affect inertia.
+             	- **kwargs: Keyword arguments passed to metric function
+           - Outputs: fig: matplotlib plot
+             
 
-3. Optimizing Models: all components below remained the same from previous project
-   - opt_kmeans:
+3. Optimizing Models:
+   - opt_kmeans: Function to optimize the number of clusters used in KMeans clustering, wrapper with eval_km_elbow
         - Inputs:
+          	- data (np.array): Contains pixel data used for clustering
+          	- N_clsuters (list): List of clusters the user wants to test
+          	- **kwargs: Keyword arguments passed to metric function
         - Outputs:
-   - opt_dbscan:
+          	- Hyperparameter_dict (dict): Dictionary with one key, ‘n_cluster’. More keys could be added later to test other parameters within kmeans
+          	  
+   - opt_dbscan: Function to optimize the Epsilon hyperparameter used in DBscan clustering, wrapper with eval_model_hyperparameters
         - Inputs:
+          	- data (np.array): Contains pixel data used for clustering
+          	- eps (list): List of Epsilon (eps) values the user wants to test
+          	- metric (str): String with the name of the metric user would like to evaluate model with
+          	- Verbose (bool): Whether a verbose output is desired
+          	- **kwargs: Keyword arguments passed to metric function
         - Outputs:
-   - opt_birch
+          	- Hyperparameter (dict): Dictionary with one key, ‘eps’, corresponding to optimized eps value. More keys could be added later to test other parameters within dbscan
+          	  
+   - opt_birch: Function to optimize hyperparameters used in Birch model, wrapper with eval_model_hyperparameters
         - Inputs:
-        - Outputs: 
-   - opt_optics
-        - Inputs:
+          	- data (np.array): Contains pixel data used for clustering
+          	- threshold (list): List of values to test
+          	- Branching_factor (list): List of values to test
+          	- n_clusters (list): List of values to test
+          	- metric (str): String with the name of the metric user would like to evaluate model with
+          	- Verbose (bool): Whether a verbose output is desired
+          	- **kwargs: Keyword arguments passed to metric function
         - Outputs:
+          	- Hyperparameter (dict): Dictionary with three keys: ‘threshold’, branching_facttor, n_clusters’. More keys could be added later to test other parameters within birch.
+          
+   - opt_optics: Function to optimize hyperparameters used in Optics model, wrapper with eval_model_hyperparameters
+        - Inputs:
+          	- data (np.array): Contains pixel data used for clustering
+          	- min_samples (list): List of values to test
+          	- max_eps (list): List of values to test
+          	- metric (str): String with the name of the metric user would like to evaluate model with
+          	- Verbose (bool): Whether a verbose output is desired
+          	- **kwargs: Keyword arguments passed to metric function
+        - Outputs:
+          	- Hyperparameter (dict): Dictionary containing the optimized hyperparameters
      
-5. Miscellaneous: all components below remained the same from previous project
-   - sample_patch:
+5. Miscellaneous:
+   - sample_patch: Function to sample patch and decrease time to tune parameters
         - Inputs:
+          	- Data: numpy array to sample rows from
+          	- Sample (int): number of rows in the returned array
         - Outputs:
-   - generate_hyperparameter_combinations:
-        -Inputs:
-        - Outputs:
-   - read_json_hyperparameters:
-        - Inputs:
-        - Outputs:
+          	- Sampled_array: numpy array including only rows specified 
+   - generate_hyperparameter_combinations: Provides a dictionary of hyperparameters with all combinations of values
+        -Inputs: Hyperparameter_dict (dict): dictionary of hyperparameter as key, corresponding to list of values
+        - Outputs: Return_dict (dict): list of values with all combinations of the values of the hyperparameters
+   - read_json_hyperparameters: Function that reads and store a json file that contains hyperparameters, helps with consistency and compatibility in further use of these parameters within Python
+        - Inputs: file_path(str): filepath to the json file
+        - Outputs: hyperparameters(dict): Contains contents of json file as hyperparameters in dictionary form
+
 
 
 ## IMAGE SEGMENTATION
@@ -223,26 +297,25 @@ This section include functions that either train a kmeans model on a superpatch 
 
 **Subcomponents**
 1. Superpatch Fit and Scoring
-	- kmeans_superpatch_fit: Fits a KMeans clustering model to a patch that will be used to cluster other patches
-		- Inputs:
-			- patch_path (str) : the directory path to the patch that the model will be fitted to obtain cluster decision boundaries
-			- hyperparameter_dict (dict): dicitonary of hyperparameters for KMeans containing 'n_clusters' as the only key
-		- Outputs:
-			- model (sklearn.base.ClusterMixin): the fitted model
-
-	- clustering_score: Scores clustering models after they have been fit and predicted to an individual patch. The goal of this function is NOT to get high throughput scores from multiple patches in a whole slide image
-		- Inputs:
-			- patch_path (str) : the directory path to the patch that will be fitted and/or clustered on to produce cluster labels that will be used for the scoring
-			- Hyperparameter_dict (dict) : Optimized hyperparameters for algorithm. This dictionary can be read by the JSON file outputted by tilseg.model_selection module for KMeans: dictionary should have 'n_clusters' key for DBSCAN: dictionary should have 'eps' and 'min_samples' keys for OPTICS: dictionary should have 'min_samples' and 'max_eps' keys for BIRCH: dictionary should have 'threshold', 'branching_factor', and 'n_clusters' keys
-			- Algorithm (str): Chosen clustering algorithm: 'KMeans', 'DBSCAN', 'OPTICS', or 'BIRCH'
-			- model: (sklearn.cluster._kmeans.KMeans) sklearn model fitted on a superpatch. Note: Only input a model if the algorithm is KMeans and the user wants to score a model that has been fit on a superpatch.
-     			- gen_s_score (bool): generate Silhouette score
-          		- Gen_ch_score (bool): generate Calinksi score
-              		- Gen_db_score (bool): generate Davies-Bouldin score
-		- Outputs:
-			- S_score (float): Silhouette score; ranges from -1 to 1 with 0 meaning in different clusters, -1 meaning clustered assigned in a wrong fashion and 1 meaning far apart and well separated clusters
-     		  	- Ch_score (float): Calinksi index; higher value of ch_score means the clusters are dense and well separated- there is no absolute cut-off value
-			- Db_score (float): Davies-Bouldin score; lower values mean better clustering with zero being the minimum value
+   	- kmeans_superpatch_fit: Fits a KMeans clustering model to a patch that will be used to cluster other patches
+   	  	- Inputs:
+   	  	  	- patch_path (str) : the directory path to the patch that the model will be fitted to obtain cluster decision boundaries
+   	  	  	- hyperparameter_dict (dict): dicitonary of hyperparameters for KMeans containing 'n_clusters' as the only key
+   	  	- Outputs:
+   	  	  	- model (sklearn.base.ClusterMixin): the fitted model
+   	  	  	  
+   	- clustering_score: Scores clustering models after they have been fit and predicted to an individual patch. The goal of this function is NOT to get high throughput scores from multiple patches in a whole slide image
+   	  	- Inputs:
+   	  	  	- patch_path (str) : the directory path to the patch that will be fitted and/or clustered on to produce cluster labels that will be used for the scoring
+   	  	  	- Hyperparameter_dict (dict) : Optimized hyperparameters for algorithm. This dictionary can be read by the JSON file outputted by tilseg.model_selection module for KMeans: dictionary should have 'n_clusters' key for DBSCAN: dictionary should have 'eps' and 'min_samples' keys for OPTICS: dictionary should have 'min_samples' and 'max_eps' keys for BIRCH: dictionary should have 'threshold', 'branching_factor', and 'n_clusters' keys
+   	  	  	- Algorithm (str): Chosen clustering algorithm: 'KMeans', 'DBSCAN', 'OPTICS', or 'BIRCH'
+   	  	  	- model: (sklearn.cluster._kmeans.KMeans) sklearn model fitted on a superpatch. Note: Only input a model if the algorithm is KMeans and the user wants to score a model that has been fit on a superpatch.
+   	  	  	- gen_s_score (bool): generate Silhouette score
+   	  	  	- Gen_ch_score (bool): generate Calinksi score
+   	  	  	- Gen_db_score (bool): generate Davies-Bouldin score
+   	  	  - Outputs:
+   	  	    	- S_score (float): Silhouette score; ranges from -1 to 1 with 0 meaning in different clusters, -1 meaning clustered assigned in a wrong fashion and 1 meaning far apart and well separated clusters
+   	  	    	- Ch_score (float): Calinksi index; higher value of ch_score means the clusters are dense and well separated- there is no absolute cut-off value, Db_score (float): Davies-Bouldin score; lower values mean better clustering with zero being the minimum value
 
 3. Apply Clustering Model
    	- segment_TILS:
@@ -286,17 +359,12 @@ This folder creates a superpatch from 3 class classified images, optimizes DBSCA
     	coordinates (x,y) of the pixels where the binary_mask had a value of 1
     
 3. Wrapper Functions
-   	- km_dbscan_wrapper: Generates a fitted dbscan model and labels when provided a binary mask 
-    2D array for the KMeans cluster with the highest contour count. A plot of 
-    the dbscan clustering results is printed to the window, with a colorbar and 
-    non-color bar version saved to the "ClusteringResults" directory as 
-    "dbscan_result.jpg"
-		- Inputs:
-			- binary_mask (np.ndarray): a binary mask with 1's corresponding to the pixels 
-    involved in the cluser with the most contours and 0's for pixels not
-     			- hyperparameter_dict(dict): Contains hyperparameters as keys, corresponding to optimized values
-          		- print_flag(bool) = True for printing saved plot of dbscan model 
-		- Outputs:
+   	- km_dbscan_wrapper: Generates a fitted dbscan model and labels when provided a binary mask  2D array for the KMeans cluster with the highest contour count. A plot ofte dbscan clustering results is printed to the window, with a colorbar and  non-color bar version saved to the "ClusteringResults" directory as "dbscan_result.jpg"
+   	  	- Inputs:
+   	  	- binary_mask (np.ndarray): a binary mask with 1's corresponding to the pixels involved in the cluser with the most contours and 0's for pixels not
+   	  	- hyperparameter_dict(dict): Contains hyperparameters as keys, corresponding to optimized values
+          		- print_flag(bool) = True for printing saved plot of dbscan model
+   	  	  Outputs:
 			- all_labels (np.ndarray): labels of image after dbscan clustering for plotting
      			- dbscan (sklearn.cluster.DBSCAN): fitted dbscan model
    
