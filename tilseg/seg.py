@@ -33,10 +33,10 @@ import sklearn.utils.validation
 from PIL import Image
 import time
 
+
 # Local imports
-from tilseg.cluster_processing import image_postprocessing
-from tilseg.model_selection import opt_kmeans
-#from tilseg.kmeans_input_seg import mean_shift_patch_fit
+from ..tilseg.cluster_processing import image_postprocessing
+from ..tilseg.model_selection import opt_kmeans
 
 # def mean_shift_patch_fit(data):
 #     data = np.array(data)
@@ -442,12 +442,6 @@ def segment_TILs(in_dir_path: str,
         cluster label that has the highest contour count
     """
     
-    if multiple_images:
-        files = [file for file in os.listdir(in_dir_path)]
-    else:
-        files = [os.path.basename(in_dir_path)]
-        in_dir_path = os.path.dirname(in_dir_path)
-
     # Checks that the path to the input directory is a string
     if not isinstance(in_dir_path, str):
         raise TypeError('in_dir_path must be a string')
@@ -504,6 +498,12 @@ def segment_TILs(in_dir_path: str,
     else:
         pass
 
+    if multiple_images:
+        files = [file for file in os.listdir(in_dir_path)]
+    else:
+        files = [os.path.basename(in_dir_path)]
+        in_dir_path = os.path.dirname(in_dir_path)
+        
     # Condition for when model is not None and the user is trying to input a
     # pre-fitted (e.g. on a superpatch) model
     if model is not None:

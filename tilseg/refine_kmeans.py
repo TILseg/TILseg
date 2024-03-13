@@ -12,9 +12,8 @@ from PIL import UnidentifiedImageError, Image
 import time
 
 #Local Imports
-from tilseg.seg import segment_TILs
-from tilseg.model_selection import opt_kmeans
-
+from ..tilseg.seg import segment_TILs
+from ..tilseg.model_selection import opt_kmeans
 
 # KMeans_superpatch_fit function is cpoied here for ease
 def KMeans_superpatch_fit(patch_path: str,
