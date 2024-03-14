@@ -10,13 +10,15 @@ Last Updated: March 13th, 2024
 * _SuperPatch Scoring_: A module called `similarity.py` was created to generate a similarity score using the MSE between a K-Means model that had been fitted and applied to the same patch (i.e. 'ground truth') and a pre-fitted superpatch model(s) that is applied to the same reference patch. However, it should be noted that it has not yet been integrated to work with the current functions as `preprocessing.py` was updated before the development of `similarity.py`, so the `similarity.py` module has not been updated and tested to verify it's functionality with the current modules. 
     * Please see *Future Directions* at the bottom of this README for more details.
 * _Updated Environment_: the user would've had to install OpenSlide separately from the environment.yml file which led to dependency issues and version conflicts since the version of OpenSlide initially used was not specified. We have created a new environment file that includes OpenSlide and all the compatible versions.    
-* _Updated Example Jupyter Notebook_: In the `Example` folder of the repository, a new and improved example jupyter notebook `dbscan_kmeans_example.ipynb` has been added to include our latest developments and fixes. A jupyter notebook `similarity_use.ipynb` has also been added to outline how to run the the `similarity.py` module for some sample images.
+* _Updated Example Jupyter Notebook_: In the `Example` folder of the repository, a new and improved example jupyter notebook `dbscan_kmeans_example.ipynb` has been added to include our latest developments and fixes. A jupyter notebook `similarity_use.ipynb` has also been added to outline how to run the `similarity.py` module for some sample images.
 * _User Cases and Components_: We have updated these documents in our `doc` folder to be more comprehensive while also reflecting our changes. The components document outlines all relevant functions with their completed associated docstrings.
 * _New Archive Folder_: A new folder `Archive` has been created at the root of the repository to document and save previous code that had been written before the implementation of our update. This folder should be better utilized for future developers.
 * _Bug Fixes Section_: Since this is the first update since the development of the `tilseg` package, we believe it would be useful to document our bug fixes for users and future developers to view and possibly use in their own work. 
     * Please scroll to the bottom of our README for more detailed information about our bug fixes.
 
 ## CONTENTS: ##
+A. Using our Module
+
 1. About
 2. Methodology
 3. Installation
@@ -29,11 +31,11 @@ Last Updated: March 13th, 2024
 10. Segmentation (Seg) Module
 11. KMeans to DBSCAN Module
 
-A. Future Directions
+B. Future Directions
     * KMeans to DBSCAN Module
     * Superpatch Similarity Scores
 
-B. Bug Fixes
+C. Bug Fixes
     March 13th, 2024 Update
 
 ### 1. ABOUT: ###
