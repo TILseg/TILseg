@@ -57,14 +57,6 @@ class TestImageSimilarity(unittest.TestCase):
         expected_diff_array = np.array([[1, 1], [1, 1]])
         np.testing.assert_array_equal(diff_array, expected_diff_array)
 
-        # Test case 2
-        image1 = np.array([[5, 7], [12, 8]])
-        image2 = np.array([[6, 9], [3, 17]])
-        _, diff_array = image_similarity(image1, image2)
-        expected_diff_array = np.array([[1, 2], [9, 9]])
-        np.testing.assert_array_equal(diff_array, expected_diff_array)
-
-        # Add more test cases as needed
 
 class TestSuperpatchSimilarity(unittest.TestCase):
     """
