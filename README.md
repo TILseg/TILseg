@@ -32,8 +32,8 @@ A. Using our Module
 11. KMeans to DBSCAN Module
 
 B. Future Directions
-    * KMeans to DBSCAN Module
-    * Superpatch Similarity Scores
+1. KMeans to DBSCAN Module
+2. Superpatch Similarity Scores
 
 C. Bug Fixes
     March 13th, 2024 Update
