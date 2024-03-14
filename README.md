@@ -28,9 +28,11 @@ Last Updated: March 13th, 2024
 9. Model Selection Module
 10. Segmentation (Seg) Module
 11. KMeans to DBSCAN Module
+
 A. Future Directions
     * KMeans to DBSCAN Module
     * Superpatch Similarity Scores
+
 B. Bug Fixes
     March 13th, 2024 Update
 
