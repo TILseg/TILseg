@@ -104,21 +104,10 @@ def KMeans_superpatch_fit(patch_path: str,
     # to clustering_score and segment_TILs functions
     return model
 
-# def mean_shift_patch_fit(data):
-#     data = np.array(data)
-#     hyperparameter_dict = opt_mean_shift(data = data,
-#                    bandwidth = [0.1,0.2,0.3,0.5,0.6,0.7,0.8,0.9],
-#                    seeds=[0.1,0.2,0.4,0.5])
-#     model = sklearn.cluster.MeanShift(**hyperparameter_dict, max_iter=20,
-#                                    n_init=3, tol=1e-3)
-#     model.fit_predict(data)
-#     cluster_labels = model.labels_
-#     cluster_centers = model.cluster_centers_
-#     return model, cluster_labels, cluster_centers
-
 def mask_to_features(binary_mask:np.ndarray):
     """
-    Generates the spatial coordinates from a binary mask as features to cluster with DBSCAN
+    Generates the spatial coordinates from a binary mask as features 
+    to cluster with DBSCAN
     
     Parameters
     -----
@@ -131,6 +120,18 @@ def mask_to_features(binary_mask:np.ndarray):
     coordinates (x,y) of the pixels where the binary_mask had a value of 1
     """
     
+    if not isinstance(binary_mask, np.ndarray) or binary_mask.ndim != 2:
+        raise ValueError("Binary mask should be a 2D numpy array.")
+
+    # Check if the binary mask contains only 0's and 1's
+    if np.any((binary_mask != 0) & (binary_mask != 1)):
+        raise ValueError('Binary mask should consist only of values 0 or 1.')
+    
+    # Check if the binary mask contains only 0's
+    if np.all(binary_mask == 0):
+        raise ValueError('Binary mask is empty but should contain at'  
+                         'least one value of 1.')
+
     # Use np.argwhere to find the coordinates of non-zero (1) elements in the binary mask
     tils_coords = np.argwhere(binary_mask == 1)
 
@@ -140,7 +141,10 @@ def mask_to_features(binary_mask:np.ndarray):
     return features
 
 
-def km_dbscan_wrapper(mask: np.ndarray, hyperparameter_dict, save_filepath: str, print_flag: bool = True):
+def km_dbscan_wrapper(mask: np.ndarray, 
+                      hyperparameter_dict, 
+                      save_filepath: str, 
+                      print_flag: bool = True):
     """
     Generates a fitted dbscan model and labels when provided a binary mask 
     2D array for the KMeans cluster with the highest contour count. A plot of 
@@ -153,7 +157,6 @@ def km_dbscan_wrapper(mask: np.ndarray, hyperparameter_dict, save_filepath: str,
     binary_mask (np.ndarray): a binary mask with 1's corresponding to the pixels 
     involved in the cluser with the most contours and 0's for pixels not
     hyperparameter_dict: hyperparameters for dbscan model
-    save_filepath (str): filepath to the "ClusteringResults" directory to save the .jpg
     print_flag (bool): True for printing saved plot of dbscan model
     
     Returns
@@ -183,8 +186,13 @@ def km_dbscan_wrapper(mask: np.ndarray, hyperparameter_dict, save_filepath: str,
     #Generate Labels for Plot
     mask_reshape = mask.reshape(-1,1)
     all_labels = np.full(len(mask_reshape), -1)
-    indices = [i for i, val in enumerate(mask_reshape) if val == 1] #indices of labels being inserted
-    for index, new_label in zip(indices, dbscan_labels): #Loops through dbscan labels and adds to all_labels array in corresponding index position
+
+    # indices of labels being inserted
+    indices = [i for i, val in enumerate(mask_reshape) if val == 1] 
+
+    #Loops through dbscan labels and adds to all_labels array in 
+    # corresponding index position
+    for index, new_label in zip(indices, dbscan_labels): 
         all_labels[index] = new_label
     all_labels = all_labels.reshape(mask.shape)
     
@@ -432,7 +440,6 @@ def kmean_to_spatial_model_patch_wrapper(patch_path: str,
     return im_labels, dbscan_fit, cluster_mask_dict, cluster_index
 
 ## MISC FUNCTIONS
-#These were not used within the scope of this project, but could be useful for future implementation
 
 # def kmeans_apply_patch(model, patch_path: str):
 
@@ -562,4 +569,17 @@ def kmean_to_spatial_model_patch_wrapper(patch_path: str,
 #             black_percentages.append((file, black_percentage))
 
 #     return black_percentages
+
+# def mean_shift_patch_fit(data):
+#     data = np.array(data)
+#     hyperparameter_dict = opt_mean_shift(data = data,
+#                    bandwidth = [0.1,0.2,0.3,0.5,0.6,0.7,0.8,0.9],
+#                    seeds=[0.1,0.2,0.4,0.5])
+#     model = sklearn.cluster.MeanShift(**hyperparameter_dict, max_iter=20,
+#                                    n_init=3, tol=1e-3)
+#     model.fit_predict(data)
+#     cluster_labels = model.labels_
+#     cluster_centers = model.cluster_centers_
+#     return model, cluster_labels, cluster_centers
+
     
