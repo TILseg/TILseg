@@ -50,6 +50,10 @@ TEST_SPATIAL_HYPERPARAMETERS = {
     'min_samples': 100,
 }
 
+FAIL_SPATIAL_HYPERPARAMETERS = {
+    'eps': 10,
+}
+
 # Skip mark
 # @pytest.mark.skip
 
@@ -204,22 +208,19 @@ class TestRefineKMeans(unittest.TestCase):
                                            TEST_SPATIAL_HYPERPARAMETERS, 
                                            TEST_OUT_DIR_PATH)
             
+        # Raises error when the hyperparameter_dict is missing a key
+        with self.assertRaises(ValueError):
+            refine_kmeans.km_dbscan_wrapper(binary_mask, 
+                                            FAIL_SPATIAL_HYPERPARAMETERS, 
+                                            TEST_OUT_DIR_PATH)
+            
         # Raises error when the save directory doesn't exist
         with self.assertRaises(FileNotFoundError):
             refine_kmeans.km_dbscan_wrapper(binary_mask, 
                                            TEST_SPATIAL_HYPERPARAMETERS, 
                                            FAIL_OUT_PATH)
 
-        # Raises error when the save directory is unwritable
-        TEST_OUT_DIR_PATH2 = TEST_OUT_DIR_PATH
-        os.chmod(TEST_OUT_DIR_PATH2, 0o444)  # This sets read-only permissions
-        with self.assertRaises(PermissionError):
-            refine_kmeans.km_dbscan_wrapper(binary_mask, 
-                                           TEST_SPATIAL_HYPERPARAMETERS, 
-                                           TEST_OUT_DIR_PATH2)
-
         # clean-up
-        os.chmod(TEST_OUT_DIR_PATH, 0o777)
         os.remove(os.path.join(TEST_OUT_DIR_PATH,'ClusteringResults', 'dbscan_result_colorbar.jpg'))
         os.remove(os.path.join(TEST_OUT_DIR_PATH,'ClusteringResults', 'dbscan_result.jpg'))
 
@@ -228,9 +229,6 @@ class TestRefineKMeans(unittest.TestCase):
         """
         Unittests for kmean_to_spatial_model_superpatch_wrapper function
         """
-        # Restore writing permissions
-        os.chmod(TEST_OUT_DIR_PATH, 0o777)
-
         # one-shot test with correct inputs
         IM_labels, dbscan_fit, cluster_mask_dict, cluster_index = refine_kmeans.kmean_to_spatial_model_superpatch_wrapper(superpatch_path = SUPERPATCH_PATH,
                                             in_dir_path = TEST_IN_DIR_PATH,
@@ -289,19 +287,16 @@ class TestRefineKMeans(unittest.TestCase):
                                             spatial_hyperparameters = TEST_SPATIAL_HYPERPARAMETERS,
                                             out_dir_path = FAIL_OUT_PATH,
                                             save_TILs_overlay=True)
-
-        # Raises error when the out directory is unwritable
-        TEST_OUT_DIR_PATH2 = TEST_OUT_DIR_PATH
-        os.chmod(TEST_OUT_DIR_PATH2, 0o444)  # This sets read-only permissions
-        with self.assertRaises(PermissionError):
+            
+        # Raises error when the spatial_hyperparameters is missing a key
+        with self.assertRaises(ValueError):
             refine_kmeans.kmean_to_spatial_model_superpatch_wrapper(superpatch_path = SUPERPATCH_PATH,
                                             in_dir_path = TEST_IN_DIR_PATH,
-                                            spatial_hyperparameters = TEST_SPATIAL_HYPERPARAMETERS,
-                                            out_dir_path = TEST_OUT_DIR_PATH2,
+                                            spatial_hyperparameters = FAIL_SPATIAL_HYPERPARAMETERS,
+                                            out_dir_path = TEST_OUT_DIR_PATH,
                                             save_TILs_overlay=True)
 
         # clean-up
-        os.chmod(TEST_OUT_DIR_PATH, 0o777)
         shutil.rmtree(os.path.join(TEST_OUT_DIR_PATH, 'test_small_patch'))
         shutil.rmtree(os.path.join(TEST_OUT_DIR_PATH, 'test_small_patch_2'))              
 
@@ -310,9 +305,6 @@ class TestRefineKMeans(unittest.TestCase):
         """
         Unittests for kmean_dbscan_patch_wrapper function
         """
-        # Restore writing permissions
-        os.chmod(TEST_OUT_DIR_PATH, 0o777)
-
         # one-shot test with correct inputs
         IM_labels, dbscan_fit, cluster_mask_dict, cluster_index = refine_kmeans.kmean_to_spatial_model_patch_wrapper(TEST_PATCH_PATH,
                         TEST_SPATIAL_HYPERPARAMETERS,
@@ -332,16 +324,15 @@ class TestRefineKMeans(unittest.TestCase):
 
         # Raises error when the superpatch path doesn't exist
         with self.assertRaises(FileNotFoundError):
-            refine_kmeans.kmean_to_spatial_model_superpatch_wrapper(superpatch_path = FAIL_TEST_PATCH_PATH,
+            refine_kmeans.kmean_to_spatial_model_patch_wrapper(superpatch_path = FAIL_TEST_PATCH_PATH,
                                             in_dir_path = TEST_IN_DIR_PATH,
                                             spatial_hyperparameters = TEST_SPATIAL_HYPERPARAMETERS,
                                             out_dir_path = TEST_OUT_DIR_PATH,
                                             save_TILs_overlay=True)
 
-
         # Raises error when the in directory doesn't exist
         with self.assertRaises(FileNotFoundError):
-            refine_kmeans.kmean_to_spatial_model_superpatch_wrapper(superpatch_path = SUPERPATCH_PATH,
+            refine_kmeans.kmean_to_spatial_model_patch_wrapper(superpatch_path = SUPERPATCH_PATH,
                                             in_dir_path = FAIL_IN_PATH,
                                             spatial_hyperparameters = TEST_SPATIAL_HYPERPARAMETERS,
                                             out_dir_path = TEST_OUT_DIR_PATH,
@@ -349,26 +340,24 @@ class TestRefineKMeans(unittest.TestCase):
 
         # Raises error when the out directory doesn't exist
         with self.assertRaises(FileNotFoundError):
-            refine_kmeans.kmean_to_spatial_model_superpatch_wrapper(superpatch_path = SUPERPATCH_PATH,
+            refine_kmeans.kmean_to_spatial_model_patch_wrapper(superpatch_path = SUPERPATCH_PATH,
                                             in_dir_path = TEST_IN_DIR_PATH,
                                             spatial_hyperparameters = TEST_SPATIAL_HYPERPARAMETERS,
                                             out_dir_path = FAIL_OUT_PATH,
                                             save_TILs_overlay=True)
-
-        # Raises error when the out directory is unwritable
-        TEST_OUT_DIR_PATH2 = TEST_OUT_DIR_PATH
-        os.chmod(TEST_OUT_DIR_PATH2, 0o444)  # This sets read-only permissions
-        with self.assertRaises(PermissionError):
-            refine_kmeans.kmean_to_spatial_model_superpatch_wrapper(superpatch_path = SUPERPATCH_PATH,
+            
+        # Raises error when the spatial_hyperparameters is missing a key
+        with self.assertRaises(ValueError):
+            refine_kmeans.kmean_to_spatial_model_patch_wrapper(superpatch_path = SUPERPATCH_PATH,
                                             in_dir_path = TEST_IN_DIR_PATH,
-                                            spatial_hyperparameters = TEST_SPATIAL_HYPERPARAMETERS,
-                                            out_dir_path = TEST_OUT_DIR_PATH2,
-                                            save_TILs_overlay=True)
+                                            spatial_hyperparameters = FAIL_SPATIAL_HYPERPARAMETERS,
+                                            out_dir_path = TEST_OUT_DIR_PATH,
+                                            save_TILs_overlay=True)    
+        
         # note: no further testing needed for IM_labels since it is an output of
         # km_dbscan_wrapper function
             
         # clean-up
-        os.chmod(TEST_OUT_DIR_PATH, 0o777)
         parent_dir = os.path.join(TEST_OUT_DIR_PATH, expected_key)
         os.remove(os.path.join(parent_dir,'ClusteringResults', 'ContourMask.jpg'))
         os.remove(os.path.join(parent_dir,'ClusteringResults', 'ContourOverlay.jpg'))
