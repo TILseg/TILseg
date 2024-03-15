@@ -38,6 +38,8 @@ B. Future Directions
 C. Bug Fixes
     March 13th, 2024 Update
 
+## A: USING OUR MODULE ##
+
 ### 1. ABOUT: ###
 - - - -
 TILseg (Tumor-Infiltrating Lymphocyte segmentation) is a software created to segment different types of cells captured on a whole slide image of breast tissue. The tissue is stained using hematoxylin and eosin (H&E), then the resulting images are often used by pathologists to diagnose breast cancer. Tumor-infiltrating lymphocytes (TILs) are often found in high concentrations in breast cancer tissue. Therefore, reliable identification of cell types, and their locations is imperative for accurate diagnoses. This software aims to complement the diagnosis pipeline by automating the segmentation and quantification of these cells from whole slide images. Approaches, like TILseg, are carving out the interface between computational tools and traditional histological, pathological, and medicinal approaches. 
@@ -354,12 +356,12 @@ Specifically, the arguments for this function are:
 - **save_csv (bool):** generates a CSV file containing contour information of each TIL segmented from the patch
 - **random_state: (int):** can specify repeatable kmeans model
 
-## A. FUTURE DIRECTIONS ##
+## B. FUTURE DIRECTIONS ##
 - - -
-### i. KMeans to DBSCAN Module ###
-Currently, our pipeline from K-Means to DBSCAN can only be performed on a single patch using the `kmean_to_spatial_model_patch_wrapper` function. Since the DBSCAN fitting can be highly specific to each patch, we allowed the DBSCAN hyperparameters to be directly modified without optimization and output images for the user to easily observe the results to compare to the KMeans model. This can allow future users/researchers to use our function and adapt the hyperparameters as needed. Additionally, we believe that this tool can be integrated into other functions or simply modified to be performed on multiple patches. By preprocessing using KMeans to isolate our cluster of interest, we have drastically decreased the number of pixels being fed into DBSCAN and, thus, the computation time and expense as opposed to feeding in the raw, RGB patch. We hope DBSCAN can be a useful tool in further clustering the other cell types from the TILs within KMeans. If not, the function could be easily adapted to feed a cluster from KMeans into other spatial algorithms. 
+### 1. KMeans to DBSCAN Module ###
+Currently, our pipeline from K-Means to DBSCAN can be performed on a single patch using the `kmean_to_spatial_model_patch_wrapper` function or extrapolated to other patches using a pre-fitted model on a superpatch following K-means clustering (`kmean_to_spatial_model_superpatch_wrapper`). However, since the DBSCAN fitting can be highly specific to each patch, we recommend using `kmean_to_spatial_model_patch_wrapper` where the DBSCAN hyperparameters can be directly modified without optimization and output images for the user to easily observe the results to compare to the KMeans model. This allows future users/researchers to use our function and adapt the hyperparameters as needed. Additionally, we believe that this tool can be integrated into other functions or simply modified to be performed on multiple patches. By preprocessing using KMeans to isolate our cluster of interest, we have drastically decreased the number of pixels being fed into DBSCAN and, thus, the computation time and expense as opposed to feeding in the raw, RGB patch. We hope DBSCAN can be a useful tool in further clustering the other cell types from the TILs within KMeans. If not, the function could be easily adapted to feed a cluster from KMeans into other spatial algorithms. 
 
-### ii. Superpatch Similarity Scores ###
+### 2. Superpatch Similarity Scores ###
 As noted above, we have also started constructing a pipeline for generating a 'similarity score' based on the mean square error (MSE) between two cluster masks. We have further created a tool that can implement this similarity score to compare: 1) a KMeans model that has been fitted and applied to a chosen reference patch (i.e. the ground truth) and 2) pre-fitted KMeans model(s) that have been fit on a superpatch(es) and then applied to the same chosen reference patch all in one function, `superpatch_similarity`. Since the image from 1) has a Kmeans model fit and clustered on the same image, we expect the model to do relatively well in capturing all the variance -- thus producing the ground truth. Since the superpatches in 2) are sampled across the whole slide image, these models may not capture as much variance as in 1), but we wanted to quantify and qualify how representative these superpatches are. Since the reference image is constant across all the superpatch model clustering, the scores should be somewhat comparable to one another. We also created the function so that it would output a contour overlay showcasing the ground truth (green) and the difference between the ground truth and superpatch model (red) over the original reference patch. Here are some current flaws and points to work on that we recommend:
 
 * Mainly, this function currently is not integrated with the most updated version of `preprocessing.py`. This should be done first before anything else.
@@ -368,7 +370,7 @@ As noted above, we have also started constructing a pipeline for generating a 's
 
 For more information about the code and additional documentation, please see `similarity.py` in the `tilseg.py` folder. To see the preliminary use of this module, please see `similarity_use.ipynb` in the `Example` folder.
 
-## B. BUG FIXES ##
+## C. BUG FIXES ##
 - - -
 ### March 13th, 2024 Update ###
 * **Hard-coded file Paths**: Initially, file paths in the example jupyter notebooks referred to paths that existed on the developer's local computer. We have updated these paths and have added test images/materials that can be accessed by any user on their computer. Note that due to the size of the test images (~100+ MB), these images were uploaded to a public Google Drive.
