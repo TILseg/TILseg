@@ -34,7 +34,7 @@ TEST_PATCH_PATH = os.path.join(parent_dir, 'test',
                                'test_patches', 'patches',
                                'test_small_patch.tif')
 FAIL_TEST_PATCH_PATH = os.path.join(parent_dir, 'test',
-                                    'test_patches', 'test_img.txt')
+                                    'test_patches', 'image.tif')
 TEST_IN_DIR_PATH = os.path.join(parent_dir, 'test',
                                 'test_patches', 'patches')
 FAIL_IN_PATH = os.path.join(parent_dir, 'test',
@@ -282,6 +282,7 @@ class TestRefineKMeans(unittest.TestCase):
                                             out_dir_path = TEST_OUT_DIR_PATH2,
                                             save_TILs_overlay=True)
 
+        os.chmod(TEST_OUT_DIR_PATH, 0o777)
         shutil.rmtree(os.path.join(TEST_OUT_DIR_PATH, 'test_small_patch'))
         shutil.rmtree(os.path.join(TEST_OUT_DIR_PATH, 'test_small_patch_2'))              
 
