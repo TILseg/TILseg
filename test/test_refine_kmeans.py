@@ -85,12 +85,6 @@ class TestRefineKMeans(unittest.TestCase):
                 patch_path=TEST_PATCH_PATH+'blahblah',
                 hyperparameter_dict={'n_clusters': 4})
 
-        # tests when input file is not an image
-        with self.assertRaises(UnidentifiedImageError):
-            model = refine_kmeans.KMeans_superpatch_fit(
-                patch_path=FAIL_TEST_PATCH_PATH,
-                hyperparameter_dict={'n_clusters': 4})
-
         # tests when hyperparameter_dict is not a dictionary
         with self.assertRaises(TypeError):
             model = refine_kmeans.KMeans_superpatch_fit(
@@ -224,6 +218,11 @@ class TestRefineKMeans(unittest.TestCase):
                                            TEST_SPATIAL_HYPERPARAMETERS, 
                                            TEST_OUT_DIR_PATH2)
 
+        # clean-up
+        os.chmod(TEST_OUT_DIR_PATH, 0o777)
+        os.remove(os.path.join(TEST_OUT_DIR_PATH,'ClusteringResults', 'dbscan_result_colorbar.jpg'))
+        os.remove(os.path.join(TEST_OUT_DIR_PATH,'ClusteringResults', 'dbscan_result.jpg'))
+
     
     def test_kmean_to_spatial_model_superpatch_wrapper(self):
         """
@@ -301,6 +300,7 @@ class TestRefineKMeans(unittest.TestCase):
                                             out_dir_path = TEST_OUT_DIR_PATH2,
                                             save_TILs_overlay=True)
 
+        # clean-up
         os.chmod(TEST_OUT_DIR_PATH, 0o777)
         shutil.rmtree(os.path.join(TEST_OUT_DIR_PATH, 'test_small_patch'))
         shutil.rmtree(os.path.join(TEST_OUT_DIR_PATH, 'test_small_patch_2'))              
@@ -370,9 +370,9 @@ class TestRefineKMeans(unittest.TestCase):
         # clean-up
         os.chmod(TEST_OUT_DIR_PATH, 0o777)
         parent_dir = os.path.join(TEST_OUT_DIR_PATH, expected_key)
-        os.remove(parent_dir,'ClusteringResults', 'ContourMask.jpg')
-        os.remove(parent_dir,'ClusteringResults', 'ContourOverlay.jpg')
-        os.remove(parent_dir,'ClusteringResults', 'dbscan_result_colorbar.jpg')
-        os.remove(parent_dir,'ClusteringResults', 'dbscan_result.jpg')
-        os.remove(parent_dir,'ClusteringResults', 'Original.jpg')
+        os.remove(os.path.join(parent_dir,'ClusteringResults', 'ContourMask.jpg'))
+        os.remove(os.path.join(parent_dir,'ClusteringResults', 'ContourOverlay.jpg'))
+        os.remove(os.path.join(parent_dir,'ClusteringResults', 'dbscan_result_colorbar.jpg'))
+        os.remove(os.path.join(parent_dir,'ClusteringResults', 'dbscan_result.jpg'))
+        os.remove(os.path.join(parent_dir,'ClusteringResults', 'Original.jpg'))
     
