@@ -368,21 +368,14 @@ As noted above, we have also started constructing a pipeline for generating a 's
 
 For more information about the code and additional documentation, please see `similarity.py` in the `tilseg.py` folder. To see the preliminary use of this module, please see `similarity_use.ipynb` in the `Example` folder.
 
-### iii. Failing Unit Tests ##
-Since we had changed much of the original code in the `tilseg.py` folder, many of the unit tests that were created had failed and we were unable to resolve them at this time. Although we were able to fix the import of the `tilseg` package, we were not able to address the other errors/bugs that had appeared.
-
-The development of our new functions in `refine_kmeans.py` is in its early stages and was built off of the original modules in `tilseg`. Thus, we encountered some errors in these unit tests as well, specifically related to the file path naming. Although we wanted to pursue test-driven development, we were not able to resolve these errors at this time, but you can access our current and working unit tests for all the `tilseg` modules in the `test folder`. Currently, `test_kmean_to_spatial_model_superpatch_wrapper` and `test_kmean_to_spatial_model_patch_wrapper` are failing and receive the following errors:
-
-We used pytest to run our unit test files. Please not that to avoid any errors, ensure that your version of threadpoolctl is above 3.0. with the environment file we provided.
-
 ## B. BUG FIXES ##
 - - -
 ### March 13th, 2024 Update ###
-* **Hard-coded file Paths**: Initially, file paths in the example jupyter notebooks referred to paths that existed on the developer's local computer. We have updated these paths and have added test images/materials that can be accessed by any user on their computer. Note that due to the size of the test images (~100+ MB), these images were uploaded to a public google drive.
+* **Hard-coded file Paths**: Initially, file paths in the example jupyter notebooks referred to paths that existed on the developer's local computer. We have updated these paths and have added test images/materials that can be accessed by any user on their computer. Note that due to the size of the test images (~100+ MB), these images were uploaded to a public Google Drive.
 * _preprocessing.py_:
     * Changed the os handling to read in the full file paths of each .svs image since the original code was using only the filename (this led to file path exception errors)
     * **def get_superpatch_patches (def preprocess << def get_superpatch_patches)**: Updated to now have a random state argument to allow for the superpatch to be made from the same patches each time a notebook is run
-    * **def sort_patches (def preprocess << def main_preprocessing << def sort_patches)**: Updated to use a Gaussian Mixture distribution to identify the peaks associated with the pink tissue and white background to reduce the background in the returned superpatches. The original method was documented very poorly and did not accurately remove white background.
+    * **def sort_patches (def preprocess << def main_preprocessing << def sort_patches)**: Updated to use a Gaussian Mixture Model (2 components) to identify the peaks associated with the pink tissue and white background to reduce the background in the returned superpatches. The original method was documented very poorly and did not accurately remove the white background.
 * _seg.py_:
     * **def segment_TILS**: Updated to take in a `multiple_images` flag to be able to fit a KMeans model to a patch, rather than just a superpatch. This enables use of the predicted clusters on this patch in downstream scoring.
     * **def immune_cluster_analyzer (def segment_TILS << def image_postprocessing << def immune_cluster_analyzer)**: Updated to return the `cluster mask` of the highest TIL contour count to enable further segmentation using DBSCAN.
