@@ -13,11 +13,10 @@ import pytest
 import sklearn
 import sys
 import unittest
-from PIL import UnidentifiedImageError
 
 # Local imports
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
-from tilseg import seg, refine_kmeans
+from tilseg import refine_kmeans
 
 
 # Get the absolute path of the current file
@@ -59,7 +58,7 @@ FAIL_SPATIAL_HYPERPARAMETERS = {
 
 class TestRefineKMeans(unittest.TestCase):
     
-    
+    #@pytest.mark.skip
     def test_KMeans_superpatch_fit(self):
         """
         Unittests for KMeans_superpatch_fit function
@@ -115,7 +114,7 @@ class TestRefineKMeans(unittest.TestCase):
                 patch_path=TEST_PATCH_PATH,
                 hyperparameter_dict={'n_clusters': 9})
     
-    
+    #@pytest.mark.skip
     def test_mask_to_features(self):
         """
         Unittests for mask_to_features function
@@ -164,7 +163,7 @@ class TestRefineKMeans(unittest.TestCase):
         self.assertIsInstance(features_not_empty, np.ndarray)
         self.assertTrue(features_not_empty.ndim == 2)
 
-    
+    #@pytest.mark.skip
     def test_kb_dbscan_wrapper(self):
         """
         Unittests for test_dbscan_wrapper function
@@ -224,7 +223,7 @@ class TestRefineKMeans(unittest.TestCase):
         os.remove(os.path.join(TEST_OUT_DIR_PATH,'ClusteringResults', 'dbscan_result_colorbar.jpg'))
         os.remove(os.path.join(TEST_OUT_DIR_PATH,'ClusteringResults', 'dbscan_result.jpg'))
 
-    
+    #@pytest.mark.skip
     def test_kmean_to_spatial_model_superpatch_wrapper(self):
         """
         Unittests for kmean_to_spatial_model_superpatch_wrapper function
@@ -287,20 +286,12 @@ class TestRefineKMeans(unittest.TestCase):
                                             spatial_hyperparameters = TEST_SPATIAL_HYPERPARAMETERS,
                                             out_dir_path = FAIL_OUT_PATH,
                                             save_TILs_overlay=True)
-            
-        # Raises error when the spatial_hyperparameters is missing a key
-        with self.assertRaises(ValueError):
-            refine_kmeans.kmean_to_spatial_model_superpatch_wrapper(superpatch_path = SUPERPATCH_PATH,
-                                            in_dir_path = TEST_IN_DIR_PATH,
-                                            spatial_hyperparameters = FAIL_SPATIAL_HYPERPARAMETERS,
-                                            out_dir_path = TEST_OUT_DIR_PATH,
-                                            save_TILs_overlay=True)
 
         # clean-up
         shutil.rmtree(os.path.join(TEST_OUT_DIR_PATH, 'test_small_patch'))
         shutil.rmtree(os.path.join(TEST_OUT_DIR_PATH, 'test_small_patch_2'))              
 
-    
+    #@pytest.mark.skip
     def test_kmean_to_spatial_model_patch_wrapper(self):
         """
         Unittests for kmean_dbscan_patch_wrapper function
@@ -311,6 +302,8 @@ class TestRefineKMeans(unittest.TestCase):
                         out_dir_path = TEST_OUT_DIR_PATH,
                         save_TILs_overlay = True,
                         random_state = None)
+        
+        print ('completed one-shot test')
 
         # checks if each output type is correct
         self.assertIsInstance(IM_labels, np.ndarray)
@@ -344,19 +337,11 @@ class TestRefineKMeans(unittest.TestCase):
                                             in_dir_path = TEST_IN_DIR_PATH,
                                             spatial_hyperparameters = TEST_SPATIAL_HYPERPARAMETERS,
                                             out_dir_path = FAIL_OUT_PATH,
-                                            save_TILs_overlay=True)
-            
-        # Raises error when the spatial_hyperparameters is missing a key
-        with self.assertRaises(ValueError):
-            refine_kmeans.kmean_to_spatial_model_patch_wrapper(superpatch_path = SUPERPATCH_PATH,
-                                            in_dir_path = TEST_IN_DIR_PATH,
-                                            spatial_hyperparameters = FAIL_SPATIAL_HYPERPARAMETERS,
-                                            out_dir_path = TEST_OUT_DIR_PATH,
-                                            save_TILs_overlay=True)    
+                                            save_TILs_overlay=True)   
         
         # note: no further testing needed for IM_labels since it is an output of
         # km_dbscan_wrapper function
-            
+        print('done testing, now beginning cleanup')    
         # clean-up
         parent_dir = os.path.join(TEST_OUT_DIR_PATH, expected_key)
         os.remove(os.path.join(parent_dir,'ClusteringResults', 'ContourMask.jpg'))

@@ -1,17 +1,15 @@
 # Core library imports
 import os
 import pathlib
-
-# External library imports
-import numpy as np
-import pandas as pd
-import sklearn.cluster
-
-import matplotlib.pyplot as plt
-from PIL import UnidentifiedImageError, Image
 import time
 
+# External library imports
+import matplotlib.pyplot as plt
+import numpy as np
+from PIL import UnidentifiedImageError, Image
+import sklearn.cluster
 
+# Local imports
 from tilseg.seg import segment_TILs
 from tilseg.model_selection import opt_kmeans
 
@@ -155,7 +153,7 @@ def km_dbscan_wrapper(mask: np.ndarray,
     -----
     binary_mask (np.ndarray): a binary mask with 1's corresponding to the pixels 
     involved in the cluser with the most contours and 0's for pixels not
-    hyperparameter_dict: hyperparameters for dbscan model
+    hyperparameter_dict: hyperparameters for dbscan model ('eps' and 'min_samples')
     print_flag (bool): True for printing saved plot of dbscan model
     
     Returns
@@ -166,15 +164,11 @@ def km_dbscan_wrapper(mask: np.ndarray,
     # Checking if the save directory exists
     if not os.path.exists(save_filepath) or not os.path.isdir(save_filepath):
         raise FileNotFoundError("Directory '{}' does not exist.".format(save_filepath))
-    
-    # Checking if the save directory is writable
-    if not os.access(save_filepath, os.W_OK):
-        raise PermissionError("Directory '{}' is not writable.".format(save_filepath))
 
     # Ensuring the mask is a 2D array
     if not isinstance(mask, np.ndarray) or mask.ndim != 2:
         raise ValueError("Input 'mask' must be a 2D NumPy array.")
-
+    
     #Generate Spatial Coordiantes
     features = mask_to_features(mask)
 
@@ -288,10 +282,6 @@ def kmean_to_spatial_model_superpatch_wrapper(superpatch_path: str,
     # Checking if the out directory exists
     if not os.path.exists(out_dir_path) or not os.path.isdir(out_dir_path):
         raise FileNotFoundError("Directory '{}' does not exist.".format(out_dir_path))
-    
-    # Checking if the out directory is writable
-    if not os.access(out_dir_path, os.W_OK):
-        raise PermissionError("Directory '{}' is not writable.".format(out_dir_path))    
 
     #Opens Superpatch Image / Retrieves Pixel Data
     img = Image.open(superpatch_path)
@@ -408,10 +398,6 @@ def kmean_to_spatial_model_patch_wrapper(patch_path: str,
     if not os.path.exists(out_dir_path) or not os.path.isdir(out_dir_path):
         raise FileNotFoundError("Directory '{}' does not exist.".format(out_dir_path))
     
-    # Checking if the out directory is writable
-    if not os.access(out_dir_path, os.W_OK):
-        raise PermissionError("Directory '{}' is not writable.".format(out_dir_path))
-
     # Opens patch Image / Retrieves Pixel Data
     img = Image.open(patch_path)
     numpy_img = np.array(img)
@@ -429,7 +415,7 @@ def kmean_to_spatial_model_patch_wrapper(patch_path: str,
     print(f"Completed Kmeans fitting. Time took: {(tf2-tf)/60} minutes.")
     
     # Run Segmentation on Kmeans Model
-    TIL_count_dict, kmean_labels_dict,cluster_mask_dict, cluster_index_dict = segment_TILs(patch_path,
+    TIL_count_dict, kmean_labels_dict, cluster_mask_dict, cluster_index_dict = segment_TILs(patch_path,
                  out_dir_path,
                  None,
                  'KMeans',
