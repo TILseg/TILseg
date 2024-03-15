@@ -3,7 +3,7 @@ TILseg README File
 Last Updated: March 13th, 2024
 
 ## SINCE PREVIOUS UPDATE (March 15th, 2023) ##
-
+- - - -
 ### DEVELOPMENTS ###
 * _K-Means to DBSCAN_: Previously, K-Means was found to be the best clustering algorithm among DBSCAN, Birch, and Optics. We have built a pipeline in `refine_kmeans.py` that enables the user to optimize, fit, and apply K-Means to patches of a whole slide image and then uses the output cluster masks to feed into DBSCAN for further clustering. 
     * Please see our additions in section *11. K-MEANS TO DBSCAN (REFINE_KMEANS)* for more details. 
@@ -17,6 +17,7 @@ Last Updated: March 13th, 2024
     * Please scroll to the bottom of our README for more detailed information about our bug fixes.
 
 ## CONTENTS: ##
+- - - -
 A. Using our Module
 
 1. About
@@ -39,7 +40,7 @@ C. Bug Fixes
     March 13th, 2024 Update
 
 ## A: USING OUR MODULE ##
-
+- - - -
 ### 1. ABOUT: ###
 - - - -
 TILseg (Tumor-Infiltrating Lymphocyte segmentation) is a software created to segment different types of cells captured on a whole slide image of breast tissue. The tissue is stained using hematoxylin and eosin (H&E), then the resulting images are often used by pathologists to diagnose breast cancer. Tumor-infiltrating lymphocytes (TILs) are often found in high concentrations in breast cancer tissue. Therefore, reliable identification of cell types, and their locations is imperative for accurate diagnoses. This software aims to complement the diagnosis pipeline by automating the segmentation and quantification of these cells from whole slide images. Approaches, like TILseg, are carving out the interface between computational tools and traditional histological, pathological, and medicinal approaches. 
