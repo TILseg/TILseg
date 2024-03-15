@@ -76,7 +76,7 @@ Inputs: WSIs, usually .svs or .ndpi
    	  	  	- xdim (int): the size of the patch in the x direction
    	  	  	- ydim (int): the size of the patch in the y direction
    	  	- Outputs:
-   	  	  	- patchdf (pd.DataFrame): a pandas dataframe containing the three following
+   	  	  	- patchdf (pd.DataFrame): a pandas dataframe containing 'patches' (array representation of each patch), 'patch_xy' (coordinate of each patch in .svs image 'RGB_av' (RGB average used to calculate average grey value), and 'greys' (average grey value) columns for each patch.
    	  	  	  
    	- is_it_background: A function that tests if a specific image should be classified as a background image or not.
    	  	- Inputs: cutoff (int): the cutoff value for a background image
