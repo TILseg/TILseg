@@ -55,7 +55,7 @@ TEST_SPATIAL_HYPERPARAMETERS = {
 
 class TestRefineKMeans(unittest.TestCase):
     
-    @pytest.mark.skip
+    
     def test_KMeans_superpatch_fit(self):
         """
         Unittests for KMeans_superpatch_fit function
@@ -117,7 +117,7 @@ class TestRefineKMeans(unittest.TestCase):
                 patch_path=TEST_PATCH_PATH,
                 hyperparameter_dict={'n_clusters': 9})
     
-    @pytest.mark.skip
+    
     def test_mask_to_features(self):
         """
         Unittests for mask_to_features function
@@ -166,7 +166,7 @@ class TestRefineKMeans(unittest.TestCase):
         self.assertIsInstance(features_not_empty, np.ndarray)
         self.assertTrue(features_not_empty.ndim == 2)
 
-    @pytest.mark.skip
+    
     def test_kb_dbscan_wrapper(self):
         """
         Unittests for test_dbscan_wrapper function
@@ -224,7 +224,7 @@ class TestRefineKMeans(unittest.TestCase):
                                            TEST_SPATIAL_HYPERPARAMETERS, 
                                            TEST_OUT_DIR_PATH2)
 
-    #@pytest.mark.skip
+    
     def test_kmean_to_spatial_model_superpatch_wrapper(self):
         """
         Unittests for kmean_to_spatial_model_superpatch_wrapper function
@@ -243,9 +243,28 @@ class TestRefineKMeans(unittest.TestCase):
         self.assertIsInstance(IM_labels, dict)
         self.assertTrue(isinstance(dbscan_fit, dict))
         self.assertIsInstance(cluster_mask_dict, dict)
+        self.assertIsInstance(cluster_index, dict)
         
         # checks that the model outputted above is fitted
         self.assertTrue(sklearn.utils.validation.check_is_fitted(dbscan_fit[next(iter(dbscan_fit))]) is None)
+
+        # Checks that IM_labels has the expected keys
+        tif_files = [file for file in os.listdir(TEST_IN_DIR_PATH) if file.endswith('.tif')]
+        expected_keys = [os.path.splitext(file)[0] for file in tif_files]
+        missing_keys = [key for key in expected_keys if key not in IM_labels]
+        self.assertEqual(missing_keys, [], msg=f"Keys {missing_keys} are missing from IM_labels")
+
+        # Checks that dbscan_fit has the expected keys
+        missing_keys = [key for key in expected_keys if key not in dbscan_fit]
+        self.assertEqual(missing_keys, [], msg=f"Keys {missing_keys} are missing from dbscan_fit")
+        
+         # Checks that cluster_mask_dict has the expected keys
+        missing_keys = [key for key in expected_keys if key not in cluster_mask_dict]
+        self.assertEqual(missing_keys, [], msg=f"Keys {missing_keys} are missing from cluster_mask_dict")
+
+         # Checks that cluster_index has the expected keys
+        missing_keys = [key for key in expected_keys if key not in cluster_index]
+        self.assertEqual(missing_keys, [], msg=f"Keys {missing_keys} are missing from cluster_index")
 
         # Raises error when the superpatch path doesn't exist
         with self.assertRaises(FileNotFoundError):
@@ -286,11 +305,14 @@ class TestRefineKMeans(unittest.TestCase):
         shutil.rmtree(os.path.join(TEST_OUT_DIR_PATH, 'test_small_patch'))
         shutil.rmtree(os.path.join(TEST_OUT_DIR_PATH, 'test_small_patch_2'))              
 
-    @pytest.mark.skip
+    
     def test_kmean_to_spatial_model_patch_wrapper(self):
         """
         Unittests for kmean_dbscan_patch_wrapper function
         """
+        # Restore writing permissions
+        os.chmod(TEST_OUT_DIR_PATH, 0o777)
+
         # one-shot test with correct inputs
         IM_labels, dbscan_fit, cluster_mask_dict, cluster_index = refine_kmeans.kmean_to_spatial_model_patch_wrapper(TEST_PATCH_PATH,
                         TEST_SPATIAL_HYPERPARAMETERS,
@@ -298,9 +320,59 @@ class TestRefineKMeans(unittest.TestCase):
                         save_TILs_overlay = True,
                         random_state = None)
 
-        #checks if each output type is correct
+        # checks if each output type is correct
         self.assertIsInstance(IM_labels, np.ndarray)
         self.assertIsInstance(dbscan_fit, sklearn.cluster.DBSCAN)
         self.assertIsInstance(cluster_mask_dict, dict) 
+        self.assertIsInstance(cluster_index, int)
 
-        #Include error tests
+        # Checks that cluster_mask_dict has the expected keys
+        expected_key = os.path.splitext(os.path.basename(TEST_PATCH_PATH))[0]
+        self.assertIn(expected_key, cluster_mask_dict, msg=f"Key is missing from cluster_mask_dict")
+
+        # Raises error when the superpatch path doesn't exist
+        with self.assertRaises(FileNotFoundError):
+            refine_kmeans.kmean_to_spatial_model_superpatch_wrapper(superpatch_path = FAIL_TEST_PATCH_PATH,
+                                            in_dir_path = TEST_IN_DIR_PATH,
+                                            spatial_hyperparameters = TEST_SPATIAL_HYPERPARAMETERS,
+                                            out_dir_path = TEST_OUT_DIR_PATH,
+                                            save_TILs_overlay=True)
+
+
+        # Raises error when the in directory doesn't exist
+        with self.assertRaises(FileNotFoundError):
+            refine_kmeans.kmean_to_spatial_model_superpatch_wrapper(superpatch_path = SUPERPATCH_PATH,
+                                            in_dir_path = FAIL_IN_PATH,
+                                            spatial_hyperparameters = TEST_SPATIAL_HYPERPARAMETERS,
+                                            out_dir_path = TEST_OUT_DIR_PATH,
+                                            save_TILs_overlay=True)
+
+        # Raises error when the out directory doesn't exist
+        with self.assertRaises(FileNotFoundError):
+            refine_kmeans.kmean_to_spatial_model_superpatch_wrapper(superpatch_path = SUPERPATCH_PATH,
+                                            in_dir_path = TEST_IN_DIR_PATH,
+                                            spatial_hyperparameters = TEST_SPATIAL_HYPERPARAMETERS,
+                                            out_dir_path = FAIL_OUT_PATH,
+                                            save_TILs_overlay=True)
+
+        # Raises error when the out directory is unwritable
+        TEST_OUT_DIR_PATH2 = TEST_OUT_DIR_PATH
+        os.chmod(TEST_OUT_DIR_PATH2, 0o444)  # This sets read-only permissions
+        with self.assertRaises(PermissionError):
+            refine_kmeans.kmean_to_spatial_model_superpatch_wrapper(superpatch_path = SUPERPATCH_PATH,
+                                            in_dir_path = TEST_IN_DIR_PATH,
+                                            spatial_hyperparameters = TEST_SPATIAL_HYPERPARAMETERS,
+                                            out_dir_path = TEST_OUT_DIR_PATH2,
+                                            save_TILs_overlay=True)
+        # note: no further testing needed for IM_labels since it is an output of
+        # km_dbscan_wrapper function
+            
+        # clean-up
+        os.chmod(TEST_OUT_DIR_PATH, 0o777)
+        parent_dir = os.path.join(TEST_OUT_DIR_PATH, expected_key)
+        os.remove(parent_dir,'ClusteringResults', 'ContourMask.jpg')
+        os.remove(parent_dir,'ClusteringResults', 'ContourOverlay.jpg')
+        os.remove(parent_dir,'ClusteringResults', 'dbscan_result_colorbar.jpg')
+        os.remove(parent_dir,'ClusteringResults', 'dbscan_result.jpg')
+        os.remove(parent_dir,'ClusteringResults', 'Original.jpg')
+    

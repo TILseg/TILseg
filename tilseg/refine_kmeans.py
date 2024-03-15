@@ -400,24 +400,35 @@ def kmean_to_spatial_model_patch_wrapper(patch_path: str,
         cluster label from kemans that had the highest contour count. This is the
         cluster label that was fed into the spatial model for further classification.
     """
+    # Checking if the patch path exists
+    if not os.path.exists(patch_path):
+        raise FileNotFoundError("Directory '{}' does not exist.".format(patch_path))
     
-    #Opens Superpatch Image / Retrieves Pixel Data
+    # Checking if the out directory exists
+    if not os.path.exists(out_dir_path) or not os.path.isdir(out_dir_path):
+        raise FileNotFoundError("Directory '{}' does not exist.".format(out_dir_path))
+    
+    # Checking if the out directory is writable
+    if not os.access(out_dir_path, os.W_OK):
+        raise PermissionError("Directory '{}' is not writable.".format(out_dir_path))
+
+    # Opens patch Image / Retrieves Pixel Data
     img = Image.open(patch_path)
     numpy_img = np.array(img)
     numpy_img_reshape = np.float32(numpy_img.reshape((-1, 3))/255.)
     
-    #Kmeans Optimizing
+    # Kmeans Optimizing
     t0 = time.time()
     hyperparameter_dict = opt_kmeans(numpy_img_reshape,n_clusters)
     tf = time.time()
     print(f"Found hyperparameters. Time took: {(tf-t0)/60} minutes.")
     kmeans_fit = KMeans_superpatch_fit(patch_path,hyperparameter_dict, random_state)
     
-    #Kmeans Fitting
+    # Kmeans Fitting
     tf2 = time.time()
     print(f"Completed Kmeans fitting. Time took: {(tf2-tf)/60} minutes.")
     
-    #Run Segmentation on Kmeans Model
+    # Run Segmentation on Kmeans Model
     TIL_count_dict, kmean_labels_dict,cluster_mask_dict, cluster_index_dict = segment_TILs(patch_path,
                  out_dir_path,
                  None,
@@ -430,7 +441,7 @@ def kmean_to_spatial_model_patch_wrapper(patch_path: str,
                  save_csv,
                  False)
         
-    #Dbcan Model Fitting
+    # DBSCAN Model Fitting
     tf3 = time.time()
     file = os.path.basename(patch_path)
     cluster_mask = cluster_mask_dict[file[:-4]]
