@@ -711,7 +711,10 @@ def compile_patch_data(slide, ypatch, xpatch, xdim, ydim):
 
     Returns
     -----
-    patchdf (pd.DataFrame): a pandas dataframe containing the three following
+    patchdf (pd.DataFrame): a pandas dataframe containing 'patches' 
+    (array representation of each patch), 'patch_xy' (coordinate of 
+    each patch in .svs image), 'RGB_av' (RGB average used to calculate 
+    average grey value), and 'greys' (average grey value) columns for each patch.
     """
 
     # create a dataframe to contain all patch information from a slide
