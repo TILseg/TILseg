@@ -140,7 +140,6 @@ def mask_to_features(binary_mask:np.ndarray):
 
     return features
 
-
 def km_dbscan_wrapper(mask: np.ndarray, 
                       hyperparameter_dict, 
                       save_filepath: str, 
@@ -278,6 +277,10 @@ def kmean_to_spatial_model_superpatch_wrapper(superpatch_path: str,
         cluster labels from kemans that had the highest contour count in each image. 
         The keys are the filenames and the values are the cluster numbers.
     """
+    # Checking if the superpatch path exists
+    if not os.path.exists(superpatch_path):
+        raise FileNotFoundError("Directory '{}' does not exist.".format(in_dir_path))
+    
     # Checking if the in directory exists
     if not os.path.exists(in_dir_path) or not os.path.isdir(in_dir_path):
         raise FileNotFoundError("Directory '{}' does not exist.".format(in_dir_path))

@@ -37,8 +37,12 @@ FAIL_TEST_PATCH_PATH = os.path.join(parent_dir, 'test',
                                     'test_patches', 'test_img.txt')
 TEST_IN_DIR_PATH = os.path.join(parent_dir, 'test',
                                 'test_patches', 'patches')
+FAIL_IN_PATH = os.path.join(parent_dir, 'test',
+                                'test_patches', 'patchez')
 TEST_OUT_DIR_PATH = os.path.join(parent_dir, 'test',
                                 'test_patches', 'test_results')
+FAIL_OUT_PATH = os.path.join(parent_dir, 'test',
+                                    'test_patches', 'result')
 SUPERPATCH_PATH = os.path.join(parent_dir, 'test',
                                 'test_patches', 'test_superpatch.tif')
 TEST_SPATIAL_HYPERPARAMETERS = {
@@ -177,26 +181,57 @@ class TestRefineKMeans(unittest.TestCase):
                                                              TEST_SPATIAL_HYPERPARAMETERS, 
                                                              TEST_OUT_DIR_PATH)
 
-        # Testing the output shape
+        # Verifying the output shape
         self.assertEqual(all_labels.shape, binary_mask.shape)
 
-        #Testing the model type
+        # Verifying the model type
         self.assertIsInstance(dbscan, sklearn.cluster.DBSCAN)
         self.assertIsNotNone(dbscan.components_)
 
-        # Testing al_labels output
+        # Testing all_labels output
         self.assertTrue(np.all(all_labels >= -1))  # Making sure labels are greater than -1
         self.assertTrue(all_labels.dtype == int) #Checking label types are integers
 
-        directory_path = os.path.join(TEST_OUT_DIR_PATH, 'ClusteringResults')
-        os.remove(os.path.join(directory_path, 'dbscan_result_colorbar.jpg'))
-        os.remove(os.path.join(directory_path, 'dbscan_result.jpg'))
+        # Check if directory and files were created
+        self.assertTrue(os.path.exists(os.path.join(TEST_OUT_DIR_PATH, 'ClusteringResults', 'dbscan_result_colorbar.jpg')))
+        self.assertTrue(os.path.exists(os.path.join(TEST_OUT_DIR_PATH, 'ClusteringResults', 'dbscan_result.jpg')))
 
-    @pytest.mark.skip
+        # Raises error when the input mask is not a 2D numpy array
+        mask_1D = np.array([0, 1, 0])
+        with self.assertRaises(ValueError):
+            refine_kmeans.km_dbscan_wrapper(mask_1D, 
+                                           TEST_SPATIAL_HYPERPARAMETERS, 
+                                           TEST_OUT_DIR_PATH)
+        mask_notnp = [[0, 1, 0],
+                      [1, 0, 1],
+                      [0, 1, 0]]
+        with self.assertRaises(ValueError):
+            refine_kmeans.km_dbscan_wrapper(mask_notnp, 
+                                           TEST_SPATIAL_HYPERPARAMETERS, 
+                                           TEST_OUT_DIR_PATH)
+            
+        # Raises error when the save directory doesn't exist
+        with self.assertRaises(FileNotFoundError):
+            refine_kmeans.km_dbscan_wrapper(binary_mask, 
+                                           TEST_SPATIAL_HYPERPARAMETERS, 
+                                           FAIL_OUT_PATH)
+
+        # Raises error when the save directory is unwritable
+        TEST_OUT_DIR_PATH2 = TEST_OUT_DIR_PATH
+        os.chmod(TEST_OUT_DIR_PATH2, 0o444)  # This sets read-only permissions
+        with self.assertRaises(PermissionError):
+            refine_kmeans.km_dbscan_wrapper(binary_mask, 
+                                           TEST_SPATIAL_HYPERPARAMETERS, 
+                                           TEST_OUT_DIR_PATH2)
+
+    #@pytest.mark.skip
     def test_kmean_to_spatial_model_superpatch_wrapper(self):
         """
         Unittests for kmean_to_spatial_model_superpatch_wrapper function
         """
+        # Restore writing permissions
+        os.chmod(TEST_OUT_DIR_PATH, 0o777)
+
         # one-shot test with correct inputs
         IM_labels, dbscan_fit, cluster_mask_dict, cluster_index = refine_kmeans.kmean_to_spatial_model_superpatch_wrapper(superpatch_path = SUPERPATCH_PATH,
                                             in_dir_path = TEST_IN_DIR_PATH,
@@ -204,12 +239,48 @@ class TestRefineKMeans(unittest.TestCase):
                                             out_dir_path = TEST_OUT_DIR_PATH,
                                             save_TILs_overlay=True)
         
-        #checks if each output type is correct
+        # checks if each output type is correct
         self.assertIsInstance(IM_labels, dict)
         self.assertTrue(isinstance(dbscan_fit, dict))
         self.assertIsInstance(cluster_mask_dict, dict)
+        
         # checks that the model outputted above is fitted
         self.assertTrue(sklearn.utils.validation.check_is_fitted(dbscan_fit[next(iter(dbscan_fit))]) is None)
+
+        # Raises error when the superpatch path doesn't exist
+        with self.assertRaises(FileNotFoundError):
+            refine_kmeans.kmean_to_spatial_model_superpatch_wrapper(superpatch_path = FAIL_TEST_PATCH_PATH,
+                                            in_dir_path = TEST_IN_DIR_PATH,
+                                            spatial_hyperparameters = TEST_SPATIAL_HYPERPARAMETERS,
+                                            out_dir_path = TEST_OUT_DIR_PATH,
+                                            save_TILs_overlay=True)
+
+
+        # Raises error when the in directory doesn't exist
+        with self.assertRaises(FileNotFoundError):
+            refine_kmeans.kmean_to_spatial_model_superpatch_wrapper(superpatch_path = SUPERPATCH_PATH,
+                                            in_dir_path = FAIL_IN_PATH,
+                                            spatial_hyperparameters = TEST_SPATIAL_HYPERPARAMETERS,
+                                            out_dir_path = TEST_OUT_DIR_PATH,
+                                            save_TILs_overlay=True)
+
+        # Raises error when the out directory doesn't exist
+        with self.assertRaises(FileNotFoundError):
+            refine_kmeans.kmean_to_spatial_model_superpatch_wrapper(superpatch_path = SUPERPATCH_PATH,
+                                            in_dir_path = TEST_IN_DIR_PATH,
+                                            spatial_hyperparameters = TEST_SPATIAL_HYPERPARAMETERS,
+                                            out_dir_path = FAIL_OUT_PATH,
+                                            save_TILs_overlay=True)
+
+        # Raises error when the out directory is unwritable
+        TEST_OUT_DIR_PATH2 = TEST_OUT_DIR_PATH
+        os.chmod(TEST_OUT_DIR_PATH2, 0o444)  # This sets read-only permissions
+        with self.assertRaises(PermissionError):
+            refine_kmeans.kmean_to_spatial_model_superpatch_wrapper(superpatch_path = SUPERPATCH_PATH,
+                                            in_dir_path = TEST_IN_DIR_PATH,
+                                            spatial_hyperparameters = TEST_SPATIAL_HYPERPARAMETERS,
+                                            out_dir_path = TEST_OUT_DIR_PATH2,
+                                            save_TILs_overlay=True)
 
         shutil.rmtree(os.path.join(TEST_OUT_DIR_PATH, 'test_small_patch'))
         shutil.rmtree(os.path.join(TEST_OUT_DIR_PATH, 'test_small_patch_2'))              
