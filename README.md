@@ -9,7 +9,7 @@ Last Updated: March 13th, 2024
     * Please see our additions in section *11. K-MEANS TO DBSCAN (REFINE_KMEANS)* for more details. 
 * _SuperPatch Scoring_: A module called `similarity.py` was created to generate a similarity score using the MSE between a K-Means model that had been fitted and applied to the same patch (i.e. 'ground truth') and a pre-fitted superpatch model(s) that is applied to the same reference patch. However, it should be noted that it has not yet been integrated to work with the current functions as `preprocessing.py` was updated before the development of `similarity.py`, so the `similarity.py` module has not been updated and tested to verify it's functionality with the current modules. 
     * Please see *Future Directions* at the bottom of this README for more details.
-* _Updated Environment_: the user would've had to install OpenSlide separately from the environment.yml file which led to dependency issues and version conflicts since the version of OpenSlide initially used was not specified. We have created a new environment file that includes OpenSlide and all the compatible versions.    
+* _Updated Environment_: the user would've had to install OpenSlide separately from the environment.yml file which led to dependency issues and version conflicts since the version of OpenSlide initially used was not specified. We have created a new environment file that includes OpenSlide and all the compatible versions for macOS.    
 * _Updated Example Jupyter Notebook_: In the `Example` folder of the repository, a new and improved example jupyter notebook `dbscan_kmeans_example.ipynb` has been added to include our latest developments and fixes. A jupyter notebook `similarity_use.ipynb` has also been added to outline how to run the `similarity.py` module for some sample images.
 * _User Cases and Components_: We have updated these documents in our `doc` folder to be more comprehensive while also reflecting our changes. The components document outlines all relevant functions with their completed associated docstrings.
 * _New Archive Folder_: A new folder `Archive` has been created at the root of the repository to document and save previous code that had been written before the implementation of our update. This folder should be better utilized for future developers.
@@ -83,7 +83,9 @@ These dependencies can be most easily handled using the provided environment.yml
 4. Add TILseg to the PYTHONPATH environment variable
     - To update the environment variable run `export PYTHONPATH = "path/to/TILseg:$PYTHONPATH"` on the command line
         - To update this environment variable more permanently this command can be added to the .bashrc file on linux, or the .profile file on MacOS
-    - Alternatively, in a Python file or at the REPL before importing tilseg, run `import sys`, then `sys.path.append("path/to/TILseg")`  
+    - Alternatively, in a Python file or at the REPL before importing tilseg, run `import sys`, then `sys.path.append("path/to/TILseg_Project2024")`
+
+_Note: currently, the environment.yml file has only been configured for macOS_
 
 ### 4. EXAMPLE: ###
 - - - -
