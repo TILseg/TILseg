@@ -210,8 +210,8 @@ def km_dbscan_wrapper(mask: np.ndarray,
     plt.colorbar()
     plt.title('DBSCAN Clustering Result')
 
-    plt.savefig(save_filepath + '/ClusteringResults/dbscan_result_colorbar.jpg')
-    if print_flag == True:
+    plt.savefig(os.path.join(save_filepath, 'ClusteringResults', 'dbscan_result_colorbar.jpg'))
+    if print_flag:
         plt.show()
     else:
         plt.close()
@@ -219,7 +219,7 @@ def km_dbscan_wrapper(mask: np.ndarray,
     plt.figure(figsize=(8, 6))
     plt.axis('off')
     plt.imshow(all_labels, cmap='viridis');  # Change the colormap as needed
-    plt.imsave(save_filepath + '/ClusteringResults/dbscan_result.jpg',all_labels)
+    plt.imsave(os.path.join(save_filepath, 'ClusteringResults', 'dbscan_result.jpg'), all_labels)
     plt.close()
     
     return all_labels, dbscan
