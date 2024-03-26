@@ -1,10 +1,9 @@
 """
 An image preprocessing module that can take in an svs
 file as an image and return separate patches of that
-image broken up and filtered down to hold patches of
-only one type. This is then used for testing/using a
-machine learning model or for superpatch creation in
-a consequtive module.
+image broken up and filtered to hold patches of
+only one type. This step is then used for implementation within a
+machine learning model or for superpatch creation in subsequent modules within this package.
 """
 # Core library imports
 import collections
@@ -19,6 +18,7 @@ import pandas as pd
 import scipy
 from skimage import io
 pd.options.mode.chained_assignment = None
+from sklearn.mixture import GaussianMixture
 
 # pylint: disable=no-else-raise, too-many-lines, too-many-locals, invalid-name
 # pylint: disable=too-many-arguments, too-many-branches, useless-return
@@ -33,13 +33,13 @@ def open_slide(slidepath):
 
     Parameters
     -----
-    slidepath: the complete path to the slide file (.svs)
+    slidepath (str): the complete path to the slide file (.svs)
 
     Returns
     -----
-    slide: the slide object created by OpenSlide
-    slide_x: the x dimension of the slide
-    slide_y: the y dimension of the slide
+    slide (openslide.OpenSlide): the slide object created by OpenSlide
+    slide_x (int): the x dimension of the slide
+    slide_y (int): the y dimension of the slide
     """
 
     # check datatype of filepath
@@ -91,9 +91,9 @@ def get_tile_size(maximum, size, cutoff=4):
 
     Returns
     -----
-    dimension: the desired pixel size needed
-    slices: the number of slices needed in the given direction
-    remainder: the number of pixels lost with the slicing provided
+    dimension (int): the desired pixel size needed
+    slices (int): the number of slices needed in the given direction
+    remainder (int): the number of pixels lost with the slicing provided
     """
 
     # check maximum datatype
@@ -146,16 +146,16 @@ def percent_of_pixels_lost(lost_x, patch_x, lost_y, patch_y, x_size, y_size):
 
     Parameters
     -----
-    lost_x: the number of pixels lost in the x direction
-    patch_x: the number of patches that are split in the x direction
-    lost_y: the number of pixels lost in the y direction
-    patch_y: the number of patches that are split in the y direction
-    x_size: the total number of pixels in the x direction of the slide
-    y_size: the total number of pixels in the y direction of the slide
+    lost_x (int): the number of pixels lost in the x direction
+    patch_x (int): the number of patches that are split in the x direction
+    lost_y (int): the number of pixels lost in the y direction
+    patch_y (int): the number of patches that are split in the y direction
+    x_size (int): the total number of pixels in the x direction of the slide
+    y_size (int): the total number of pixels in the y direction of the slide
 
     Returns
     -----
-    percent: the percent of pixels deleted, rounded to two places
+    percent (float): the percent of pixels deleted, rounded to two places
     """
 
     # check xpatch datatype
@@ -221,9 +221,13 @@ def save_image(path, name, image_array):
 
     Parameters
     -----
-    path: the complete path to a directory to which the image should be saved
-    name: the name of the file, with extension, to save
-    image_array: a numpy array that stores image information
+    path (str): the complete path to a directory to which the image should be saved
+    name (str): the name of the file, with extension, to save
+    image_array (np.array): a numpy array that stores image information
+    
+    Returns
+    -----
+    None
     """
 
     # check datatype of path
@@ -288,7 +292,7 @@ def create_patches(slide, xpatch, ypatch, xdim, ydim):
 
     Parameters
     -----
-    slide: the OpenSlide object of the entire slide
+    slide (openslide.OpenSlide): the OpenSlide object of the entire slide
     xpatch (int): the number of the patch in the x direction
     ypatch (int): the number of the patch in the y direction
     xdim (int): the size of the patch in the x direction
@@ -296,8 +300,8 @@ def create_patches(slide, xpatch, ypatch, xdim, ydim):
 
     Returns
     -----
-    np_patches: a list of all patches, each as a number array
-    patch_position: a list of tuples containing indices
+    np_patches (lst(np.arrays)): a list of all patches, each as a number array
+    patch_position (lst(np.arrays)): a list of tuples containing indices
     """
 
     # check is it an openslide object
@@ -392,12 +396,12 @@ def get_average_color(img):
 
     Parameters
     -----
-    img: a numpy array containing all information about the
+    img (np.array): a numpy array containing all information about the
         RGB colors in a patch
 
     Returns
     -----
-    average: a numpy array containing the RGB code for the average color
+    average (np.array): a numpy array containing the RGB code for the average color
         of the entire patch
     """
 
@@ -432,11 +436,11 @@ def get_grey(rgb):
 
     Parameters
     -----
-    rgb: a numpy array containing three values, one each for R, G, and B
+    rgb (np.array): a numpy array containing three values, one each for R, G, and B
 
     Returns
     -----
-    grey: the greyscale value of an image/patch
+    grey (float): the greyscale value of an image/patch
     """
 
     # check datatype of input
@@ -469,10 +473,10 @@ def save_all_images(df, path, f):  # pylint disable = invalid-name
 
     Parameters
     -----
-    df: the dataframe that is already created containing patches,
+    df (pd.DataFrame): the dataframe that is already created containing patches,
         average patch color, and the greyscale value
-    path: the path to which the folders and subdirectories will be made
-    f: the slide .svs file that is currently being read
+    path (str): the path to which the folders and subdirectories will be made
+    f (str): the slide .svs file name that is currently being read
 
     Returns
     -----
@@ -540,156 +544,156 @@ def save_all_images(df, path, f):  # pylint disable = invalid-name
     return
 
 
-def find_max(arr, cutoff, greater):
-    """
-    A function that finds the max value of a list/array
-    within a specific range.
+# def find_max(arr, cutoff, greater):
+#     """
+#     A function that finds the max value of a list/array
+#     within a specific range.
 
-    Parameters
-    -----
-    arr: the array that contains the list of data in question
-    cutoff: the value at which you want to start looking for a maximum
-    greater: a boolean that determines if you want the maximum above
-        or below the cutoff (above is when greater=False)
+#     Parameters
+#     -----
+#     arr (collections.abc.Sequence, np.ndarray): the array that contains the list of data in question
+#     cutoff (int): the value at which you want to start looking for a maximum
+#     greater (boolean): a boolean that determines if you want the maximum above
+#         or below the cutoff (above is when greater=False)
 
-    Returns
-    -----
-    loc: the index (from zero) at which the maximum value occurs
-    """
+#     Returns
+#     -----
+#     loca: the index (from zero) at which the maximum value occurs
+#     """
 
-    # check that greater is a boolean
-    if not isinstance(greater, bool) or (greater and not greater):
-        raise TypeError('The greater argument must be True or False.')
-    else:
-        pass
+#     # check that greater is a boolean
+#     if not isinstance(greater, bool) or (greater and not greater):
+#         raise TypeError('The greater argument must be True or False.')
+#     else:
+#         pass
 
-    # check that arr is a list or array
-    if not isinstance(arr, (collections.abc.Sequence, np.ndarray)):
-        raise TypeError('The input list must be an array or list.')
-    else:
-        pass
+#     # check that arr is a list or array
+#     if not isinstance(arr, (collections.abc.Sequence, np.ndarray)):
+#         raise TypeError('The input list must be an array or list.')
+#     else:
+#         pass
 
-    # check that the cutoff value is an integer or float
-    if not isinstance(cutoff, (int, float)):
-        raise TypeError('The cutoff value must be an integer or float value.')
-    else:
-        pass
+#     # check that the cutoff value is an integer or float
+#     if not isinstance(cutoff, (int, float)):
+#         raise TypeError('The cutoff value must be an integer or float value.')
+#     else:
+#         pass
 
-    # check that all list values are positive
-    if any(item < 0 for item in arr):
-        raise ValueError('The list can only contain non-negative values.')
-    else:
-        pass
+#     # check that all list values are positive
+#     if any(item < 0 for item in arr):
+#         raise ValueError('The list can only contain non-negative values.')
+#     else:
+#         pass
 
-    # a dummy number for the max that will never actually be the max
-    maximum = 0
+#     # a dummy number for the max that will never actually be the max
+#     maximum = 0
 
-    # iterate through the array, but enumerate so that it is easy to get index
-    for index, number in enumerate(arr):
+#     # iterate through the array, but enumerate so that it is easy to get index
+#     for index, number in enumerate(arr):
 
-        # if interested in a maximum below the cutoff and the
-        # index is greater than this cutoff, then break out of the loop
-        if greater and index > cutoff:
-            break
+#         # if interested in a maximum below the cutoff and the
+#         # index is greater than this cutoff, then break out of the loop
+#         if greater and index > cutoff:
+#             break
 
-        # if interested in a maximum above the cutoff and the index
-        # is less than the cutoff, continue looping but do not do anything
-        if not greater and index < cutoff:
-            continue
+#         # if interested in a maximum above the cutoff and the index
+#         # is less than the cutoff, continue looping but do not do anything
+#         if not greater and index < cutoff:
+#             continue
 
-        # check if the number in the appropriate range is
-        # greater than the maximum
-        if number > maximum:
+#         # check if the number in the appropriate range is
+#         # greater than the maximum
+#         if number > maximum:
 
-            # if it is, reassign the maximum value at this new
-            # value and record the index
-            maximum = number
-            loca = index
+#             # if it is, reassign the maximum value at this new
+#             # value and record the index
+#             maximum = number
+#             loca = index
 
-        # if the number is not greater than the maximum do nothing and continue
-        else:
-            continue
+#         # if the number is not greater than the maximum do nothing and continue
+#         else:
+#             continue
 
-    return loca
+#     return loca
 
 
-def find_min(arr, range_min, range_max):
-    """
-    A function that finds the min value of a list/array
-    within a specific range.
+# def find_min(arr, range_min, range_max):
+#     """
+#     A function that finds the min value of a list/array
+#     within a specific range.
 
-    Parameters
-    -----
-    arr: the array that contains the list of data in question
-    range_min: the lower bound on which to look for the minimum
-    range_max: the upper bound on which to look for the minimum
+#     Parameters
+#     -----
+#     arr (collections.abc.Sequence, np.ndarray): the array that contains the list of data in question
+#     range_min (int, float): the lower bound on which to look for the minimum
+#     range_max (int, float): the upper bound on which to look for the minimum
 
-    Returns
-    -----
-    loc: the index (from zero) at which the minimum value occurs
-    """
+#     Returns
+#     -----
+#     loca (int): the index (from zero) at which the minimum value occurs
+#     """
 
-    # check that the range_max value is an integer or float
-    if not isinstance(range_max, (int, float)):
-        raise TypeError('The range_max value must be an \
-                        integer or float value.')
-    else:
-        pass
+#     # check that the range_max value is an integer or float
+#     if not isinstance(range_max, (int, float)):
+#         raise TypeError('The range_max value must be an \
+#                         integer or float value.')
+#     else:
+#         pass
 
-    # check that the range_min value is an integer or float
-    if not isinstance(range_min, (int, float)):
-        raise TypeError('The range_min value must be an \
-                        integer or float value.')
-    else:
-        pass
+#     # check that the range_min value is an integer or float
+#     if not isinstance(range_min, (int, float)):
+#         raise TypeError('The range_min value must be an \
+#                         integer or float value.')
+#     else:
+#         pass
 
-    # check that arr is a list or array
-    if not isinstance(arr, (collections.abc.Sequence, np.ndarray)):
-        raise TypeError('The input list must be an array or list.')
-    else:
-        pass
+#     # check that arr is a list or array
+#     if not isinstance(arr, (collections.abc.Sequence, np.ndarray)):
+#         raise TypeError('The input list must be an array or list.')
+#     else:
+#         pass
 
-    # check that all list values are positive
-    if any(item < 0 for item in arr):
-        raise ValueError('The list can only contain non-negative values.')
-    else:
-        pass
+#     # check that all list values are positive
+#     if any(item < 0 for item in arr):
+#         raise ValueError('The list can only contain non-negative values.')
+#     else:
+#         pass
 
-    # check that the range min and range max are less than or greater than
-    assert range_min < range_max, 'The range minimum is \
-        greater than the maximum.'
-    assert range_min != range_max, 'The range minimum and \
-        maximum are the same.'
+#     # check that the range min and range max are less than or greater than
+#     assert range_min < range_max, 'The range minimum is \
+#         greater than the maximum.'
+#     assert range_min != range_max, 'The range minimum and \
+#         maximum are the same.'
 
-    # a dummy number for the min that will never actually be the min
-    minimum = 1000000
+#     # a dummy number for the min that will never actually be the min
+#     minimum = 1000000
 
-    # iterate through the array, but enumerate so that it is easy to get index
-    for index, number in enumerate(arr):
+#     # iterate through the array, but enumerate so that it is easy to get index
+#     for index, number in enumerate(arr):
 
-        # check if the index is between the desired range
-        if range_min < index < range_max:
+#         # check if the index is between the desired range
+#         if range_min < index < range_max:
 
-            # if it is in the correct range then check if the number
-            # is less than the current minimum
-            if number < minimum:
+#             # if it is in the correct range then check if the number
+#             # is less than the current minimum
+#             if number < minimum:
 
-                # if it is less than the current minimum, reassign
-                # the minimum and record the new index
-                minimum = number
-                loca = index
+#                 # if it is less than the current minimum, reassign
+#                 # the minimum and record the new index
+#                 minimum = number
+#                 loca = index
 
-            # if it is in the correct range but not less than the
-            # current minimum then continue through the loop and do nothing
-            else:
-                continue
+#             # if it is in the correct range but not less than the
+#             # current minimum then continue through the loop and do nothing
+#             else:
+#                 continue
 
-        # if the index is out of the desired range,
-        # continue and do nothing with that index
-        else:
-            continue
+#         # if the index is out of the desired range,
+#         # continue and do nothing with that index
+#         else:
+#             continue
 
-    return loca
+#     return loca
 
 
 def compile_patch_data(slide, ypatch, xpatch, xdim, ydim):
@@ -699,15 +703,18 @@ def compile_patch_data(slide, ypatch, xpatch, xdim, ydim):
 
     Parameters
     -----
-    slide: the OpenSlide object of the entire slide
-    ypatch: the number of patches in the y direction
-    xpatch: the number of patches in the x direction
-    xdim: the size of the patch in the x direction
-    ydim: the size of the patch in the y direction
+    slide (openslide.OpenSlide): the OpenSlide object of the entire slide
+    ypatch (int): the number of patches in the y direction
+    xpatch (int): the number of patches in the x direction
+    xdim (int): the size of the patch in the x direction
+    ydim (int): the size of the patch in the y direction
 
     Returns
     -----
-    patchdf: a pandas dataframe containing the three following
+    patchdf (pd.DataFrame): a pandas dataframe containing 'patches' 
+    (array representation of each patch), 'patch_xy' (coordinate of 
+    each patch in .svs image), 'RGB_av' (RGB average used to calculate 
+    average grey value), and 'greys' (average grey value) columns for each patch.
     """
 
     # create a dataframe to contain all patch information from a slide
@@ -742,11 +749,11 @@ def is_it_background(cutoff, actual):
 
     Parameters
     -----
-    cutoff: the cutoff value for a background image
+    cutoff (int): the cutoff value for a background image
 
     Returns
     -----
-    background: a boolean that is True if the patch
+    background (boolean): a boolean that is True if the patch
         should be considered background
     """
 
@@ -755,7 +762,7 @@ def is_it_background(cutoff, actual):
     return background
 
 
-def sort_patches(df, lin_space=100, approx_between=200):
+def sort_patches(df):
     """
     A function that starts sorting patches based on a KDE,
     determines a cutoff value, and calculates the final
@@ -763,19 +770,15 @@ def sort_patches(df, lin_space=100, approx_between=200):
 
     Parameters
     -----
-    df: the dataframe that is already created containing patches,
+    df (pd.DataFrame): the dataframe that is already created containing patches,
         average patch color, and the greyscale value
-    lin_space: the multiple by which the KDE axis will be split into
-        while it is being formed for a PDF (default is 100)
-    approx_between: the approximate value at which the grey values
-        will be split into two populations in the bimodal distribution.
-        This is usually around 200 for slides and is going to be
-        set to that as a default.
 
     Returns
     -----
-    df: an updated dataframe with a background column that indicates
-        if a patch should be considered background or not
+    df (pd.DataFrame): an updated dataframe with a background column that indicates
+        if each patch should be considered background or not
+
+    Note: In this code 0.5 was chosen to multiply by the variance to get the std_dev, but user can decide if 1 or 0.25 may be better
     """
 
     # check that the input is a dataframe
@@ -798,45 +801,40 @@ def sort_patches(df, lin_space=100, approx_between=200):
         else:
             pass
 
-    # calculate min, max, and range of grey values
-    minimum_grey = int(df['greys'].min())
-    maximum_grey = int(df['greys'].max())
-    range_grey = maximum_grey - minimum_grey
-
     # put all grey values into a list
     list_of_greys = df['greys'].values.tolist()
+    list_of_greys = np.array(list_of_greys).reshape(-1,1)
 
-    # create a linspace for all grey values for
-    # which the PDF will be calculated
-    grey_space = np.linspace(minimum_grey, maximum_grey,
-                             range_grey * lin_space)
+    #Calculate Scipy Statistics for Determining N_Components in Gaussian
+    mean, variance = scipy.stats.describe(list_of_greys)[2:4]
+    std_dev = variance ** 0.5
+    coef_of_variance = std_dev / mean
+    if coef_of_variance > 0.075: #based off observation of histogram
 
-    # create a KDE distribution from the list of greys
-    kde_distr = scipy.stats.gaussian_kde(list_of_greys)
+        # Fit Gaussian Mixture Model with 2 components
+        gmm = GaussianMixture(n_components=2)
+        gmm.fit(list_of_greys)
 
-    # use the KDE distribution to create a PDF of
-    # the grey values along the grey space
-    kde_pdf = kde_distr(grey_space)
+        # Get means and standard deviations of the two Gaussian components
+        means = gmm.means_.flatten()
+        std_devs = np.sqrt(gmm.covariances_).flatten()
 
-    # find all local maxima and minima
-    color_max = find_max(kde_pdf, (approx_between - minimum_grey)
-                         * lin_space, True)
-    background_max = find_max(kde_pdf, (maximum_grey - approx_between)
-                              * lin_space, False)
-    minimum = find_min(kde_pdf, color_max, background_max)
+        # Sort means and std_devs to identify higher and lower peaks
+        sorted_indices = np.argsort(means)
+        lower_peak_mean, higher_peak_mean = means[sorted_indices]
+        lower_peak_std_dev, higher_peak_std_dev = std_devs[sorted_indices]
 
-    # complete correct reindexing
-    color_max = color_max / lin_space + minimum_grey
-    background_max = background_max / lin_space + minimum_grey
-    minimum = minimum / lin_space + minimum_grey
+        # Calculate cutoff values for each peak
+        cutoff_value_lower_peak = lower_peak_mean + 0.25 * lower_peak_std_dev
+        cutoff_value_higher_peak = higher_peak_mean + 0.25 * higher_peak_std_dev
 
-    # calculate the cutoff value for greys
-    cutoff_value = (background_max + minimum) / 2
+    else:
+        std_dev = (variance)**0.5
+        cutoff_value_lower_peak  = mean + std_dev #decide if 1 or 0.5 or 0.25
 
     # add column to dataframe that classifies each image as background or not
-    df['background'] = df.apply(lambda row: is_it_background(cutoff_value,
-                                                             row['greys']),
-                                axis=1)
+    df['background'] = df.apply(lambda row: is_it_background(cutoff_value_lower_peak,
+                                                             row['greys']), axis=1)
 
     return df
 
@@ -850,22 +848,22 @@ def main_preprocessing(complete_path, training=True, save_im=True,
 
     Parameters
     -----
-    complete_path: the full path to the file containing all svs
+    complete_path (str): the full path to the file containing all svs
                    files that will be used for training the model or a single
                    svs file to get an output value
-    training: a boolean that indicates if this preprocessing is
+    training (boolean): a boolean that indicates if this preprocessing is
               for training data or if it to only be used for the
               existing model
-    save_im: a boolean that indicates if tissue images should be saved
+    save_im (boolean): a boolean that indicates if tissue images should be saved
              (beware this is a lot of data, at least 10GB per slide)
-    max_tile_x: the maximum x dimension size, in pixels,
+    max_tile_x (int): the maximum x dimension size, in pixels,
                 of a slide patch (default is 4000)
-    max_tile_y: the maximum y dimension size, in pixels,
+    max_tile_y (int): the maximum y dimension size, in pixels,
                 of a slide patch (default is 3000)
 
     Returns
     -----
-    all_df or sorted_df: a dataframe containing all necessary information for
+    all_df or sorted_df (pd.DataFrame): a dataframe containing all necessary information for
         creating superpatches for training (all_df) or for inputting into an
         already generated model (sorted_df)
     """
@@ -873,7 +871,6 @@ def main_preprocessing(complete_path, training=True, save_im=True,
     if training:  # pylint: disable=no-else-return
 
         all_df = pd.DataFrame()
-
         # iterate through all files in the directory
         for file in os.listdir(complete_path):
 
@@ -881,7 +878,9 @@ def main_preprocessing(complete_path, training=True, save_im=True,
             if file.endswith('.svs'):
 
                 # open the slide file
-                slide_file, slide_x, slide_y = open_slide(file)
+                full_file_path = os.path.join(complete_path, file)
+                print(full_file_path)
+                slide_file, slide_x, slide_y = open_slide(full_file_path)
 
                 # calculate dimensions and losses
                 ydim, ypatch, yloss = get_tile_size(max_tile_y, slide_y)
@@ -930,6 +929,8 @@ def main_preprocessing(complete_path, training=True, save_im=True,
 
         # open the slide file
         slide_file, slide_x, slide_y = open_slide(complete_path)
+        path = os.path.dirname(complete_path)
+        file = os.path.basename(complete_path)
 
         # calculate dimensions and losses
         ydim, ypatch, yloss = get_tile_size(max_tile_y, slide_y)
@@ -950,7 +951,7 @@ def main_preprocessing(complete_path, training=True, save_im=True,
 
         # save all images to correct directory if desired
         if save_im:
-            save_all_images(sorted_df, complete_path, file)
+            save_all_images(sorted_df, path, file)
 
         # print out the percent of pixels lost
         print(f'Percent of Pixels Lost in Pre-Processing: {loss_percentage} %')
@@ -965,7 +966,7 @@ def count_images(path=os.getcwd()):
 
     Parameters:
     ------------
-    None
+    path=os.getcwd()
 
     Returns:
     -----------
@@ -1047,7 +1048,7 @@ def patches_per_img(num_patches, path=os.getcwd()):
     return patch_img
 
 
-def get_superpatch_patches(patches_df, patches=6, path=os.getcwd()):
+def get_superpatch_patches(patches_df, patches=6, path=os.getcwd(),random_state=None):
     """
     This function finds the patches to comprise the superpatch.
     The patches are selected based off of distribution of
@@ -1057,12 +1058,15 @@ def get_superpatch_patches(patches_df, patches=6, path=os.getcwd()):
 
     Parameters:
     -------------
-    df (pandas df): MUST be dataframe from main_preprocessing output
+    df (pd.DataFrame): MUST be dataframe from main_preprocessing output
+    path: 
+    patches: number of patches used to create superpatch
+    random_state (int): random state used for sampling (to get a consistent patch list)
 
     Returns:
     -------------
-    patches_list: list of the patches to be included in superpatch
-                    individual patches are stored as np arrays
+    patches_list (lst): list of the patches to be included in superpatch
+                        individual patches are stored as np arrays
     """
 
     # check datatype of patches_df
@@ -1147,7 +1151,10 @@ def get_superpatch_patches(patches_df, patches=6, path=os.getcwd()):
             bin_df = img_df.loc[img_df['grey_binned'] == bin_i]
 
             # pick a patch from this set of relevant patches
-            patch_df = bin_df.sample()
+            if random_state == None:
+                patch_df = bin_df.sample()
+            else:
+                patch_df = bin_df.sample(random_state = random_state)
             actual_patch = patch_df['patches']
 
             # add patch to list of patches to access later
@@ -1170,18 +1177,20 @@ def get_superpatch_patches(patches_df, patches=6, path=os.getcwd()):
 
 def superpatcher(patches_list, sp_width=3):
     """
+     
     Superpatcher uses the selected patches and
     converts the individual patches into one patch
 
     Parameters:
     ------------
-    patches_list: MUST be output from get_superpatch_patches
-                  list of patches
-    sp_width: the width of a superpatch (how many images, default 3)
+    patches_list (lst): MUST be output from get_superpatch_patches
+                        list of patches
+    sp_width (int): the width of a superpatch (how many images, default 3)
 
     Returns:
     --------------
-    superpatch: np.array that contains the superpatch
+    patch_row_1 (np.array): np.array that contains the superpatch
+    Note: naming convention of output variable should be updated
     """
 
     # check sp_width datattype
@@ -1245,7 +1254,7 @@ def superpatcher(patches_list, sp_width=3):
         if j == 0:
             patch_row_1 = patch_row_0
 
-        # else add the row to the other rows
+        # else add the row to existing rows
         else:
             patch_row_1 = np.concatenate((patch_row_0, patch_row_1), axis=0)
 
@@ -1253,20 +1262,41 @@ def superpatcher(patches_list, sp_width=3):
 
 
 def preprocess(path, patches=6, training=True, save_im=True,
-               max_tile_x=4000, max_tile_y=3000):
+               max_tile_x=4000, max_tile_y=3000,random_state = None):
     """
     The preprocess function that is called when running the
     code. Complete details are found in the README file. This
     only calls other functions and is used as a wrapper.
+    
+    Parameters:
+    ------------
+    path (str): path to the folder containing the .svs slide files
+    patches (int): number of patches to create superpatch with
+    training (boolean): a boolean that indicates if this preprocessing is
+                        for training data or if it to only be used for the
+                        existing model
+    save_im (boolean): a boolean that indicates if tissue images should be saved
+                    (beware this is a lot of data, at least 10GB per slide)
+    max_tile_x (int): the maximum x dimension size, in pixels,
+                    of a slide patch (default is 4000)
+    max_tile_y (int): the maximum y dimension size, in pixels,
+                    of a slide patch (default is 3000)
+    random_state (int): random state to use during sampling of patches
+
+    Returns:
+    --------------
+    output (pd.DataFrame): a dataframe containing all necessary information for
+                        creating superpatches for training (all_df) or for inputting into an
+                        already generated model (sorted_df)
     """
     if training:
         dataframe = main_preprocessing(path, training, save_im,
                                        max_tile_x, max_tile_y)
-        plist = get_superpatch_patches(dataframe, patches, path)
-        spatch = superpatcher(plist)
-        save_image(path, 'superpatch_training.tif', spatch)
+        plist = get_superpatch_patches(dataframe, patches, path, random_state = random_state)
+        output = superpatcher(plist)
+        save_image(path, 'superpatch_training.tif', output)
 
     else:
-        main_preprocessing(path, training, save_im, max_tile_x, max_tile_y)
+        output = main_preprocessing(path, training, save_im, max_tile_x, max_tile_y)
 
-    return spatch
+    return output
