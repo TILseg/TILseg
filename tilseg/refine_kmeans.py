@@ -102,45 +102,60 @@ def KMeans_superpatch_fit(patch_path: str,
     # to clustering_score and segment_TILs functions
     return model
 
-def mask_to_features(binary_mask:np.ndarray):
+def mask_to_features(mask: np.ndarray = None,
+                     binary_flag: bool = True):
     """
     Generates the spatial coordinates from a binary mask as features 
     to cluster with DBSCAN
     
     Parameters
     -----
-    binary_mask (np.ndarray): a binary mask with 1's corresponding to the pixels 
+    mask (np.ndarray): a binary mask with 1's corresponding to the pixels 
     involved in the cluser with the most contours and 0's for pixels not
 
     Returns
     -----
     features (np.array) is a an array where each row corresponds to a set of 
-    coordinates (x,y) of the pixels where the binary_mask had a value of 1
+    coordinates (x,y) of the pixels where the mask had a value of 1
     """
     
-    if not isinstance(binary_mask, np.ndarray) or binary_mask.ndim != 2:
-        raise ValueError("Binary mask should be a 2D numpy array.")
+    if binary_flag:
+        # For binary masks, it should be a 2D array
+        if not isinstance(mask, np.ndarray) or mask.ndim != 2:
+            raise ValueError("Binary mask should be a 2D numpy array.")
 
-    # Check if the binary mask contains only 0's and 1's
-    if np.any((binary_mask != 0) & (binary_mask != 1)):
-        raise ValueError('Binary mask should consist only of values 0 or 1.')
-    
-    # Check if the binary mask contains only 0's
-    if np.all(binary_mask == 0):
-        raise ValueError('Binary mask is empty but should contain at'  
-                         'least one value of 1.')
+        # Check if the binary mask contains only 0's and 1's
+        if not np.all(np.logical_or(mask == 0, mask == 1)):
+            raise ValueError('Binary mask should consist only of values 0 or 1.')
 
-    # Use np.argwhere to find the coordinates of non-zero (1) elements in the binary mask
-    tils_coords = np.argwhere(binary_mask == 1)
+        # Check if the binary mask contains only 0's
+        if np.all(mask == 0):
+            raise ValueError('Binary mask is empty but should contain at least one value of 1.')
+        
+        # Use np.argwhere to find the coordinates of non-zero (1) elements in the binary mask
+        tils_coords = np.argwhere(mask == 1)
+        features = tils_coords
 
-    # Prepare coordinates as your feature matrix
-    features = tils_coords
+    else:
+        # For RGB masks, it should be a 3D array
+        if not isinstance(mask, np.ndarray) or mask.ndim != 3:
+            raise ValueError("RGB mask should be a 3D numpy array representing an image.")
+
+        # Check if the mask contains RGB values
+        if mask.shape[2] != 3:
+            raise ValueError('RGB mask should have 3 channels (RGB).')
+        
+        # For RGB mask, find the coordinates where all three channels are non-zero
+        tils_coords = np.argwhere(np.all(mask != 0, axis=2)) # get all non-zero elements in the RGB channels (axis=2)
+        rgb_values = mask[tils_coords[:, 0], tils_coords[:, 1]] # get the row & column indices of coordinates
+        features = np.hstack((tils_coords, rgb_values)) # horizontally stack arrays
 
     return features
 
 def km_dbscan_wrapper(mask: np.ndarray, 
-                      hyperparameter_dict, 
-                      save_filepath: str, 
+                      hyperparameter_dict: dict, 
+                      save_filepath: str,
+                      binary_flag: bool = True, 
                       print_flag: bool = True):
     """
     Generates a fitted dbscan model and labels when provided a binary mask 
@@ -165,12 +180,12 @@ def km_dbscan_wrapper(mask: np.ndarray,
     if not os.path.exists(save_filepath) or not os.path.isdir(save_filepath):
         raise FileNotFoundError("Directory '{}' does not exist.".format(save_filepath))
 
-    # Ensuring the mask is a 2D array
-    if not isinstance(mask, np.ndarray) or mask.ndim != 2:
-        raise ValueError("Input 'mask' must be a 2D NumPy array.")
+    # # Ensuring the mask is a 2D array
+    # if not isinstance(mask, np.ndarray) or mask.ndim != 2:
+    #     raise ValueError("Input 'mask' must be a 2D NumPy array.")
     
     #Generate Spatial Coordiantes
-    features = mask_to_features(mask)
+    features = mask_to_features(mask, binary_flag=binary_flag)
 
     # DBSCAN Model Fitting
     dbscan = sklearn.cluster.DBSCAN(**hyperparameter_dict)
@@ -213,7 +228,7 @@ def km_dbscan_wrapper(mask: np.ndarray,
 def kmean_to_spatial_model_superpatch_wrapper(superpatch_path: str,
                                             in_dir_path: str,
                                             spatial_hyperparameters: dict,
-                                            n_clusters: list = [1,2,4,5,6,7,8,9],
+                                            n_clusters: list = None,
                                             out_dir_path: str = None,
                                             save_TILs_overlay: bool = False,
                                             save_cluster_masks: bool = False,
@@ -283,23 +298,29 @@ def kmean_to_spatial_model_superpatch_wrapper(superpatch_path: str,
     if not os.path.exists(out_dir_path) or not os.path.isdir(out_dir_path):
         raise FileNotFoundError("Directory '{}' does not exist.".format(out_dir_path))
 
-    #Opens Superpatch Image / Retrieves Pixel Data
+    # Opens Superpatch Image / Retrieves Pixel Data
     img = Image.open(superpatch_path)
     numpy_img = np.array(img)
     numpy_img_reshape = np.float32(numpy_img.reshape((-1, 3))/255.)
+
+    # Setting default value of n=4 if not provided
+    if n_clusters is None:
+        n_clusters = [4]
+        hyperparameter_dict = {'n_clusters': n_clusters}  
     
-    #Kmeans Optimizing
-    t0 = time.time()
-    hyperparameter_dict = opt_kmeans(numpy_img_reshape,n_clusters)
-    tf = time.time()
-    print(f"Found hyperparameters. Time took: {(tf-t0)/60} minutes.")
+    # Kmeans Optimizing
+    if n_clusters is not None:
+        t0 = time.time()
+        hyperparameter_dict = opt_kmeans(numpy_img_reshape, n_clusters)
+        tf = time.time()
+        print(f"Found hyperparameters. Time took: {(tf-t0)/60} minutes.")
     
-    #Kmeans Fitting
-    kmeans_fit = KMeans_superpatch_fit(superpatch_path,hyperparameter_dict, random_state = random_state)
+    # Kmeans Fitting
+    kmeans_fit = KMeans_superpatch_fit(superpatch_path, hyperparameter_dict, random_state = random_state)
     tf2 = time.time()
     print(f"Completed Kmeans fitting. Time took: {(tf2-tf)/60} minutes.")
     
-    #Run Segmentation on Kmeans Model
+    # Run Segmentation on Kmeans Model
     TIL_count_dict, kmean_labels_dict,cluster_mask_dict, cluster_index_dict = segment_TILs(in_dir_path,
                  out_dir_path,
                  None,
