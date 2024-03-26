@@ -155,8 +155,7 @@ def mask_to_features(mask: np.ndarray = None,
 def km_dbscan_wrapper(mask: np.ndarray, 
                       hyperparameter_dict: dict, 
                       save_filepath: str,
-                      binary_flag: bool = True, 
-                      print_flag: bool = True):
+                      binary_flag: bool = True):
     """
     Generates a fitted dbscan model and labels when provided a binary mask 
     2D array for the KMeans cluster with the highest contour count. A plot of 
@@ -209,18 +208,19 @@ def km_dbscan_wrapper(mask: np.ndarray,
     plt.imshow(all_labels, cmap='viridis')  # Change the colormap as needed
     plt.colorbar()
     plt.title('DBSCAN Clustering Result')
+    plt.show()
 
-    plt.savefig(os.path.join(save_filepath, 'ClusteringResults', 'dbscan_result_colorbar.jpg'))
-    if print_flag:
-        plt.show()
-    else:
-        plt.close()
+    # plt.savefig(os.path.join(save_filepath, 'ClusteringResults', 'dbscan_result_colorbar.jpg'))
+    # if print_flag:
+    #     plt.show()
+    # else:
+    #     plt.close()
         
-    plt.figure(figsize=(8, 6))
-    plt.axis('off')
-    plt.imshow(all_labels, cmap='viridis');  # Change the colormap as needed
-    plt.imsave(os.path.join(save_filepath, 'ClusteringResults', 'dbscan_result.jpg'), all_labels)
-    plt.close()
+    # plt.figure(figsize=(8, 6))
+    # plt.axis('off')
+    # plt.imshow(all_labels, cmap='viridis');  # Change the colormap as needed
+    # plt.imsave(os.path.join(save_filepath, 'ClusteringResults', 'dbscan_result.jpg'), all_labels)
+    # plt.close()
     
     return all_labels, dbscan
 
